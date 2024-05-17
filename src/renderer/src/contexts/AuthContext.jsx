@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }) => {
         setAuth(true)
       } catch (error) {
         setloadingLocalUser(false)
+        alert(error)
         console.log(error)
       }
     })()
@@ -86,14 +87,14 @@ export const AuthProvider = ({ children }) => {
 
           }
         } catch (error) {
-          console.error('Error fetching user data:', error);
-          logout()
+             console.error('Error fetching user data:', error);
+             if(loadingLocalUser==false) logout()
         } finally {
           setLoading(false);
         }
       };
 
-      if(loadingLocalUser==null) {
+      if(loadingLocalUser==null || loadingLocalUser==true) {
         return
       }
 

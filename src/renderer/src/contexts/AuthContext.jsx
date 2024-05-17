@@ -30,7 +30,6 @@ export const AuthProvider = ({ children }) => {
         setAuth(true)
       } catch (error) {
         setloadingLocalUser(false)
-        alert(error)
         console.log(error)
       }
     })()

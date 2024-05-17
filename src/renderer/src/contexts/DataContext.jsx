@@ -8,7 +8,7 @@ const DataContext = createContext();
 export const DataProvider = ({ children }) => {
 
 
-  let process={env:{REACT_APP_BASE_URL:'https://fms-server-cs9f.onrender.com'}}
+  let process={env:{REACT_APP_BASE_URL:'https://server-fms.onrender.com'}}
 
   const {token,user} = useAuth();
 

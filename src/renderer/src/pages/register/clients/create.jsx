@@ -103,10 +103,10 @@ import PouchDB from 'pouchdb';
                   }
                    try{
                      if(id){
-                        _update('client',[{...formData}])
+                        _update('clients',[{...formData}])
                         toast.success('Cliente actualizado')
                      }else{
-                        _add('client',[{...formData,id:Math.random(),_id:Math.random().toString()}])
+                        _add('clients',[{...formData,id:Math.random(),_id:Math.random().toString()}])
                         setVerifiedInputs([])
                         toast.success('Cliente adicionado')
                         setFormData(initial_form)

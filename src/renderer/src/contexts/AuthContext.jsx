@@ -2,12 +2,14 @@ import axios from 'axios';
 import { createContext, useContext, useState, useEffect} from 'react';
 import toast from 'react-hot-toast';
 import PouchDB from 'pouchdb';
+import { useData } from './DataContext';
+
 const AuthContext = createContext();
 
 
 export const AuthProvider = ({ children }) => {
-
-  let process={env:'https://server-fms.onrender.com'}
+  
+  let process={env:'http://server-fms.onrender.com'}  //https://server-fms.onrender.com
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
@@ -15,9 +17,15 @@ export const AuthProvider = ({ children }) => {
   const [loadingLocalUser,setloadingLocalUser]=useState(null)
 
   const db={
-    user:new PouchDB('user'),
-    managers:new PouchDB('managers')
+    managers:new PouchDB('managers'),
+    clients:new PouchDB('clients'),
+    suppliers:new PouchDB('suppliers'),
+    account_categories:new PouchDB('account_categories'),
+    bills_to_pay:new PouchDB('bills_to_pay'),
+    user:new PouchDB('user')
   }
+
+  
   
   useEffect(()=>{
     (async()=>{
@@ -30,9 +38,10 @@ export const AuthProvider = ({ children }) => {
         setAuth(true)
       } catch (error) {
         setloadingLocalUser(false)
-        console.log(error)
       }
     })()
+
+    
   },[])
 
 
@@ -48,10 +57,11 @@ export const AuthProvider = ({ children }) => {
   const logout =async () => {
     setUser(null);
     setToken(null);
-    let user=await  db.user.get('user')
-    db.user.remove(user)
-    db.managers.destroy() 
-    db.user.destroy() 
+    //let user=await  db.user.get('user')
+    //db.user.remove(user)
+    Object.keys(db).forEach((i,_i)=>{
+      db[i].destroy()
+    })
     localStorage.removeItem('token');
   };
 

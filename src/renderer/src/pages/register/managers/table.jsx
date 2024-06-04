@@ -94,7 +94,7 @@ export default function Table({itemsToDelete,setItemsToDelete}) {
                 width: 170,
                 renderCell: (params) => (
                    <div style={{opacity:.8}}>
-                        <span style={{marginRight:'1rem',cursor:'pointer'}} onClick={()=>navigate('/manager/'+params.row._id)}>
+                        <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/manager/'+params.row._id)}>
                             <EditOutlinedIcon/>
                         </span>
                         <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>

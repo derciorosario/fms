@@ -36,6 +36,8 @@ function App() {
             localStorage.setItem('token',response.token);
         }catch(e){
             toast.remove()
+
+            console.log(e)
             
           if(e.response){
                 if(e.response.status==404){

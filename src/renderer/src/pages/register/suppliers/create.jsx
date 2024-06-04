@@ -103,10 +103,10 @@ import PouchDB from 'pouchdb';
                   }
                    try{
                      if(id){
-                        _update('supplier',[{...formData}])
+                        _update('suppliers',[{...formData}])
                         toast.success('Fornecedor actualizado')
                      }else{
-                        _add('supplier',[{...formData,id:Math.random(),_id:Math.random().toString()}])
+                        _add('suppliers',[{...formData,id:Math.random(),_id:Math.random().toString()}])
                         setVerifiedInputs([])
                         toast.success('Fornecedor adicionado')
                         setFormData(initial_form)
@@ -194,7 +194,7 @@ import PouchDB from 'pouchdb';
                        <div className="add_select hidden">
                          <div className="w-[100%] flex">
        
-                         <Autocomplete
+                          <Autocomplete
                                multiple
                                id="size-small-outlined-multi"
                                size="small"
@@ -212,6 +212,8 @@ import PouchDB from 'pouchdb';
                             </div>
                            
                          </div>
+
+
                        <div>
                         <TextField
                            id="outlined-textarea"
@@ -283,7 +285,7 @@ import PouchDB from 'pouchdb';
                        <div className="w-[100%]">
                        <TextField
                                id="outlined-multiline-static"
-                               label="Obsrvações"
+                               label="Observações"
                                multiline
                                rows={4}
                                value={formData.motes}

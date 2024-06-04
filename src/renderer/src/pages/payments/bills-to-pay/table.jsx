@@ -1,16 +1,60 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Box from '@mui/material/Box';
 import { DataGrid } from '@mui/x-data-grid';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-export default function Table() {
-        const columns = [
-            {
+import TableLoader from '../../../components/progress/TableProgress'
+import { useData } from '../../../contexts/DataContext';
+import {useParams, useNavigate} from 'react-router-dom';
+import PouchDB from 'pouchdb';
+
+export default function Table({setItemsToDelete}) {
+       const {_bills_to_pay,_get,_loaded}= useData()
+       const navigate=useNavigate()
+       const [selectedItems,setSelectedItems]=React.useState([])
+       const [rows,setRows]=React.useState(_bills_to_pay)
+       const [accountCategories,setAccountCategories]=React.useState([])
+
+       useEffect(()=>{
+         (async()=>{
+            _get('bills_to_pay')
+            try {
+              let docs=await new PouchDB('account_categories').allDocs({ include_docs: true })
+              setAccountCategories(docs.rows.map(i=>i.doc))
+            } catch (error) {
+                console.log(error)
+            }
+          })()
+       },[])
+ 
+       useEffect(()=>{
+              setRows(_bills_to_pay)
+       },[_bills_to_pay])
+
+     
+
+       const columns = [
+                {
+                  field: 'edit',
+                  headerName: '',
+                  width: 90,
+                  renderCell: (params) => (
+                    <div style={{opacity:.6}}>
+                          <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/bills-to-pay/'+params.row._id)}>
+                              <EditOutlinedIcon/>
+                          </span>
+                          <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
+                              <DeleteOutlineOutlinedIcon/>
+                          </span>
+                    </div>
+                  )
+              },
+              {
                 field: 'name',
                 headerName: 'Nome',
                 width: 150,
                 renderCell: (params) => (
-                  <span>{params.row.name ? params.row.name : '-'}</span>
+                  <span>{accountCategories.filter(i=>i.id==params.row.account_id)[0]?.name}</span>
                 ),
               },
               {
@@ -18,7 +62,7 @@ export default function Table() {
                 headerName: 'Valor',
                 width: 150,
                 renderCell: (params) => (
-                  <span>{params.row.amount ? params.row.amount : '-'}</span>
+                  <span>{params.row.amount ? new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(parseFloat(params.row.amount))  : '-'}</span>
                 ),
               },
               {
@@ -29,15 +73,29 @@ export default function Table() {
                   <span>{params.row.description ? params.row.description : '-'}</span>
                 ),editable: true,
               },
-
-               {
-                field: 'due',
-                headerName: 'Praso de pagamento',
+              {
+                field: 'account_origin',
+                headerName: 'Tipo de conta',
                 width: 150,
                 renderCell: (params) => (
-                  <span>{params.row.due ? params.row.due : '-'}</span>
+                  <span>{params.row.account_origin=="supplier" ? 'Fornecedor' : params.row.account_origin=="expenses" ? 'Despesa' : 'Estado'}</span>
                 ),
-                editable: true,
+              },
+              {
+                field: 'payment_type',
+                headerName: 'Tipo de pagamento',
+                width: 150,
+                renderCell: (params) => (
+                   <span>{params.row.payment_type=="single" ? 'Único' : 'Em prestações'}</span>
+                ),
+              },
+              {
+                field: 'installments',
+                headerName: 'Número de prestações',
+                width: 150,
+                renderCell: (params) => (
+                   <span>{params.row.total_installments}</span>
+                ),
               },
                 {
                 field: 'paid',
@@ -53,7 +111,7 @@ export default function Table() {
               headerName: 'Número da fatura',
               width: 120,
               renderCell: (params) => (
-                <span>{params.row.doc_number ? params.row.doc_number : '-'}</span>
+                <span>{params.row.invoice_number ? params.row.invoice_number : '-'}</span>
               )
             },
 
@@ -63,55 +121,47 @@ export default function Table() {
               width: 120,
               renderCell: (params) => (
                 <div>
-                   
-                        <span style={{backgroundColor:!params.row.status || params.row.status=='paid' ? '#C9E8E8': '#F3D4D1', color: '#111' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='paid' || !params.row.status ? 'Pago' : 'Vencido'}</span>
-                   
+                  
+                        <span style={{backgroundColor:!params.row.status || params.row.status=='paid' ? '#C9E8E8':params.row.status=='pending' ? 'rgb(255 244 198)': '#F3D4D1', color: '#111' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='paid' || !params.row.status ? 'Pago' : params.row.status=='pending' ? 'Pendente' : 'Vencido'}</span>
+                  
                 </div>
               )
             },
-
             {
               field: 'pay_day',
               headerName: 'Data de pagamento',
               width: 170,
               renderCell: (params) => (
-              <span>24/02/2024</span>
+                <span>{params.row.payday ? params.row.payday.split('T')[0] : '-'}</span>
               )
             },
-           
+          
             {
-              field: 'ceatatedAt',
+              field: 'createdAt',
               headerName: 'Data de criação',
               width: 170,
               renderCell: (params) => (
-              <span>24/02/2024</span>
+                <span>{params.row.createdAt ? params.row.createdAt.split('T')[0] : '-'}</span>
               )
             },
             
-            {
-                field: 'edit',
-                headerName: '',
-                width: 170,
-                renderCell: (params) => (
-                   <div style={{opacity:.8}}>
-                        <span style={{marginRight:'1rem',cursor:'pointer'}}>
-                            <EditOutlinedIcon/>
-                        </span>
-                        <span style={{cursor:'pointer'}}>
-                            <DeleteOutlineOutlinedIcon/>
-                        </span>
-                   </div>
-                )
-            }
+           
        
       ];
    
-      const [rows,setRows]=React.useState([
-         {id:1,name:'Aluguer',amount:'14.000,00MT',description:'Pagamento de alguer',status:'-'},
-         {id:2,name:'Compra de energia',amount:'1.000,00MT',paid:'1.000'},
-
-      ])
     
+
+      function handleDelete(id){
+         let ids=JSON.parse(JSON.stringify([...selectedItems.filter(i=>i!=id), id]))
+         setSelectedItems(ids)
+         setItemsToDelete(rows.filter(i=>ids.includes(i.id)).map(i=>i._id))
+      }
+
+      
+      
+
+         
+
     
       return (
         <Box sx={{ height:'400px', width: '100%' }}>
@@ -134,8 +184,9 @@ export default function Table() {
             checkboxSelection
             disableColumnMenu
             disableSelectionOnClick
+            onRowSelectionModelChange={(e)=>setSelectedItems(e)}
             //onSelectionModelChange={handleSelectionModelChange}
-            // localeText={{ noRowsLabel: <CustomNoRowsOverlay loading={!dataLoaded.loans ? true : false}/>}}
+            localeText={{ noRowsLabel: <TableLoader loading={!_loaded.includes('bills_to_pay') ? true : false}/>}}
           />
         </Box>
       );

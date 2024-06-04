@@ -12,14 +12,13 @@ function App() {
   const {makeRequest,_add,_update,_delete} = useData();
   const [itemsToDelete,setItemsToDelete]=React.useState([])
   const [deleteLoading,setDeleteLoading]=React.useState(false)
+  
  
  async function confirmDelete(res){
-    
      setItemsToDelete([])
-    
      if(res){
         let items=JSON.parse(JSON.stringify(itemsToDelete))
-        _delete(items,'clients')
+        _delete(items,'account_categories')
      }
    }
 
@@ -29,7 +28,7 @@ function App() {
   return (
     <>
        <DeleteDialog res={confirmDelete} show={itemsToDelete.length} loading={deleteLoading}/>
-       <DefaultLayout details={{name:'Clientes'}}>
+       <DefaultLayout details={{name:'Categorias'}}>
             <div className="rounded-[0.3rem] shadow bg-white">
               <div className="p-3 flex justify-between">
                    <div>
@@ -43,7 +42,7 @@ function App() {
                      <div className="mr-4 cursor-pointer">
                        <LocalPrintshopOutlinedIcon/>
                      </div>
-                    <Button variant="contained" onClick={()=>navigate('/clients/create')}>Adicionar</Button>
+                    <Button variant="contained" onClick={()=>navigate('/account-categories/create')}>Adicionar</Button>
              
                    </div>
                   
@@ -54,6 +53,5 @@ function App() {
     </>
   )
 }
-
 export default App
 

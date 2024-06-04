@@ -1,18 +1,25 @@
 import React from 'react';
 import DefaultLayout from '../../../layout/DefaultLayout';
 import { Button } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useLocation } from 'react-router-dom';
 import Table from './table'
 import SearchIcon from '@mui/icons-material/Search';
 import MonetizationOn from '@mui/icons-material/MonetizationOn';
 import LocalPrintshopOutlinedIcon from '@mui/icons-material/LocalPrintshopOutlined';
 import DeleteDialog from '../../../components/Dialogs/deleteItem'
 import { useData  } from '../../../contexts/DataContext';
+import toast from 'react-hot-toast';
+import DropdownOptionBtn from '../../../components/MenuDropdown/button-options'
 
 function App() {
-  const {_delete,_get,_bills_to_receive} = useData();
+  const {_delete,_get,_transations} = useData();
   const [itemsToDelete,setItemsToDelete]=React.useState([])
   const [deleteLoading,setDeleteLoading]=React.useState(false)
+
+  let {pathname} = useLocation()
+
+  let type=pathname.includes('inflow') ? 'in' : 'out';
+
  
  async function confirmDelete(res){
     
@@ -20,7 +27,7 @@ function App() {
     
      if(res){
         let items=JSON.parse(JSON.stringify(itemsToDelete))
-        _delete(items,'bills_to_receive')
+        _delete(items,'transations')
      }
    }
 
@@ -41,26 +48,25 @@ function App() {
 
 
 React.useEffect(()=>{
-    let total=_bills_to_receive.filter(i=>!i.deleted).map(item => item.amount).reduce((acc, curr) => acc + curr, 0);
-    let paid=_bills_to_receive.filter(i=>!i.deleted).map(item => item.paid).reduce((acc, curr) => acc + curr, 0);
+    let total=_transations.filter(i=>!i.deleted).map(item => item.amount).reduce((acc, curr) => acc + curr, 0);
+    let paid=_transations.filter(i=>!i.deleted).map(item => item.paid).reduce((acc, curr) => acc + curr, 0);
     setStats({
       total:new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(total),
       paid:new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(paid),
       left:new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(total - paid),
-      total_items:_bills_to_receive.filter(i=>!i.deleted).length,
-      paid_total:_bills_to_receive.filter(i=>!i.deleted && (parseFloat(i.paid) >= parseFloat(i.amount))).length,
-      left_total:_bills_to_receive.filter(i=>!i.deleted && (parseFloat(i.paid) < parseFloat(i.amount))).length
+      total_items:_transations.filter(i=>!i.deleted).length,
+      paid_total:_transations.filter(i=>!i.deleted && (parseFloat(i.paid) >= parseFloat(i.amount))).length,
+      left_total:_transations.filter(i=>!i.deleted && (parseFloat(i.paid) < parseFloat(i.amount))).length
     })
-},[_bills_to_receive])
+
+},[_transations])
 
 
-
-  
   return (
     <>
        <DeleteDialog res={confirmDelete} show={itemsToDelete.length} loading={deleteLoading}/>
        
-       <DefaultLayout details={{name:'Contas a receber'}}>
+       <DefaultLayout details={{name:'Transações de '+(type=="in" ? 'entrada' :'saída')}}>
           <div className="flex items-center pr-[1rem] [&>_div]:shadow-sm [&>_div]:rounded-[0.4rem] mb-5 [&>_div]:min-h-[80px] [&>_div]:min-w-[170px] [&>_div]:mr-[10px] justify-start">
                         <div className="flex border items-center bg-white  px-2 py-2">
                                 <div className="mr-3 opacity-70  flex items-center justify-center size-14 rounded-full bg-slate-200"><MonetizationOn style={{color:'rgb(59,130,246)',width:30,height:30}}/></div> 
@@ -76,7 +82,7 @@ React.useEffect(()=>{
                                 <div className="mr-3 opacity-70 flex items-center justify-center size-14 rounded-full bg-slate-200"><MonetizationOn style={{color:'rgb(59,130,246)',width:30,height:30}}/></div> 
                                 <div className="flex justify-center flex-col">
                                     <span className="text-[15px] text-[#A3AED0] ">Recebido</span>
-                                    <span className="text-[19px] text-[#2B3674]">{stats.paid} </span>
+                                    <span className="text-[19px] text-[#2B3674]">---- </span>
                                 </div>
                                 <span className="absolute hidden bottom-1 right-2 opacity-80 text-[15px]">{stats.paid_total}</span>
                         </div>
@@ -86,7 +92,7 @@ React.useEffect(()=>{
                                 <div className="mr-3 opacity-70 flex items-center justify-center size-14 rounded-full bg-slate-200"><MonetizationOn style={{color:'rgb(59,130,246)',width:30,height:30}}/></div> 
                                 <div className="flex justify-center flex-col">
                                     <span className="text-[15px] text-[#A3AED0] ">Em falta</span>
-                                    <span className="text-[19px] text-[#2B3674]">{stats.left} </span>
+                                    <span className="text-[19px] text-[#2B3674]"> ---- </span>
                                     <span className="absolute hidden bottom-1 right-2 opacity-80 text-[15px]">{stats.left_total}</span>
                                 </div>
                         </div>
@@ -104,7 +110,17 @@ React.useEffect(()=>{
                      <div className="mr-4 cursor-pointer">
                        <LocalPrintshopOutlinedIcon/>
                      </div>
-                    <Button variant="contained" onClick={()=>navigate('/bills-to-receive/create')}>Adicionar</Button>
+                    
+                   
+
+                    <div style={{display:'none'}}>
+                    <DropdownOptionBtn text={'Adicionar'} options={[
+                      {name:'Entrada',path:'/cash-management/input/create'},
+                      {name:'Saída',path:'/cash-management/output/create'}
+                    ]}/>
+                    </div>
+
+                      <Button variant="contained" onClick={()=>navigate(`/cash-management/${type=='in' ? 'inflow':'outflow'}/create`)}>Adicionar</Button>
              
                    </div>
                   

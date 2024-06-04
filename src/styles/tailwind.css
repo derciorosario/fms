@@ -31,9 +31,7 @@ body{
    /* box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);*/
     border-radius: 0.3rem;
 }
-.css-wop1k0-MuiDataGrid-footerContainer{
-    display: none !important;
-}
+
 
 /* Mui inputs**/
 .MuiInputBase-root:not(.Mui-focused) .css-1d3z3hw-MuiOutlinedInput-notchedOutline{
@@ -45,10 +43,26 @@ body{
    background:rgb(59,130,246) !important;
    border-radius: 0.3rem !important;
 }
-
-.MuiAutocomple-popper{
-  display: none !important;
+.css-10o2lyd-MuiStack-root{
+    padding-top: 0 !important;
 }
+.css-1xgnz6y-MuiStack-root{
+    overflow: hidden !important;
+    /*padding-top: 0 !important;*/
+}
+
+.MuiFormLabel-filled.MuiInputLabel-root{
+    top: 0 !important;
+}
+
+/*
+.css-wop1k0-MuiDataGrid-footerContainer{
+    display: none !important;
+}
+
+
+
 [data-popper-placement]{
     display: none !important;
 }
+*/

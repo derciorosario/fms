@@ -15,69 +15,89 @@ export const DataProvider = ({ children }) => {
   const db={
     managers:new PouchDB('managers'),
     clients:new PouchDB('clients'),
-    suppliers:new PouchDB('suppliers')
-    
+    suppliers:new PouchDB('suppliers'),
+    account_categories:new PouchDB('account_categories'),
+    bills_to_pay:new PouchDB('bills_to_pay'),
+    bills_to_receive:new PouchDB('bills_to_receive'),
+    accounts:new PouchDB('accounts'),
+    transations:new PouchDB('transations')
   }
-
 
   const [_managers,setManagers]=useState([])
   const [_clients,setClients]=useState([])
   const [_suppliers,setSuppliers]=useState([])
+  const [_account_categories,setAccountCategories]=useState([])
+  const [_bills_to_pay,setABillsToPay]=useState([])
+  const [_bills_to_receive,setABillsToReceive]=useState([])
+  const [_accounts,setAccounts]=useState([])
+  const [_transations,setTransations]=useState([])
   const [_loaded,setLoaded]=useState([])
 
-  
+  let dbs=[
+    {name:'managers',update:setManagers,db:db.managers,remote:true},
+    {name:'clients',update:setClients,db:db.clients},
+    {name:'suppliers',update:setSuppliers,db:db.suppliers},
+    {name:'account_categories',update:setAccountCategories,db:db.account_categories},
+    {name:'bills_to_pay',update:setABillsToPay,db:db.bills_to_pay},
+    {name:'bills_to_receive',update:setABillsToReceive,db:db.bills_to_receive},
+    {name:'accounts',update:setAccounts,db:db.accounts},
+    {name:'transations',update:setTransations,db:db.transations}
+  ]
 
   useEffect(()=>{
     (async()=>{
-      let dbs=[
-        {name:'managers',update:setManagers,db:db.managers},
-        {name:'clients',update:setClients,db:db.clients},
-        {name:'suppliers',update:setSuppliers,db:db.suppliers}
-      ]
-
       for (let i = 0; i < dbs.length; i++) {
         let docs=await  dbs[i].db.allDocs({ include_docs: true })
         dbs[i].update(docs.rows.map(i=>i.doc).filter(i=>!i.deleted))
         handleLoaded('add',dbs[i].name)
       }
-      
+      init()
     })()
   },[])
 
 
 
+  async function init() {
 
- function _add(from,array){
-        let selected={
-            db:from=="manager" ? db.managers : from=="client" ? db.clients : db.suppliers,
-        }
-        selected.db.put({...array[0]})
+     try{
+        //check main-account
+       let main_account=await db.accounts.get('main')
+       console.log(main_account)
+     }catch(e){
+         if(e?.status=='404'){
+              db.accounts.put({
+                id:'main',
+                _id:'main',
+                name:'Caixa',
+                description:'',
+                main:true,
+                deleted:false
+             }) 
+         }
+     }
+  }
+
+
+ async function _add(from,array){
+       await dbs.filter(i=>i.name==from)[0].db.put({...array[0]})
+        _get(from)
  }
  
  async function _update(from,array){
-            let selected={
-              update:from=="manager" ? setManagers: from=="client" ? setClients :setSuppliers,
-              db:from=="manager" ? db.managers : from=="client" ? db.clients : db.suppliers,
-           }
-           array=array.map(i=>{
-            delete i.__v
-            return i
-           })
-
-          
-            let docs=await selected.db.get(array[0]._id)
-            selected.db.put({...array[0],_rev:docs._rev})
-         
+      let selected=dbs.filter(i=>i.name==from)[0]
+      array=array.map(i=>{
+        delete i.__v
+        return i
+      })
+      let docs=await selected.db.get(array[0]._id)
+      await selected.db.put({...array[0],_rev:docs._rev})
+      _get(from)
  }
 
   async function _get(from){
-    let selected={
-      update:from=="managers" ? setManagers: from=="clients" ? setClients :setSuppliers,
-      db:from=="managers" ? db.managers : from=="clients" ? db.clients : db.suppliers,
-      remote:from=="managers"? true : false
-    }
+    let selected=dbs.filter(i=>i.name==from)[0]
 
-    let response
+   let response
    if(selected.remote){
       response = await makeRequest({method:'get',url:`api/users`, error: ``});
       response=response.map(i=>{
@@ -91,7 +111,7 @@ export const DataProvider = ({ children }) => {
       selected.update(docs.rows.map(i=>i.doc).filter(i=>!i.deleted))
    }
    
-   handleLoaded('add',from)
+    handleLoaded('add',from)
 
   }
 
@@ -106,11 +126,8 @@ export const DataProvider = ({ children }) => {
 
  async function _delete(selectedItems,from){
        
-       let selected={
-        update:from=="managers" ? setManagers: from=="clients" ? setClients :setSuppliers,
-        db:from=="managers" ? db.managers : from=="clients" ? db.clients : db.suppliers,
-          
-       }
+       let selected=dbs.filter(i=>i.name==from)[0]
+       console.log(from,selectedItems)
 
        let docs=await selected.db.allDocs({ include_docs: true })
        docs=docs.rows.map(i=>i.doc).filter(i=>selectedItems.includes(i._id)).map(i=>{
@@ -133,10 +150,14 @@ export const DataProvider = ({ children }) => {
     _clients,
     _loaded,
     _managers,
-    _suppliers
+    _suppliers,
+    _account_categories,
+    _bills_to_pay,
+    _bills_to_receive,
+    _accounts,
+    _transations,
+    dbs
   };
-
-
   async function makeRequest(options={data:{},method:'get'},maxRetries = 6, retryDelay = 3000) {
   
     let postData=options.data ? options.data : {}

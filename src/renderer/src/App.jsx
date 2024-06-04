@@ -38,17 +38,23 @@ import { BrowserRouter, Route, Routes, HashRouter } from 'react-router-dom';
 import Home from './pages/dashboard/index';
 import BillsToPay from './pages/payments/bills-to-pay/index'
 import CreateBillsToPay from './pages/payments/bills-to-pay/create'
+import CreateBillsToReceive from './pages/payments/bills-to-receive/create'
 import BillsToReceive from './pages/payments/bills-to-receive/index'
 import Clients from './pages/register/clients/index'
 import CreateClient from './pages/register/clients/create'
 import Sullpiers from './pages/register/suppliers/index'
 import CreateSupplier from './pages/register/suppliers/create'
 import Managers from './pages/register/managers/index'
+import Transation from './pages/cash-management/transations/index'
+import CreateTransation from './pages/cash-management/transations/create'
+import CashManagementAccounts from './pages/cash-management/accounts/index'
+import CreateCashManagementAccount from './pages/cash-management/accounts/create'
 import CreateManager from './pages/register/managers/create'
+import AccountCategories from './pages/payments/account-categories/index'
+import CreateAccountCategorie from './pages/payments/account-categories/create/'
 import Login from './pages/login/index'
 import ProtectedRoute from './components/ProjectedRoute'
 import Admin from './pages/admin'
-
 
 
 function App() {
@@ -56,10 +62,18 @@ function App() {
 
     <HashRouter>
       <Routes>
+
         <Route path="/" element={<ProtectedRoute redirectTo="/login"> <Home/></ProtectedRoute>} />
         <Route path="/bills-to-pay" element={<ProtectedRoute redirectTo="/login"> <BillsToPay/></ProtectedRoute>} />
         <Route path="/bills-to-receive" element={<ProtectedRoute redirectTo="/login"> <BillsToReceive/> </ProtectedRoute>} />
         <Route path="/bills-to-pay/create" element={<ProtectedRoute redirectTo="/login"> <CreateBillsToPay/> </ProtectedRoute>} />
+        <Route path="/bills-to-pay/:id" element={<ProtectedRoute redirectTo="/login"> <CreateBillsToPay/> </ProtectedRoute>} />
+        <Route path="/bills-to-receive/create" element={<ProtectedRoute redirectTo="/login"> <CreateBillsToReceive/> </ProtectedRoute>} />
+        <Route path="/bills-to-receive/:id" element={<ProtectedRoute redirectTo="/login"> <CreateBillsToReceive/> </ProtectedRoute>} />
+        <Route path="/account-categorie/:id" element={<ProtectedRoute redirectTo="/login"> <CreateAccountCategorie/> </ProtectedRoute>} />
+        <Route path="/account-categories/create" element={<ProtectedRoute redirectTo="/login"> <CreateAccountCategorie/> </ProtectedRoute>} />
+        <Route path="/account-categories" element={<ProtectedRoute redirectTo="/login"> <AccountCategories/> </ProtectedRoute>} />
+        
         <Route path="/clients" element={<ProtectedRoute redirectTo="/login"> <Clients/> </ProtectedRoute>} />
         <Route path="/clients/create" element={<ProtectedRoute redirectTo="/login"> <CreateClient/> </ProtectedRoute>} />
         <Route path="/managers" element={<ProtectedRoute redirectTo="/login"> <Managers/> </ProtectedRoute>} />
@@ -69,9 +83,20 @@ function App() {
         <Route path="/managers/create" element={<ProtectedRoute redirectTo="/login"> <CreateManager/> </ProtectedRoute>} />
         <Route path="/suppliers" element={<ProtectedRoute redirectTo="/login"> <Sullpiers/> </ProtectedRoute>} />
         <Route path="/suppliers/create" element={<ProtectedRoute redirectTo="/login"> <CreateSupplier/> </ProtectedRoute>} />
+
+        <Route path="/cash-management/inflow" element={<ProtectedRoute redirectTo="/login"> <Transation/> </ProtectedRoute>} />
+        <Route path="/cash-management/outflow" element={<ProtectedRoute redirectTo="/login"> <Transation/> </ProtectedRoute>} />
+        <Route path="/cash-management/inflow/create" element={<ProtectedRoute redirectTo="/login"> <CreateTransation/> </ProtectedRoute>} />
+        <Route path="/cash-management/outflow/create" element={<ProtectedRoute redirectTo="/login"> <CreateTransation/> </ProtectedRoute>} />
+        <Route path="/cash-management/:id" element={<ProtectedRoute redirectTo="/login"> <CreateTransation/> </ProtectedRoute>} />
+        <Route path="/cash-management/accounts" element={<ProtectedRoute redirectTo="/login"> <CashManagementAccounts/> </ProtectedRoute>} />
+        <Route path="/cash-management/account/create" element={<ProtectedRoute redirectTo="/login"> <CreateCashManagementAccount/> </ProtectedRoute>} />
+        <Route path="/cash-management/account/:id" element={<ProtectedRoute redirectTo="/login"> <CreateCashManagementAccount/> </ProtectedRoute>} />
+       
         <Route path="/login" element={ <Login/>} />
         <Route path="/admin" element={ <Admin/>} />
         <Route path="/logout" element={<ProtectedRoute redirectTo="/logout">  </ProtectedRoute>} />
+
       </Routes>
 
     </HashRouter>

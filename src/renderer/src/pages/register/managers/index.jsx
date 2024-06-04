@@ -42,7 +42,7 @@ function App() {
             <div className="rounded-[0.3rem] shadow bg-white">
               <div className="p-3 flex justify-between">
                    <div>
-                        <div className="flex h-10 bg-slate-100 items-center px-2 rounded-lg">
+                        <div className="flex h-10  items-center px-2 rounded-lg">
                           <span className="text-white"><SearchIcon style={{ color: '#5D5FEF' }}/></span>
                           <input placeholder="Pesquisar..." type="text" className="outline-none bg-transparent flex-grow px-2 text-indigo-500"/>
                        </div>

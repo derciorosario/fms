@@ -90,9 +90,9 @@ import PouchDB from 'pouchdb';
                      toast.success('Usuário '+(id ? "actualizado" : "criado"))
 
                      if(id){
-                        _update('manager',[response])
+                        _update('managers',[response])
                      }else{
-                        _add('manager',[response])
+                        _add('managers',[response])
                         setVerifiedInputs([])
                         setFormData(initial_form)
                      }

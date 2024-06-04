@@ -4,7 +4,7 @@ import AddIcon from '@mui/icons-material/Add';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import { ButtonBase } from '@mui/material';
 import Dropdown from '../MenuDropdown/index'
-import DropdownTest from '../MenuDropdown/test'
+import DropdownTest from '../MenuDropdown/add'
 import DropDownProfile from '../MenuDropdown/profile'
 import DropDownLangs from '../MenuDropdown/languages'
 
@@ -29,7 +29,7 @@ function App({details}) {
 
     <>
        <div className="flex justify-between shadow items-center p-4 h-16 bg-white">
-            <div><span className="text-black font-normal text-2xl">{details && details.name}</span></div>
+            <div><span className="text-black font-normal text-[18px]">{details && details.name}</span></div>
             <div className="flex items-center">
 
                 <div onClick={(e)=>console.log(e.currentTarget)} className="overflow-hidden relative rounded-full mr-2 cursor-pointer size-9 border border-indigo-500 flex items-center justify-center">
@@ -41,6 +41,8 @@ function App({details}) {
                         {name:'Conta a receber',path:'/bills-to-pay'},
                         {name:'Conta a pagar',path:'/payments-to-receive'}
                     ]}
+
+                    
 
                     handleClose={handleAddMenuClose}
                     anchorEl={addMenuAnchorEl}
@@ -60,6 +62,7 @@ function App({details}) {
                      <div className="mr-6 flex items-center">
                        
                        <DropDownLangs/>
+                       
                       
                      </div>
                     <div className="size-10 rounded-l bg-amber-50 justify-center flex items-center relative">

@@ -14,12 +14,10 @@ function App() {
   const [deleteLoading,setDeleteLoading]=React.useState(false)
  
  async function confirmDelete(res){
-    
      setItemsToDelete([])
-    
      if(res){
         let items=JSON.parse(JSON.stringify(itemsToDelete))
-        _delete(items,'clients')
+        _delete(items,'accounts')
      }
    }
 
@@ -29,7 +27,7 @@ function App() {
   return (
     <>
        <DeleteDialog res={confirmDelete} show={itemsToDelete.length} loading={deleteLoading}/>
-       <DefaultLayout details={{name:'Clientes'}}>
+       <DefaultLayout details={{name:'Contas'}}>
             <div className="rounded-[0.3rem] shadow bg-white">
               <div className="p-3 flex justify-between">
                    <div>
@@ -43,7 +41,7 @@ function App() {
                      <div className="mr-4 cursor-pointer">
                        <LocalPrintshopOutlinedIcon/>
                      </div>
-                    <Button variant="contained" onClick={()=>navigate('/clients/create')}>Adicionar</Button>
+                    <Button variant="contained" onClick={()=>navigate('/cash-management/account/create')}>Adicionar</Button>
              
                    </div>
                   
@@ -54,6 +52,5 @@ function App() {
     </>
   )
 }
-
 export default App
 

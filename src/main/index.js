@@ -21,7 +21,7 @@ function createWindow() {
   })
 
   mainWindow.on('ready-to-show', () => {
-     mainWindow.webContents.session.clearStorageData()
+     //mainWindow.webContents.session.clearStorageData()
     mainWindow.show()
   })
 
@@ -29,7 +29,7 @@ function createWindow() {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
-
+ 
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {

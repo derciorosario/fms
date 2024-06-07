@@ -32,6 +32,7 @@ export const DataProvider = ({ children }) => {
   const [_accounts,setAccounts]=useState([])
   const [_transations,setTransations]=useState([])
   const [_loaded,setLoaded]=useState([])
+  const [_filtered_content,_setFilteredContent]=useState([])
 
   let dbs=[
     {name:'managers',update:setManagers,db:db.managers,remote:true},
@@ -62,7 +63,6 @@ export const DataProvider = ({ children }) => {
      try{
         //check main-account
        let main_account=await db.accounts.get('main')
-       console.log(main_account)
      }catch(e){
          if(e?.status=='404'){
               db.accounts.put({
@@ -94,6 +94,21 @@ export const DataProvider = ({ children }) => {
       _get(from)
  }
 
+ function _sort_by_date(data,feild,type){
+      const parseDate = (dateString) => {
+        const [year, month, day] = dateString.split('-');
+        return new Date(year, month - 1, day);
+      };
+
+      data.sort((a, b) => {
+          const dateA = parseDate(type=='full-string' ? a[feild].split('T')[0] : a[feild]);
+          const dateB = parseDate(type=='full-string' ? b[feild].split('T')[0] : b[feild]);
+          return dateA - dateB;
+      })
+
+      return data
+ }
+
   async function _get(from){
     let selected=dbs.filter(i=>i.name==from)[0]
 
@@ -108,7 +123,7 @@ export const DataProvider = ({ children }) => {
       selected.update(response.reverse())
    }else{
       let docs=await  selected.db.allDocs({ include_docs: true })
-      selected.update(docs.rows.map(i=>i.doc).filter(i=>!i.deleted))
+      selected.update(_sort_by_date(docs.rows.map(i=>i.doc).filter(i=>!i.deleted),'createdAt','full-string'))
    }
    
     handleLoaded('add',from)
@@ -156,6 +171,9 @@ export const DataProvider = ({ children }) => {
     _bills_to_receive,
     _accounts,
     _transations,
+    _sort_by_date,
+    _filtered_content,
+    _setFilteredContent,
     dbs
   };
   async function makeRequest(options={data:{},method:'get'},maxRetries = 6, retryDelay = 3000) {

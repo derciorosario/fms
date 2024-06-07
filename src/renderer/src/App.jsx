@@ -53,6 +53,7 @@ import CreateManager from './pages/register/managers/create'
 import AccountCategories from './pages/payments/account-categories/index'
 import CreateAccountCategorie from './pages/payments/account-categories/create/'
 import Login from './pages/login/index'
+import FinancialReconciliation from './pages/financial-reconciliation/index'
 import ProtectedRoute from './components/ProjectedRoute'
 import Admin from './pages/admin'
 
@@ -73,6 +74,8 @@ function App() {
         <Route path="/account-categorie/:id" element={<ProtectedRoute redirectTo="/login"> <CreateAccountCategorie/> </ProtectedRoute>} />
         <Route path="/account-categories/create" element={<ProtectedRoute redirectTo="/login"> <CreateAccountCategorie/> </ProtectedRoute>} />
         <Route path="/account-categories" element={<ProtectedRoute redirectTo="/login"> <AccountCategories/> </ProtectedRoute>} />
+
+        <Route path="/financial-reconciliation" element={<ProtectedRoute redirectTo="/login"> <FinancialReconciliation/> </ProtectedRoute>} />
         
         <Route path="/clients" element={<ProtectedRoute redirectTo="/login"> <Clients/> </ProtectedRoute>} />
         <Route path="/clients/create" element={<ProtectedRoute redirectTo="/login"> <CreateClient/> </ProtectedRoute>} />

@@ -7,6 +7,9 @@ import PeopleAltIcon from '@mui/icons-material/PeopleAltOutlined';
 import BurgerIcon from '@mui/icons-material/Menu'
 import {useLocation,useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import PublishedWithChangesOutlinedIcon from '@mui/icons-material/PublishedWithChangesOutlined';
+import PriceChangeOutlinedIcon from '@mui/icons-material/PriceChangeOutlined';
+import CurrencyExchangeOutlinedIcon from '@mui/icons-material/CurrencyExchangeOutlined';
 
 function App({details}) {
     const {user}=useAuth()
@@ -76,7 +79,8 @@ function App({details}) {
             {name:'Clientes',path:'/clients',field:'clients',paths:['/clients','/clients/create'],icon:'PaymentsOutlinedIcon'},
             {name:'Fornecedores',path:'/suppliers',field:'suppliers',paths:['/suppliers','/suppliers/create'],icon:'PaymentsOutlinedIcon'},
             {name:'Gestores',path:'/managers',field:'managers',paths:['/managers','/managers/create','/manager/'],icon:'PaymentsOutlinedIcon'}
-        ]}
+        ]},
+        {name:'Conciliação financeira',path:'/financial-reconciliation',paths:['/financial-reconciliation'],field:'financial-reconciliation',icon:'PriceChangeOutlinedIcon'},
     ]
     
     const getIconStyle = (fieldName) => ({
@@ -89,6 +93,7 @@ function App({details}) {
         GridViewIcon: <GridViewIcon style={getIconStyle('dashboard')} />,
         PaymentsOutlinedIcon: <PaymentsOutlinedIcon style={getIconStyle('payments')} />,
         PeopleAltIcon: <PeopleAltIcon style={getIconStyle('register')} />,
+        PriceChangeOutlinedIcon:<PriceChangeOutlinedIcon  style={getIconStyle('financial-reconciliation')}/>,
         MonetizationOnOutlinedIcon: <MonetizationOnOutlinedIcon style={getIconStyle('cash-management')} />,
         test: <PeopleAltIcon style={{color:'#737791'}} />,
     }

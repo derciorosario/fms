@@ -513,7 +513,7 @@ import {useLocation,useNavigate } from 'react-router-dom';
                       </div>
                       <div>
                         <FormControl sx={{ m: 1, width: '100%',margin:0,height:40 }} size="small">
-                                <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Método de recebimento</InputLabel>
+                                <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Método de pagamento</InputLabel>
                                 <Select
                                 labelId="demo-simple-select-error-label"
                                 id="demo-simple-select-error"

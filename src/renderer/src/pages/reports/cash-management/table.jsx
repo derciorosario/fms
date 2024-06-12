@@ -5,39 +5,23 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import TableLoader from '../../../components/progress/TableProgress'
 import { useData } from '../../../contexts/DataContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import {useParams, useNavigate} from 'react-router-dom';
 export default function Table({itemsToDelete,setItemsToDelete}) {
-       const {_accounts,_get,_loaded,_transations}= useData()
+       const {_account_categories,_get,_loaded}= useData()
        const navigate=useNavigate()
        const [selectedItems,setSelectedItems]=React.useState([])
-
-      
        const columns = [
-            {
-                field: 'edit',
-                headerName: '',
-                width:100,
-                renderCell: (params) => (
-                  <div style={{opacity:.6}}>
-                        <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/cash-management/account/'+params.row._id)}>
-                            <EditOutlinedIcon/>
-                        </span>
-                        <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer',display:params.row.main ? 'flex' :'nonel'}}>
-                            <DeleteOutlineOutlinedIcon/>
-                        </span>
-                  </div>
-                )
-            },
             {
                 field: 'name',
                 headerName: 'Nome',
                 width: 150,
                 renderCell: (params) => (
-                  <span  style={{color:params.row.main ? 'rgb(59 130 246)' :'#000'}}>{params.row.name ? params.row.name : '-'}</span>
+                  <span>{params.row.name ? params.row.name : '-'}</span>
                 ),
               },
               {
-                field: 'desc',
+                field: 'last_name',
                 headerName: 'Descrição',
                 width: 150,
                 renderCell: (params) => (
@@ -45,25 +29,49 @@ export default function Table({itemsToDelete,setItemsToDelete}) {
                 ),
               },
               {
-                field: 'available',
-                headerName: 'Saldo disponivel',
+                field: 'email',
+                headerName: 'Tipo de conta',
                 width: 150,
                 renderCell: (params) => (
-                  <span>{new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(_transations.filter(i=>i.transation_account.id==params.row.id).map(item => parseFloat(item.type=="in" ? item.amount : - (item.amount))).reduce((acc, curr) => acc + curr, 0))}</span>
+                  <span>{params.row.type=="fixed" ? 'Fixa' : 'Variável'}</span>
                 ),
               },
+              {
+                field: 'origin',
+                headerName: 'Origen',
+                width: 150,
+                renderCell: (params) => (
+                  <span>{params.row.account_origin=="supplier" ? 'Fornecedor' : params.row.account_origin=="expenses" ? 'Despesa' : params.row.account_origin== 'state' ? 'Estado' : params.row.account_origin=="client" ? 'Cliente' : params.row.account_origin=="investments" ? 'Investimentos' : 'Outros'}</span>
+                ),
+              },
+             
+            {
+                field: 'edit',
+                headerName: '',
+                width: 170,
+                renderCell: (params) => (
+                   <div style={{opacity:.8}}>
+                        <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/account-categorie/'+params.row._id)}>
+                            <EditOutlinedIcon/>
+                        </span>
+                        <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
+                            <DeleteOutlineOutlinedIcon/>
+                        </span>
+                   </div>
+                )
+            }
+       
       ];
    
-      const [rows,setRows]=React.useState(_accounts)
+      const [rows,setRows]=React.useState(_account_categories)
 
       useEffect(()=>{
-        _get('accounts')
-        _get('transations')
+        _get('account_categories')
       },[])
 
       useEffect(()=>{
-             setRows(_accounts.filter(i=>i.main).concat(_accounts.filter(i=>!i.main)))
-      },[_accounts])
+             setRows(_account_categories)
+      },[_account_categories])
 
       function handleDelete(id){
          let ids=JSON.parse(JSON.stringify([...selectedItems.filter(i=>i!=id), id]))
@@ -71,6 +79,7 @@ export default function Table({itemsToDelete,setItemsToDelete}) {
          setItemsToDelete(rows.filter(i=>ids.includes(i.id)).map(i=>i._id))
       }
 
+      
       return (
         <Box sx={{ height:'400px', width: '100%' }}>
           <DataGrid
@@ -94,7 +103,7 @@ export default function Table({itemsToDelete,setItemsToDelete}) {
             disableSelectionOnClick
             onRowSelectionModelChange={(e)=>setSelectedItems(e)}
             //onSelectionModelChange={handleSelectionModelChange}
-            localeText={{ noRowsLabel: <TableLoader loading={!_loaded.includes('accounts') ? true : false}/>}}
+            localeText={{ noRowsLabel: <TableLoader loading={!_loaded.includes('account_categories') ? true : false}/>}}
           />
         </Box>
       );

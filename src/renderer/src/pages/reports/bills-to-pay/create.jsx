@@ -15,22 +15,16 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
-import { Autocomplete, Button} from '@mui/material';
+import { Autocomplete} from '@mui/material';
 import dayjs from 'dayjs';
 import 'dayjs/locale/en-gb';
 import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
 import InstallentsDialog from '../../../components/Dialogs/Intallments'
 import PouchDB from 'pouchdb';
 import moment from 'moment';
-import AttachmentIcon from '@mui/icons-material/Attachment';
-import FilePresentIcon from '@mui/icons-material/FilePresent';
-import RestorePageOutlinedIcon from '@mui/icons-material/RestorePageOutlined';
-
+       
        function App() {
 
-         /// const { ipcRenderer } = window.require('electron');
-
-       
           const {_account_categories,_get,_suppliers}=useData()
 
           const { id } = useParams()
@@ -38,7 +32,6 @@ import RestorePageOutlinedIcon from '@mui/icons-material/RestorePageOutlined';
           const db={
             bills_to_pay:new PouchDB('bills_to_pay')
           } 
-
 
 
 
@@ -140,7 +133,6 @@ import RestorePageOutlinedIcon from '@mui/icons-material/RestorePageOutlined';
 
         
          
-
             let initial_form={
                account_id:'',
                type:'fixed',
@@ -158,8 +150,7 @@ import RestorePageOutlinedIcon from '@mui/icons-material/RestorePageOutlined';
                payment_origin:'cash',
                reference:{id:null,name:''},
                status:'pending',
-               createdAt:new Date().toISOString(),
-               files:[]
+               createdAt:new Date().toISOString()
 
            }
            
@@ -355,26 +346,6 @@ import RestorePageOutlinedIcon from '@mui/icons-material/RestorePageOutlined';
                }
                setValid(v)
           },[formData])
-
-
-
-          const handleFileChange = (event) => {
-            console.log('hi')
-            return
-            const file = event.target.files[0];
-            if (file) {
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                 // setFileContent(e.target.result);
-                const filePath = `path/${file.name}`;
-                fs.writeFileSync(filePath, e.target.result);
-              };
-              reader.readAsText(file);
-            }
-          }
-
-
-          
 
 
          
@@ -679,6 +650,13 @@ import RestorePageOutlinedIcon from '@mui/icons-material/RestorePageOutlined';
                            </div>
                </div>
 
+               <div>
+                      <span>asdasd</span>
+                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="file_input">Upload file</label>
+                      <input className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" id="file_input" type="file"/>
+
+               </div>
+
                <div className="hidden">
                         <FormControl sx={{ m: 1, width: '100%',margin:0,height:40 }} size="small">
 
@@ -707,13 +685,10 @@ import RestorePageOutlinedIcon from '@mui/icons-material/RestorePageOutlined';
                         </FormControl>
                    </div>
 
-                   <div className="border rounded-[2px] relative cursor-pointer">
-                     <label>
-                        <Button sx={{width:'100%'}} endIcon={<FilePresentIcon/>}>Anexar comprovativo</Button>
-                        <input onChange={handleFileChange} className="w-full h-full absolute top-0 left-0 opacity-0" type="file"/>
-                     </label>
-                   </div>
+                  
                </div>
+
+               
 
                <div className="px-3 mb-2">
                       <LoadingButton

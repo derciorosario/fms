@@ -22,9 +22,12 @@ export const AuthProvider = ({ children }) => {
     suppliers:new PouchDB('suppliers'),
     account_categories:new PouchDB('account_categories'),
     bills_to_pay:new PouchDB('bills_to_pay'),
+    bills_to_receive:new PouchDB('bills_to_receive'),
+    accounts:new PouchDB('accounts'),
+    transations:new PouchDB('transations'),
     user:new PouchDB('user')
   }
-
+  
   
   
   useEffect(()=>{
@@ -57,9 +60,9 @@ export const AuthProvider = ({ children }) => {
   const logout =async () => {
     setUser(null);
     setToken(null);
-    //let user=await  db.user.get('user')
-    //db.user.remove(user)
-    Object.keys(db).forEach((i,_i)=>{
+    let user=await  db.user.get('user')
+    db.user.remove(user)
+    Object.keys(db).filter(i=>i!='user').forEach((i,_i)=>{
       db[i].destroy()
     })
     localStorage.removeItem('token');

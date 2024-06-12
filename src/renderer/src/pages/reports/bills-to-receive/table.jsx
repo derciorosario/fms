@@ -3,123 +3,44 @@ import Box from '@mui/material/Box';
 import { DataGrid } from '@mui/x-data-grid';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import TableLoader from '../../components/progress/TableProgress'
-import { useData } from '../../contexts/DataContext';
+import TableLoader from '../../../components/progress/TableProgress'
+import { useData } from '../../../contexts/DataContext';
 import {useParams, useNavigate} from 'react-router-dom';
 import PouchDB from 'pouchdb';
 
-export default function Table({setItemsToDelete,_setFilteredContent,search,filterOptions,periodFilters}) {
-       const {_bills_to_pay,_get,_loaded}= useData()
-       const data= useData()
+export default function Table({setItemsToDelete}) {
+       const {_bills_to_receive,_get,_loaded}= useData()
        const navigate=useNavigate()
        const [selectedItems,setSelectedItems]=React.useState([])
-       const [rows,setRows]=React.useState(_bills_to_pay)
+       const [rows,setRows]=React.useState(_bills_to_receive)
        const [accountCategories,setAccountCategories]=React.useState([])
 
 
-
-       function search_f(array){
-
-        function search_from_object(object,text){
-               text=search
-               let add=false
-               Object.keys(object).forEach(k=>{
-                 if(typeof object[k]=="string" || typeof object[k]=="number"){
-                    if(typeof object[k]=="number") object[k]=`${object[k]}`
-                    if(object[k].toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(text.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))){
-                      add=true
-                   }
-                 }
-               })
-               return add
-            }
-    
-          if (!array) return []
-    
-          let d=JSON.parse(JSON.stringify(array))
-    
-          if(periodFilters.startDate){
-              if(periodFilters.igual){
-                d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() >= periodFilters.startDate.getTime())
-              }else{
-                d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() <= periodFilters.startDate.getTime())
-              }
-          }
-    
-          if(periodFilters.endDate){
-              if(periodFilters.igual){
-                d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() <= periodFilters.endDate.getTime())
-              }else{
-                d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() >= periodFilters.endDate.getTime())
-              }
-          }
-    
-    
-          filterOptions.forEach(f=>{
-               let g=f.groups
-               let igual=f.igual
-               g.filter(g=>{
-    
-                      if(g.field=='transation_type' && g.selected_ids.length){
-                         d=d.filter(i=>(igual ?  g.selected_ids.includes(i.type) : !g.selected_ids.includes(i.type)))
-                      }
-    
-                      if(g.field=='if_consiliated' && g.selected_ids.length){
-                         d=d.filter(i=>(igual ?  g.selected_ids.includes(!!(i.confirmed)) : !g.selected_ids.includes(!!(i.confirmed))))
-                      }
-    
-    
-                      if(g.field=='_accounts' && g.selected_ids.length){
-                        d=d.filter(i=>(igual ?  g.selected_ids.includes(i.transation_account.id) : !g.selected_ids.includes(i.transation_account.id)))
-                      }    
-    
-               })
-    
-    
-          })
-    
-    
-          let res=[]
-          d.forEach((t,i)=>{
-            if(search_from_object(t)) {
-                res.push(array.filter(j=>j.id==t.id)[0])
-            }
-          })
-    
-          _setFilteredContent([Math.random()])
-          return res
-    
-       }
-
-       
-
-
        useEffect(()=>{
-         (async()=>{
-            _get('bills_to_pay')
-            try {
-              let docs=await new PouchDB('account_categories').allDocs({ include_docs: true })
-              setAccountCategories(docs.rows.map(i=>i.doc))
-            } catch (error) {
-                console.log(error)
-            }
-          })()
-       },[])
+        (async()=>{
+          _get('bills_to_receive')
+           try {
+             let docs=await new PouchDB('account_categories').allDocs({ include_docs: true })
+             setAccountCategories(docs.rows.map(i=>i.doc))
+           } catch (error) {
+               console.log(error)
+           }
+         })()
+      },[])
  
        useEffect(()=>{
-              setRows(search_f(_bills_to_pay))
-       },[data])
+              setRows(_bills_to_receive)
+       },[_bills_to_receive])
 
-     
 
        const columns = [
-                {
+            {
                   field: 'edit',
                   headerName: '',
                   width: 90,
                   renderCell: (params) => (
                     <div style={{opacity:.6}}>
-                          <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/bills-to-pay/'+params.row._id)}>
+                          <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/bills-to-receive/'+params.row._id)}>
                               <EditOutlinedIcon/>
                           </span>
                           <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
@@ -146,7 +67,7 @@ export default function Table({setItemsToDelete,_setFilteredContent,search,filte
               },
               {
                 field: 'description',
-                headerName: 'Descrição de pagamento',
+                headerName: 'Descrição de recebimento',
                 width: 170,
                 renderCell: (params) => (
                   <span>{params.row.description ? params.row.description : '-'}</span>
@@ -157,12 +78,12 @@ export default function Table({setItemsToDelete,_setFilteredContent,search,filte
                 headerName: 'Tipo de conta',
                 width: 150,
                 renderCell: (params) => (
-                  <span>{params.row.account_origin=="supplier" ? 'Fornecedor' : params.row.account_origin=="expenses" ? 'Despesa' : 'Estado'}</span>
+                  <span>{params.row.account_origin=="client" ? 'Cliente' : params.row.account_origin=="investments" ? 'Investimentos' : 'Outros'}</span>
                 ),
               },
               {
                 field: 'payment_type',
-                headerName: 'Tipo de pagamento',
+                headerName: 'Tipo de recebimento',
                 width: 150,
                 renderCell: (params) => (
                    <span>{params.row.payment_type=="single" ? 'Único' : 'Em prestações'}</span>
@@ -178,7 +99,7 @@ export default function Table({setItemsToDelete,_setFilteredContent,search,filte
               },
                 {
                 field: 'paid',
-                headerName: 'Valor pago ',
+                headerName: 'Valor recebido ',
                 width: 170,
                 renderCell: (params) => (
                 <span>{params.row.paid ? params.row.paid : '-'}</span>
@@ -201,14 +122,14 @@ export default function Table({setItemsToDelete,_setFilteredContent,search,filte
               renderCell: (params) => (
                 <div>
                   
-                        <span style={{backgroundColor:!params.row.status || params.row.status=='paid' ? '#C9E8E8':params.row.status=='pending' ? 'rgb(255 244 198)': '#F3D4D1', color: '#111' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='paid' || !params.row.status ? 'Pago' : params.row.status=='pending' ? 'Pendente' : 'Vencido'}</span>
+                        <span style={{backgroundColor:!params.row.status || params.row.status=='paid' ? '#C9E8E8':params.row.status=='pending' ? 'rgb(255 244 198)': '#F3D4D1', color: '#111' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='paid' || !params.row.status ? 'recebido' : params.row.status=='pending' ? 'Pendente' : 'Vencido'}</span>
                   
                 </div>
               )
             },
             {
               field: 'pay_day',
-              headerName: 'Data de pagamento',
+              headerName: 'Data de recebimento',
               width: 170,
               renderCell: (params) => (
                 <span>{params.row.payday ? params.row.payday.split('T')[0] : '-'}</span>
@@ -265,7 +186,7 @@ export default function Table({setItemsToDelete,_setFilteredContent,search,filte
             disableSelectionOnClick
             onRowSelectionModelChange={(e)=>setSelectedItems(e)}
             //onSelectionModelChange={handleSelectionModelChange}
-            localeText={{ noRowsLabel: <TableLoader loading={!_loaded.includes('bills_to_pay') ? true : false}/>}}
+            localeText={{ noRowsLabel: <TableLoader loading={!_loaded.includes('bills_to_receive') ? true : false}/>}}
           />
         </Box>
       );

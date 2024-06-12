@@ -60,6 +60,17 @@ function selectIgualOrNot(value){
     
 },[options])
 
+
+function check_and_uncheck(group_field,item){
+  setFilterOPtions({...options,groups:options.groups.map(g=>{
+            if(g.field==group_field){
+               return {...g,items:g.items.map(i=>{return i.id==item.id ? {...i,selected:true} : {...i,selected:false}}),selected_ids:[item.id]}
+            }else{
+               return g
+            }
+      })
+  })
+}
  
   return (
        <>
@@ -78,7 +89,7 @@ function selectIgualOrNot(value){
       xmlns="http://www.w3.org/2000/svg">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
     </svg>
-    <span className={`px-2 py-[2px] ml-2 bg-blue-200 flex rounded-[4px] text-blue-700`}>{startDate ? startDate : '-'} até {endDate ? endDate :'-'}</span>
+    <span className={`px-2 py-[2px] ml-2 ${(options.startDate && options.startDate!=defaultDates.start || options.endDate && options.endDate!=defaultDates.end) ? 'bg-blue-200' :''}  flex rounded-[4px]`}>{startDate ? startDate : '-'} até {endDate ? endDate :'-'}</span>
   </button>
 
   {/***Dropdown menu */}
@@ -111,19 +122,62 @@ function selectIgualOrNot(value){
      </div>
 
 
+     <div className="mb-3 border-b pb-2">
+      
+
+    {options.groups.map((g,_g)=>(
+            <>
+            <h6 key={_g} className={`mb-3 ${options.groups.length==1 ? 'hidden' :''} border-b-[1px] text-sm font-medium text-gray-900 dark:text-white flex justify-between items-center`}>
+            <span>{options.name}</span>
+            <svg className="w-5 hidden" aria-hidden="true" data-accordion-icon="" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fillRule="evenodd" clipRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z">
+                </path>
+            </svg>
+            </h6>
+
+            <ul className="space-y-2 text-sm mt-3" aria-labelledby="dropdownDefault">
+                  {g.items.filter((i,_i)=>i.name.toLowerCase().includes(options.search.toLowerCase())).map((i,_i)=>(
+                        <li key={_i}  className="flex items-center">
+                          <input onChange={()=>({})} name="date-picker" onClick={()=>check_and_uncheck(g.field,i)} id={`fitbit`+g.field+_i} type="radio" checked={i.selected && true} value=""
+                            className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+
+                          <label htmlFor={`fitbit`+g.field+_i} className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                              {i.name}
+                          </label>
+                        </li>
+                  ))}
+            </ul>
+           
+           </>
+            
+
+
+      ))}
+
+     </div>
+
+
      <div className="flex items-center">
+
+      
       <div className="relative">
-        <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-          <svg
-            className="w-4 h-4 text-gray-500 dark:text-gray-400"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
-          </svg>
-        </div>
+       
+        <span className="flex items-center p-1">
+            
+            <div className="inset-y-0 start-0 flex items-center pointer-events-none">
+              <svg
+                className="w-4 h-4 text-gray-500 dark:text-gray-400"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+              </svg>
+            </div>
+            <label className="text-[13px] ml-1">Data inicial</label>
+        </span>
+        
         <DatePicker
           selected={options.startDate}
           onChange={(date) =>  setFilterOPtions({...options,startDate:date})}
@@ -135,19 +189,24 @@ function selectIgualOrNot(value){
           placeholderText="Data de inicio"
         />
       </div>
-      <span className="mx-4 text-gray-500">to</span>
+      <span className="mx-4 text-gray-500 flex h-[30px] self-end">Até</span>
       <div className="relative">
-        <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-          <svg
-            className="w-4 h-4 text-gray-500 dark:text-gray-400"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
-          </svg>
-        </div>
+      <span className="flex items-center p-1">
+            
+            <div className="inset-y-0 start-0 flex items-center pointer-events-none">
+              <svg
+                className="w-4 h-4 text-gray-500 dark:text-gray-400"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+              </svg>
+            </div>
+            <label className="text-[13px] ml-1">Data final</label>
+        </span>
+        
         <DatePicker
           selected={options.endDate}
           onChange={(date) => setFilterOPtions({...options,endDate:date})}
@@ -162,6 +221,9 @@ function selectIgualOrNot(value){
       </div>
     </div>
 
+
+
+    
 
     
 

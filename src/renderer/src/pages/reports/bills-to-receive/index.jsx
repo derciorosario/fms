@@ -10,7 +10,7 @@ import DeleteDialog from '../../../components/Dialogs/deleteItem'
 import { useData  } from '../../../contexts/DataContext';
 
 function App() {
-  const {_delete,_get,_bills_to_pay} = useData();
+  const {_delete,_get,_bills_to_receive} = useData();
   const [itemsToDelete,setItemsToDelete]=React.useState([])
   const [deleteLoading,setDeleteLoading]=React.useState(false)
  
@@ -20,7 +20,7 @@ function App() {
     
      if(res){
         let items=JSON.parse(JSON.stringify(itemsToDelete))
-        _delete(items,'bills_to_pay')
+        _delete(items,'bills_to_receive')
      }
    }
 
@@ -41,17 +41,17 @@ function App() {
 
 
 React.useEffect(()=>{
-    let total=_bills_to_pay.filter(i=>!i.deleted).map(item => item.amount).reduce((acc, curr) => acc + curr, 0);
-    let paid=_bills_to_pay.filter(i=>!i.deleted).map(item => item.paid).reduce((acc, curr) => acc + curr, 0);
+    let total=_bills_to_receive.filter(i=>!i.deleted).map(item => item.amount).reduce((acc, curr) => acc + curr, 0);
+    let paid=_bills_to_receive.filter(i=>!i.deleted).map(item => item.paid).reduce((acc, curr) => acc + curr, 0);
     setStats({
       total:new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(total),
       paid:new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(paid),
       left:new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(total - paid),
-      total_items:_bills_to_pay.filter(i=>!i.deleted).length,
-      paid_total:_bills_to_pay.filter(i=>!i.deleted && (parseFloat(i.paid) >= parseFloat(i.amount))).length,
-      left_total:_bills_to_pay.filter(i=>!i.deleted && (parseFloat(i.paid) < parseFloat(i.amount))).length
+      total_items:_bills_to_receive.filter(i=>!i.deleted).length,
+      paid_total:_bills_to_receive.filter(i=>!i.deleted && (parseFloat(i.paid) >= parseFloat(i.amount))).length,
+      left_total:_bills_to_receive.filter(i=>!i.deleted && (parseFloat(i.paid) < parseFloat(i.amount))).length
     })
-},[_bills_to_pay])
+},[_bills_to_receive])
 
 
 
@@ -60,8 +60,8 @@ React.useEffect(()=>{
     <>
        <DeleteDialog res={confirmDelete} show={itemsToDelete.length} loading={deleteLoading}/>
        
-       <DefaultLayout details={{name:'Contas a pagar'}}>
-          <div className="flex items-center pr-[1rem]  [&>_div]:rounded-[0.4rem] mb-5 [&>_div]:min-h-[80px] [&>_div]:min-w-[170px] [&>_div]:mr-[10px] justify-start">
+       <DefaultLayout details={{name:'Contas a receber'}}>
+          <div className="flex items-center pr-[1rem] [&>_div]:shadow-sm [&>_div]:rounded-[0.4rem] mb-5 [&>_div]:min-h-[80px] [&>_div]:min-w-[170px] [&>_div]:mr-[10px] justify-start">
                         <div className="flex border items-center bg-white  px-2 py-2">
                                 <div className="mr-3 opacity-70  flex items-center justify-center size-14 rounded-full bg-slate-200"><MonetizationOn style={{color:'rgb(59,130,246)',width:30,height:30}}/></div> 
                                 <div className="flex justify-center flex-col">
@@ -75,7 +75,7 @@ React.useEffect(()=>{
                         <div className="flex border items-center bg-white relative  px-2 py-2">
                                 <div className="mr-3 opacity-70 flex items-center justify-center size-14 rounded-full bg-slate-200"><MonetizationOn style={{color:'rgb(59,130,246)',width:30,height:30}}/></div> 
                                 <div className="flex justify-center flex-col">
-                                    <span className="text-[15px] text-[#A3AED0] ">Pago</span>
+                                    <span className="text-[15px] text-[#A3AED0] ">Recebido</span>
                                     <span className="text-[19px] text-[#2B3674]">{stats.paid} </span>
                                 </div>
                                 <span className="absolute hidden bottom-1 right-2 opacity-80 text-[15px]">{stats.paid_total}</span>
@@ -104,7 +104,7 @@ React.useEffect(()=>{
                      <div className="mr-4 cursor-pointer">
                        <LocalPrintshopOutlinedIcon/>
                      </div>
-                    <Button variant="contained" onClick={()=>navigate('/bills-to-pay/create')}>Adicionar</Button>
+                    <Button variant="contained" onClick={()=>navigate('/bills-to-receive/create')}>Adicionar</Button>
              
                    </div>
                   

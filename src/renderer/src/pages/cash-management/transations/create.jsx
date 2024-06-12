@@ -10,13 +10,13 @@ import {useParams} from 'react-router-dom';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs from 'dayjs';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import Checkbox from '@mui/material/Checkbox';
 import { Autocomplete} from '@mui/material';
-import dayjs from 'dayjs';
 import 'dayjs/locale/en-gb';
 import PouchDB from 'pouchdb';
 import moment from 'moment';
@@ -86,8 +86,6 @@ import {useLocation,useNavigate } from 'react-router-dom';
 
 
         
-
-          
             let initial_form={
                id:'',
                type,
@@ -101,6 +99,9 @@ import {useLocation,useNavigate } from 'react-router-dom';
                account:{id:null,name:''},
                link_payment:false
            }
+
+
+           
            
 
            const [formData, setFormData] = React.useState(initial_form);
@@ -148,7 +149,7 @@ import {useLocation,useNavigate } from 'react-router-dom';
                      setAccountDetails(account)
 
                      setFormData({...formData,
-                     amount:parseFloat(account.amount) - parseFloat(account.paid ? amount.paid : 0) ?  parseFloat(account.amount) - parseFloat(account.paid ? amount.paid : 0) : '',
+                     amount:parseFloat(account.amount) - parseFloat(account.paid ? account.paid : 0) ?  parseFloat(account.amount) - parseFloat(account.paid ? account.paid : 0) : '',
                      reference:{...account.reference,type:account.account_origin=="supplier" || account.account_origin=="client" ? account.account_origin : formData.reference.type}}) 
 
 
@@ -513,7 +514,7 @@ import {useLocation,useNavigate } from 'react-router-dom';
                       </div>
                       <div>
                         <FormControl sx={{ m: 1, width: '100%',margin:0,height:40 }} size="small">
-                                <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Método de recebimento</InputLabel>
+                                <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Método de pagamento</InputLabel>
                                 <Select
                                 labelId="demo-simple-select-error-label"
                                 id="demo-simple-select-error"

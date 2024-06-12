@@ -7,7 +7,10 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import toast from 'react-hot-toast';
 import { useData  } from '../../../contexts/DataContext';
 import {useParams, useNavigate} from 'react-router-dom';
-
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs from 'dayjs';
 import PouchDB from 'pouchdb';
        
        
@@ -44,6 +47,8 @@ import PouchDB from 'pouchdb';
             let initial_form={
                name:'',
                description:'',
+               initial_amount:'',
+               last_transation_date:'',
                deleted:false
            }
 
@@ -57,13 +62,15 @@ import PouchDB from 'pouchdb';
           },[formData])
         
        
-          let required_fields=['name','description']
+          let required_fields=['name','description','initial_amount']
        
           const [verifiedInputs, setVerifiedInputs] = React.useState([]);
        
           function validate_feild(field){
              setVerifiedInputs(field!='all' ? [...verifiedInputs,field] : required_fields)
           }
+
+          console.log(formData)
        
        
          async function SubmitForm(){
@@ -83,10 +90,33 @@ import PouchDB from 'pouchdb';
                         _update('accounts',[{...formData}])
                         toast.success('Conta actualizada')
                      }else{
-                        _add('accounts',[{...formData,id:Math.random(),_id:Math.random().toString()}])
+                        let id=Math.random().toString()
+                        _add('accounts',[{...formData,id,_id:Math.random().toString()}])
                         setVerifiedInputs([])
                         toast.success('Conta adicionada')
+                        if(parseInt(formData.initial_amount)){
+                           _add('transations',[{
+                              id:Math.random().toString(),
+                              _id:Math.random().toString(),
+                              type:parseFloat(formData.initial_amount) < 0 ? 'out' : 'in',
+                              description:`Valor inicial (${formData.name})`,
+                              deleted:false,
+                              amount:parseInt(formData.initial_amount.replaceAll('-','')),
+                              payment_origin:'initial',
+                              createdAt:formData.last_transation_date.toISOString(),
+                              reference:{id:null,type:'none',name:''},
+                              transation_account:{id,name:formData.name},
+                              account:{id:null,name:''},
+                              link_payment:false
+                        }])
+                     }
                         setFormData(initial_form)
+
+                       
+                       
+
+                     
+
                      }
                  }catch(e){
                         console.log(e)
@@ -102,8 +132,9 @@ import PouchDB from 'pouchdb';
           useEffect(()=>{
                 let v=true
                 Object.keys(formData).forEach(f=>{
-                if((!formData[f].length && required_fields.includes(f))){
+                if((!formData[f].length && required_fields.includes(f)) || !formData.last_transation_date){
                     v=false
+                    
                 }
                })
              setValid(v)
@@ -120,6 +151,7 @@ import PouchDB from 'pouchdb';
                       </div>
        
                       <div className="flex flex-wrap p-4 w-[100%] [&>_div]:mb-[20px] [&>_div]:mr-[20px] [&>_div]:w-[46%]">
+                      
                        <div>
                         <TextField
                            id="outlined-textarea"
@@ -134,6 +166,38 @@ import PouchDB from 'pouchdb';
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
+                        </div>
+
+
+                        <div>
+                          <TextField
+                           id="outlined-textarea"
+                           label="Valor inicial *"
+                           placeholder="Valor inicial"
+                           multiline
+                           disabled={id ? true : false}
+                           value={formData.initial_amount}
+                           onBlur={()=>validate_feild('initial_amount')}
+                           onChange={(e)=>setFormData({...formData,initial_amount:e.target.value})}
+                           error={(!formData.name) && verifiedInputs.includes('initial_amount') ? true : false}
+                           helperText={!formData.name && verifiedInputs.includes('initial_amount') ? "Campo obrigatório" :''}
+                           sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
+                           '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
+                           />
+                        </div>
+
+                        <div>
+                           <LocalizationProvider adapterLocale={'en-gb'} dateAdapter={AdapterDayjs} style={{paddingTop:0}} size="small">
+                                 <DatePicker
+                                 disabled={id ? true : false}
+                                 helperText={(!formData.last_transation_date) && verifiedInputs.includes('last_transation_date') ? 'Campo obrigatório':''}
+                                 onBlur={()=>validate_feild('last_transation_date')}
+                                 error={((!formData.last_transation_date) && verifiedInputs.includes('last_transation_date')) && (dayjs(formData.last_transation_date).$d.toString() != "Invalid Date" && formData.last_transation_date) ? true : true}
+                                 value={dayjs(formData.last_transation_date).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.last_transation_date)) : null}  inputFormat="DD-MM-YYYY" onChange={(e)=>setFormData({...formData,last_transation_date:e.$d})}  size="small" label="Data da última transação"  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, 
+                                       '& .Mui-focused.MuiInputLabel-root': { top:0 },
+                                       '& .MuiStack-root': { paddingTop:0},'& .MuiInputLabel-root':{ top:-8}}}
+                                       />
+                           </LocalizationProvider>
                         </div>
                
        
@@ -155,6 +219,9 @@ import PouchDB from 'pouchdb';
                                 </div>
        
                       </div>
+
+
+
        
                       <div className="px-3 mb-2">
                       <LoadingButton

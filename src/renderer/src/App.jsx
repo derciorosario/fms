@@ -52,6 +52,7 @@ import CreateCashManagementAccount from './pages/cash-management/accounts/create
 import CreateManager from './pages/register/managers/create'
 import AccountCategories from './pages/payments/account-categories/index'
 import CreateAccountCategorie from './pages/payments/account-categories/create/'
+import CashManagementReports from './pages/reports/cash-management/index'
 import Login from './pages/login/index'
 import FinancialReconciliation from './pages/financial-reconciliation/index'
 import ProtectedRoute from './components/ProjectedRoute'
@@ -96,6 +97,12 @@ function App() {
         <Route path="/cash-management/account/create" element={<ProtectedRoute redirectTo="/login"> <CreateCashManagementAccount/> </ProtectedRoute>} />
         <Route path="/cash-management/account/:id" element={<ProtectedRoute redirectTo="/login"> <CreateCashManagementAccount/> </ProtectedRoute>} />
        
+        
+
+        <Route path="reports/cash-management/monthly" element={<ProtectedRoute redirectTo="/login"> <CashManagementReports/> </ProtectedRoute>} />
+        <Route path="reports/cash-management/daily" element={<ProtectedRoute redirectTo="/login"> <CashManagementReports/> </ProtectedRoute>} />
+       
+    
         <Route path="/login" element={ <Login/>} />
         <Route path="/admin" element={ <Admin/>} />
         <Route path="/logout" element={<ProtectedRoute redirectTo="/logout">  </ProtectedRoute>} />

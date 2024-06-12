@@ -15,7 +15,7 @@ body{
     flex: 1;
     box-sizing: border-box;
     position: relative;
-    border-width: 0px !important;
+    border-width:  0px !important;
     border-style: solid;
     border: 0 !important;
     border-color: rgba(224, 224, 224, 1);
@@ -66,3 +66,59 @@ body{
     display: none !important;
 }
 */
+
+
+
+._table_stats th:nth-child(1),._table_stats th:nth-child(2),._table_stats th:nth-child(3), ._table_stats th:nth-child(5), ._table_stats th:nth-child(4),
+._table_stats th:nth-child(6),._table_stats th:nth-child(7), ._table_stats th:nth-child(8), ._table_stats th:nth-child(9),
+._table_stats th:nth-child(10),._table_stats th:nth-child(11),._table_stats th:nth-child(12),._table_stats th:nth-child(13),
+
+._table_stats td:nth-child(1),._table_stats td:nth-child(4), ._table_stats td:nth-child(7), ._table_stats td:nth-child(10),
+._table_stats td:nth-child(13), ._table_stats td:nth-child(16), ._table_stats td:nth-child(19), ._table_stats td:nth-child(22),
+._table_stats td:nth-child(25), ._table_stats td:nth-child(28), ._table_stats td:nth-child(31),
+._table_stats td:nth-child(34), ._table_stats td:nth-child(37), ._table_stats td:nth-child(40) {
+    border-right: 1px solid rgba(0, 0, 0, 0.13);
+}
+
+._table_stats._daily td:nth-child(3),
+._table_stats._daily td:nth-child(5)
+{
+    border-right: 1px solid rgba(0, 0, 0, 0.13);
+}
+._table_stats._daily td:nth-child(4){
+    border-right:0;
+}
+
+._table_stats th:first-child, ._table_stats td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+}
+
+._table_stats th:first-child, ._table_stats td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background-color: #fff; /* Keep the first column header background consistent */
+    white-space: nowrap; /* Ensure text does not wrap and occupies only one row */
+   
+    
+}
+._table_stats td:first-child{
+    padding: 0 !important;
+}
+._table_stats td:first-child{
+    padding-left: 1rem !important;
+}
+._table_stats th:first-child::after, ._table_stats td:first-child::after{
+
+    content: "";
+    position: relative;
+    width: 5px;
+    height: 100%;
+    position: absolute;
+    right: 0;
+    top: 0;
+    box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.7); 
+    background-color: #fff;
+}

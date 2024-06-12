@@ -28,7 +28,7 @@ function App({details}) {
      
 
     <>
-       <div className="flex justify-between shadow items-center p-4 h-16 bg-white">
+       <div className="flex justify-between items-center p-4 h-16 bg-white border-b">
             <div><span className="text-black font-normal text-[18px]">{details && details.name}</span></div>
             <div className="flex items-center">
 

@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { useData  } from '../../contexts/DataContext';
+import { useNavigate } from 'react-router-dom';
 export default function filter({open,options,filterOptions,setFilterOPtions}) {
+
+  const navigate = useNavigate();
 
 
   const handleOutsideClick = (event) => {
@@ -24,11 +27,11 @@ const  handleClickFilter = () => {
   }
 
   function check_and_uncheck(group_field,item){
+    if(item.to) navigate(item.to)
     setFilterOPtions(filterOptions.map(f=>{
-        
         return f.field==options.field ? {...f,groups:f.groups.map(g=>{
               if(g.field==group_field){
-                 return {...g,items:g.items.map(i=>{return i.id==item.id ? {...i,selected:!i.selected} : i}),selected_ids:item.selected ? g.selected_ids.filter(id=>id!=item.id) : [...g.selected_ids,item.id]}
+                 return {...g,items:g.items.map(i=>{return i.id==item.id ? {...i,selected:options.single ? true : !i.selected} : {...i,selected:options.single ? false : i.selected}}),selected_ids:options.single ? [item.id] : (item.selected ? g.selected_ids.filter(id=>id!=item.id) : [...g.selected_ids,item.id])}
               }else{
                  return g
               }
@@ -63,12 +66,12 @@ const  handleClickFilter = () => {
             }
         }
 
-        setFilterOPtions(filterOptions.map(f=>{return f.field==options.field ? {...f,groups:groups} : f}))
+        setFilterOPtions(prev=>([...prev.map(f=>{return f.field==options.field ? {...f,groups:groups} : f})]))
     })()
     
      
 
-  },[])
+  },[options.open,data])
 
 
 
@@ -99,9 +102,9 @@ const  handleClickFilter = () => {
    
     <button  onClick={()=>handleClickFilter()}
     id="dropdownDefault" data-dropdown-toggle="dropdown"
-    className={`${!options.groups.some(i=>i.selected_ids.length) ? 'text-[#42526E] bg-gray-100' :' text-blue-600 bg-blue-100'} outline-none font-medium rounded-lg text-sm  ${!options.groups.map(i=>i.selected_ids.length).reduce((acc, curr) => acc + curr, 0) ? 'py-2 px-4' : 'px-2'} text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
+    className={`${!options.groups.some(i=>i.selected_ids.length) ? 'text-[#42526E] bg-gray-100' :' text-blue-600 bg-blue-100'} outline-none font-medium rounded-lg text-sm  ${!options.groups.map(i=>i.selected_ids.length).reduce((acc, curr) => acc + curr, 0) ? 'py-2 px-4' : 'px-2'} ${options.hide_igual ? ' py-[6px]' :''} text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
     type="button">
-    <span className={`${!options.groups.map(i=>i.selected_ids.length).reduce((acc, curr) => acc + curr, 0) ? 'hidden' :''} my-[6px] px-2 py-[2px] mr-2 bg-slate-50 flex rounded-[4px] text-gray-700`}>{options.igual ? '=' :'!='}</span>
+    <span className={`${!options.groups.map(i=>i.selected_ids.length).reduce((acc, curr) => acc + curr, 0) || options.hide_igual ? 'hidden' :''} my-[6px] px-2 py-[2px] mr-2 bg-slate-50 flex rounded-[4px] text-gray-700`}>{options.igual ? '=' :'!='}</span>
     {options.name}
     <svg className={`w-4 h-4 ml-2 ${open ? 'rotate-180' : ''}`} aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg">
@@ -112,14 +115,14 @@ const  handleClickFilter = () => {
 
   {/***Dropdown menu */}
 
-  <div id="dropdown" className={`${!open ? 'hidden' :''} z-10 absolute top-0 translate-y-[40px] right-0 w-56 p-3 bg-white rounded-lg shadow dark:bg-gray-700`}>
+  <div id="dropdown" className={`${!open ? 'hidden' :''} z-10 absolute top-1 translate-y-[40px] right-0 w-56 p-3 bg-white rounded-lg shadow dark:bg-gray-700`}>
      <div className="w-full">
 
      <div className="flex justify-between items-center mb-1">
       <span onClick={clear} className="text-blue-600 text-[15px] hover:underline cursor-pointer">Limpar</span>
     </div>
 
-     <div className="mb-2">
+     <div className={`mb-2 ${options.hide_igual ? 'hidden':''}`}>
              <button onClick={()=>setOpenIgualOptions(!openIgualOpions)} id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className={`bg-gray-200 border-[2px] text-zinc-500 w-full hover:bg-white focus:outline-none  font-medium rounded-[5px] text-sm  p-[5px] text-center  dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 flex justify-between items-center`} type="button">
               <span>{options.name} {options.igual ? '= (igual a)' :'!= (diferente de)'}</span>
                  <svg className={`w-2.5 h-2.5 ms-3 ${openIgualOpions ? 'rotate-180' :'' }`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
@@ -143,14 +146,14 @@ const  handleClickFilter = () => {
 
 
      
-     <div className="max-w-md mx-auto mb-2">   
+     <div  className={`${options.hide_search ? 'hidden' :''} max-w-md mx-auto mb-2`}> 
            <div className="relative">
                 <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                     <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
                     </svg>
                 </div>
-                <input onChange={e=> setFilterOPtions(filterOptions.map(f=>{return f.field==options.field ? {...f,search:e.target.value} : f}))} value={options.search} type="search" id="default-search" className="block  outline-none w-full p-[4px] ps-10 text-sm text-gray-900 border border-gray-300 rounded-[5px] bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Pesquisar..." />
+                <input onChange={e=> setFilterOPtions(filterOptions.map(f=>{return f.field==options.field ? {...f,search:e.target.value} : f}))} value={options.search} type="search" id="default-search"  className="block  outline-none w-full p-[4px] ps-10 text-sm text-gray-900 border border-gray-300 rounded-[5px] bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Pesquisar..." />
            </div>
     </div>
 
@@ -166,10 +169,10 @@ const  handleClickFilter = () => {
             </svg>
             </h6>
 
-            <ul className="space-y-2 text-sm mt-3" aria-labelledby="dropdownDefault">
+            <ul className={`${g.dropdown ? 'hidden' :''} space-y-2 text-sm mt-3 max-h-40 overflow-auto`} aria-labelledby="dropdownDefault">
                   {g.items.filter((i,_i)=>i.name.toLowerCase().includes(options.search.toLowerCase())).map((i,_i)=>(
                         <li key={_i}  className="flex items-center">
-                          <input onChange={()=>({})} onClick={()=>check_and_uncheck(g.field,i)} id={`fitbit`+g.field+_i} type="checkbox" checked={i.selected && true} value=""
+                          <input onChange={()=>({})} onClick={()=>check_and_uncheck(g.field,i)} id={`fitbit`+g.field+_i} name={options.single ? `fitbit`+options.field : `fitbit`+g.field+_i} type={options.single ? 'radio' :'checkbox'} checked={i.selected && true} value=""
                             className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
 
                           <label htmlFor={`fitbit`+g.field+_i} className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -178,13 +181,27 @@ const  handleClickFilter = () => {
                         </li>
                   ))}
             </ul>
+
+
+            <div class={`${!g.dropdown ? 'hidden' :''} col-span-2 sm:col-span-1`}>
+                          <label for="category" class="hidden mb-2 text-sm font-medium text-gray-900 dark:text-white">Category</label>
+                          <select onChange={(e)=>check_and_uncheck(g.field,g.items[parseInt(e.target.value)])} id="category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                          {g.items.filter((i,_i)=>i.name.toLowerCase().includes(options.search.toLowerCase())).map((i,_i)=>(
+                   
+                              
+                              <option value={_i} key={_i} selected={i.selected}>{i.name}</option>
+                             
+
+                          ))}
+                          </select>
+          </div>
            
            </>
-            
-
-
       ))}
 
+
+
+   
     
 
 

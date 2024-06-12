@@ -4,6 +4,9 @@ import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import MonetizationOnOutlinedIcon from '@mui/icons-material/MonetizationOnOutlined';
 import PeopleAltIcon from '@mui/icons-material/PeopleAltOutlined';
+import ChartIcon from '@mui/icons-material/PieChartOutline';
+
+
 import BurgerIcon from '@mui/icons-material/Menu'
 import {useLocation,useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -67,7 +70,7 @@ function App({details}) {
             {name:'A receber',path:'/bills-to-receive',field:'bills-to-receive',paths:['/bills-to-receive','/bills-to-receive/create'],icon:'PaymentsOutlinedIcon'},
             {name:'Categorias',path:'/account-categories',field:'account-categories',paths:['/account-categories','/account-categories/create'],icon:'PaymentsOutlinedIcon'}
 
-            
+                    
         ]},
         {name:'Gestão de caixa',paths:['/cash-management/outflow','/cash-management/outflow/create','/cash-management/inflow','/cash-management/inflow/create','/cash-management/account/create','/cash-management/accounts'],field:'cash-management',icon:'MonetizationOnOutlinedIcon',sub_menus:[
             {name:'Entradas',path:'/cash-management/inflow',field:'cash-management/inflow',paths:['/cash-management/inflow','/cash-management/inflow/create'],icon:'MonetizationOnOutlinedIcon'},
@@ -80,7 +83,13 @@ function App({details}) {
             {name:'Fornecedores',path:'/suppliers',field:'suppliers',paths:['/suppliers','/suppliers/create'],icon:'PaymentsOutlinedIcon'},
             {name:'Gestores',path:'/managers',field:'managers',paths:['/managers','/managers/create','/manager/'],icon:'PaymentsOutlinedIcon'}
         ]},
+        
         {name:'Conciliação financeira',path:'/financial-reconciliation',paths:['/financial-reconciliation'],field:'financial-reconciliation',icon:'PriceChangeOutlinedIcon'},
+
+        {name:'Relatórios ',paths:['/reports/cash-management/monthly','/reports/cash-management/daily'],field:'reports',icon:'ChartIcon',sub_menus:[
+            {name:'Fluxo de caixa mensal',path:'/reports/cash-management/monthly',field:'cash-management/monthly',paths:['/reports/cash-management/monthly'],icon:'PaymentsOutlinedIcon'},
+            {name:'Fluxo de caixa Diário',path:'/reports/cash-management/daily',field:'cash-management/daily',paths:['/reports/cash-management/daily'],icon:'PaymentsOutlinedIcon'},
+        ]},
     ]
     
     const getIconStyle = (fieldName) => ({
@@ -93,14 +102,15 @@ function App({details}) {
         GridViewIcon: <GridViewIcon style={getIconStyle('dashboard')} />,
         PaymentsOutlinedIcon: <PaymentsOutlinedIcon style={getIconStyle('payments')} />,
         PeopleAltIcon: <PeopleAltIcon style={getIconStyle('register')} />,
+        ChartIcon:<ChartIcon style={getIconStyle('reports')}/>,
         PriceChangeOutlinedIcon:<PriceChangeOutlinedIcon  style={getIconStyle('financial-reconciliation')}/>,
         MonetizationOnOutlinedIcon: <MonetizationOnOutlinedIcon style={getIconStyle('cash-management')} />,
-        test: <PeopleAltIcon style={{color:'#737791'}} />,
+       
     }
   
     return (
     <>
-      <div className={`bg-[#fff] h-lvh p-4 ${open ? 'min-w-[100px]':''} shadow`}>
+      <div className={`bg-[#fff] h-lvh p-4 ${open ? 'min-w-[100px]':''} border-r`}>
           <div className="mb-3 flex items-center">
               <div  className="cursor-pointer hidden translate-x-1" onClick={openCloseMenu}><BurgerIcon style={{width:30,height:30}}/></div>
               <div className={`${!open ? 'hidden' :''}  ml-4 text-[19px] font-bold`}>{user?.company?.name}</div>

@@ -142,12 +142,12 @@ import PouchDB from 'pouchdb';
                         <div>
                         <FormControl sx={{ m: 1, width: '100%',margin:0,height:40 }} size="small">
 
-                                <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Tipo de conta</InputLabel>
+                                <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Variação</InputLabel>
                                 <Select
                                 labelId="demo-simple-select-error-label"
                                 id="demo-simple-select-error"
                                 value={formData.type}
-                                label="Tipo de conta"
+                                label="Variação"
                                 onChange={(e)=>setFormData({...formData,type:e.target.value})}
                                 sx={{width:'100%','& .MuiInputBase-root':{height:40},'& .css-1869usk-MuiFormControl-root':{margin:0},'& .Mui-focused.MuiInputLabel-root': { top:0 },
                                 '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
@@ -179,6 +179,7 @@ import PouchDB from 'pouchdb';
                                     <MenuItem value={'client'}>Cliente</MenuItem>
                                     <MenuItem value={'investments'}>Investimentos</MenuItem>
                                     <MenuItem value={'others'}>Outros</MenuItem>
+
                                     </Select>
 
                      </FormControl>

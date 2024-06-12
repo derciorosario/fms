@@ -109,9 +109,6 @@ React.useEffect(()=>{
 
                    <div className="flex items-center">
 
-                     <div>
-                         <Filter/>
-                     </div>
                     
                      <div className="mr-4 cursor-pointer">
                        <LocalPrintshopOutlinedIcon/>

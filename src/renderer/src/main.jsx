@@ -10,14 +10,10 @@ import { Toaster } from 'react-hot-toast';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
     <AuthProvider>
-        <SearchProvider>
         <DataProvider>
-            
                 <Toaster/>
                 <App />
-            
        </DataProvider>
-       </SearchProvider>
    </AuthProvider>
 )
 

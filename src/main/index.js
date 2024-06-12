@@ -74,5 +74,17 @@ app.on('window-all-closed', () => {
   }
 })
 
+
+// Receiving data from React
+ipcMain.on('toMain', (event, data) => {
+  console.log(data); // Handle the received data
+  // Sending data back to React
+  mainWindow.webContents.send('fromMain', { response: 'Hello from Electron!' });
+});
+
+
+
+
+
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.

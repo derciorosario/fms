@@ -3,96 +3,17 @@ import Box from '@mui/material/Box';
 import { DataGrid } from '@mui/x-data-grid';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import TableLoader from '../../components/progress/TableProgress'
-import { useData } from '../../contexts/DataContext';
+import TableLoader from '../../../components/progress/TableProgress'
+import { useData } from '../../../contexts/DataContext';
 import {useParams, useNavigate} from 'react-router-dom';
 import PouchDB from 'pouchdb';
 
-export default function Table({setItemsToDelete,_setFilteredContent,search,filterOptions,periodFilters}) {
+export default function Table({setItemsToDelete}) {
        const {_bills_to_pay,_get,_loaded}= useData()
-       const data= useData()
        const navigate=useNavigate()
        const [selectedItems,setSelectedItems]=React.useState([])
        const [rows,setRows]=React.useState(_bills_to_pay)
        const [accountCategories,setAccountCategories]=React.useState([])
-
-
-
-       function search_f(array){
-
-        function search_from_object(object,text){
-               text=search
-               let add=false
-               Object.keys(object).forEach(k=>{
-                 if(typeof object[k]=="string" || typeof object[k]=="number"){
-                    if(typeof object[k]=="number") object[k]=`${object[k]}`
-                    if(object[k].toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(text.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))){
-                      add=true
-                   }
-                 }
-               })
-               return add
-            }
-    
-          if (!array) return []
-    
-          let d=JSON.parse(JSON.stringify(array))
-    
-          if(periodFilters.startDate){
-              if(periodFilters.igual){
-                d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() >= periodFilters.startDate.getTime())
-              }else{
-                d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() <= periodFilters.startDate.getTime())
-              }
-          }
-    
-          if(periodFilters.endDate){
-              if(periodFilters.igual){
-                d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() <= periodFilters.endDate.getTime())
-              }else{
-                d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() >= periodFilters.endDate.getTime())
-              }
-          }
-    
-    
-          filterOptions.forEach(f=>{
-               let g=f.groups
-               let igual=f.igual
-               g.filter(g=>{
-    
-                      if(g.field=='transation_type' && g.selected_ids.length){
-                         d=d.filter(i=>(igual ?  g.selected_ids.includes(i.type) : !g.selected_ids.includes(i.type)))
-                      }
-    
-                      if(g.field=='if_consiliated' && g.selected_ids.length){
-                         d=d.filter(i=>(igual ?  g.selected_ids.includes(!!(i.confirmed)) : !g.selected_ids.includes(!!(i.confirmed))))
-                      }
-    
-    
-                      if(g.field=='_accounts' && g.selected_ids.length){
-                        d=d.filter(i=>(igual ?  g.selected_ids.includes(i.transation_account.id) : !g.selected_ids.includes(i.transation_account.id)))
-                      }    
-    
-               })
-    
-    
-          })
-    
-    
-          let res=[]
-          d.forEach((t,i)=>{
-            if(search_from_object(t)) {
-                res.push(array.filter(j=>j.id==t.id)[0])
-            }
-          })
-    
-          _setFilteredContent([Math.random()])
-          return res
-    
-       }
-
-       
-
 
        useEffect(()=>{
          (async()=>{
@@ -107,8 +28,8 @@ export default function Table({setItemsToDelete,_setFilteredContent,search,filte
        },[])
  
        useEffect(()=>{
-              setRows(search_f(_bills_to_pay))
-       },[data])
+              setRows(_bills_to_pay)
+       },[_bills_to_pay])
 
      
 

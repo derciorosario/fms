@@ -38,7 +38,7 @@ export default function Table({itemsToDelete,setItemsToDelete}) {
               },
               {
                 field: 'origin',
-                headerName: 'Origen',
+                headerName: 'Origem',
                 width: 150,
                 renderCell: (params) => (
                   <span>{params.row.account_origin=="supplier" ? 'Fornecedor' : params.row.account_origin=="expenses" ? 'Despesa' : params.row.account_origin== 'state' ? 'Estado' : params.row.account_origin=="client" ? 'Cliente' : params.row.account_origin=="investments" ? 'Investimentos' : 'Outros'}</span>

@@ -13,9 +13,8 @@ import TextField from '@mui/material/TextField';
 import toast from 'react-hot-toast';
 import CheckIcon from '@mui/icons-material/Check';
 
-export default function Table({setItemsToDelete,search,filterOptions,page,periodFilters}) {
+export default function Table({setItemsToDelete,search,filterOptions,page,periodFilters,_setFilteredContent}) {
   const {_get,_loaded,_update}= useData()
-  const {_setFilteredContent}=useSearch()
   const data=useData()
   const navigate=useNavigate()
   const [selectedItems,setSelectedItems]=React.useState([])
@@ -26,6 +25,20 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
      selected:'',
      required_data:[]
   })
+
+  let payment_methods=[
+          {name:'Cartão',id:'card'},
+          {name:'Cheque',id:'check'},
+          {name:'Transferência',id:'transfer'},
+          {name:'Mkesh',id:'mkesh'},
+          {name:'E-mola',id:'e-mola'},
+          {name:'M-pesa',id:'m-pesa'},
+          {name:'PayPal',id:'paypal'},
+          {name:'Stripe',id:'stripe'},
+          {name:'Strill',id:'Strill'},
+          {name:'Valor inicial',id:'initial'},
+          {name:'Dinheiro',id:'cash'}
+  ]
 
 
 
@@ -74,8 +87,8 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
             d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() >= periodFilters.endDate.getTime())
           }
       }
-
-
+       
+      
       filterOptions.forEach(f=>{
            let g=f.groups
            let igual=f.igual
@@ -88,6 +101,13 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
                   if(g.field=='if_consiliated' && g.selected_ids.length){
                      d=d.filter(i=>(igual ?  g.selected_ids.includes(!!(i.confirmed)) : !g.selected_ids.includes(!!(i.confirmed))))
                   }
+
+
+
+                  if(g.field=='transation_methods' && g.selected_ids.length){
+
+                     d=d.filter(i=>(igual ?  g.selected_ids.includes(i.payment_origin) : !g.selected_ids.includes(i.payment_origin)))
+                  }        
 
 
                   if(g.field=='_accounts' && g.selected_ids.length){
@@ -174,7 +194,7 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
                      width: 110,
                      renderCell: (params) => (
                        <div style={{opacity:.6,marginLeft:'2rem'}}>
-                             <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/bills-to-receive/'+params.row._id)}>
+                             <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/cash-management/'+params.row._id)}>
                                  <EditOutlinedIcon/>
                              </span>
                              <span className="hidden" onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
@@ -183,6 +203,14 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
                        </div>
                      )
                  },
+                 {
+                  field: 'payment_origin',
+                  headerName: 'Método de pagamento',
+                  width: 170,
+                  renderCell: (params) => (
+                    <span>{payment_methods.filter(i=>i.id==params.row.payment_origin)[0]?.name}</span>
+                  )
+                  },
                  {
                   field: 'createdAt',
                   headerName: 'Data de criação',
@@ -223,7 +251,6 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
                         <div className="flex h-full justify-center items-center">
                              {!params.row.confirmed ? <input placeholder="Valor"   type="number" onChange={e=>change_row_value(params.row.id,'confirmed_amount',e.target.value)} value={params.row.confirmed_amount==undefined ? params.row.amount : params.row.confirmed_amount}  className="block  outline-none w-[70%] p-[5px] ps-10 text-sm text-gray-900 border border-gray-300 rounded-[5px] bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" /> : <span className={`${params.row.type=='out' ? 'text-red-600' : ''}`}> {params.row.type=='out' ? '-':''}{new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(params.row.amount) } </span>}   
                         </div>
-                      
                   ),
                  },
 

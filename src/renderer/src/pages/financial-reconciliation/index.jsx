@@ -1,22 +1,15 @@
 import React, { useState } from 'react';
 import DefaultLayout from '../../layout/DefaultLayout';
-import { Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import Table from './table'
-import SearchIcon from '@mui/icons-material/Search';
 import MonetizationOn from '@mui/icons-material/MonetizationOn';
-import LocalPrintshopOutlinedIcon from '@mui/icons-material/LocalPrintshopOutlined';
 import DeleteDialog from '../../components/Dialogs/deleteItem'
 import { useData  } from '../../contexts/DataContext';
-import { useSearch  } from '../../contexts/SearchContext';
-import Filter from '../../components/Filters/basic';
 import BasicTable from '../../components/Tables/basic';
 
 function App() {
-  const {_delete,_get,_loaded,_transations,_cn} = useData();
+  const {_delete,_loaded,_transations,_cn} = useData();
   const [itemsToDelete,setItemsToDelete]=React.useState([])
   const [deleteLoading,setDeleteLoading]=React.useState(false)
-  const [search,setSearch]=React.useState('')
   const [_filtered_content,_setFilteredContent]=useState([])
   
 

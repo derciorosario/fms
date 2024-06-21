@@ -76,21 +76,20 @@ const  handleClickFilter = () => {
 
 
   function clear(){
-    alert('still working one it!')
-    return
+   
    
     setFilterOPtions(filterOptions.map(f=>{
         
       return f.field==options.field ? {...f,groups:f.groups.map(g=>{
-            if(g.field==group_field){
-               return {...g,items:g.items.map(i=>{return i.id==item.id ? {...i,selected:!i.selected} : i}),selected_ids:item.selected ? g.selected_ids.filter(id=>id!=item.id) : [...g.selected_ids,item.id]}
-            }else{
-               return g
-            }
+            
+               return {...g,items:g.items.map(i=>{return g.default_ids.includes(i.id) ? {...i,selected:true} : {...i,selected:false}}),selected_ids:g.default_ids}
+           
       })} : f
 
 
-  }))
+     }))
+
+
   }
 
 
@@ -102,7 +101,7 @@ const  handleClickFilter = () => {
    
     <button  onClick={()=>handleClickFilter()}
     id="dropdownDefault" data-dropdown-toggle="dropdown"
-    className={`${!options.groups.some(i=>i.selected_ids.length) ? 'text-[#42526E] bg-gray-100' :' text-blue-600 bg-blue-100'} outline-none font-medium rounded-lg text-sm  ${!options.groups.map(i=>i.selected_ids.length).reduce((acc, curr) => acc + curr, 0) ? 'py-2 px-4' : 'px-2'} ${options.hide_igual ? ' py-[6px]' :''} text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
+    className={`${!options.groups.some(i=>i.selected_ids.length) ? 'text-[#42526E] bg-gray-100' :' text-blue-600 bg-blue-100'} border outline-none font-medium rounded-lg text-sm  ${!options.groups.map(i=>i.selected_ids.length).reduce((acc, curr) => acc + curr, 0) ? 'py-2 px-4' : 'px-2'} ${options.hide_igual ? ' py-[6px]' :''} text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
     type="button">
     <span className={`${!options.groups.map(i=>i.selected_ids.length).reduce((acc, curr) => acc + curr, 0) || options.hide_igual ? 'hidden' :''} my-[6px] px-2 py-[2px] mr-2 bg-slate-50 flex rounded-[4px] text-gray-700`}>{options.igual ? '=' :'!='}</span>
     {options.name}
@@ -119,7 +118,7 @@ const  handleClickFilter = () => {
      <div className="w-full">
 
      <div className="flex justify-between items-center mb-1">
-      <span onClick={clear} className="text-blue-600 text-[15px] hover:underline cursor-pointer">Limpar</span>
+      <span onClick={()=>clear(options.field)} className="text-blue-600 text-[15px] hover:underline cursor-pointer">Limpar</span>
     </div>
 
      <div className={`mb-2 ${options.hide_igual ? 'hidden':''}`}>
@@ -157,19 +156,20 @@ const  handleClickFilter = () => {
            </div>
     </div>
 
-
+      
+      <div className="max-h-40 overflow-auto">
 
       {options.groups.map((g,_g)=>(
             <>
             <h6 key={_g} className={`mb-3 ${options.groups.length==1 ? 'hidden' :''} border-b-[1px] text-sm font-medium text-gray-900 dark:text-white flex justify-between items-center`}>
-            <span>{options.name}</span>
+            <span>{g.name}</span>
             <svg className="w-5 hidden" aria-hidden="true" data-accordion-icon="" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                 <path fillRule="evenodd" clipRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z">
                 </path>
             </svg>
             </h6>
 
-            <ul className={`${g.dropdown ? 'hidden' :''} space-y-2 text-sm mt-3 max-h-40 overflow-auto`} aria-labelledby="dropdownDefault">
+            <ul className={`${g.dropdown ? 'hidden' :''} mb-4 space-y-2 text-sm mt-3`} aria-labelledby="dropdownDefault">
                   {g.items.filter((i,_i)=>i.name.toLowerCase().includes(options.search.toLowerCase())).map((i,_i)=>(
                         <li key={_i}  className="flex items-center">
                           <input onChange={()=>({})} onClick={()=>check_and_uncheck(g.field,i)} id={`fitbit`+g.field+_i} name={options.single ? `fitbit`+options.field : `fitbit`+g.field+_i} type={options.single ? 'radio' :'checkbox'} checked={i.selected && true} value=""
@@ -194,14 +194,14 @@ const  handleClickFilter = () => {
 
                           ))}
                           </select>
-          </div>
+           </div>
            
            </>
       ))}
 
 
 
-   
+    </div>
     
 
 

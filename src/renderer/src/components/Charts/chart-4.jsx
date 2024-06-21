@@ -16,7 +16,7 @@ ChartJS.register(
   ChartDataLabels // Register the datalabels plugin
 );
 
-const DoughnutChart = ({datasets,backgroundColor,label,labels}) => {
+const DoughnutChart = ({datasets,backgroundColor,label,labels,borderColor}) => {
   const data = {
     labels,
     datasets: [
@@ -24,8 +24,8 @@ const DoughnutChart = ({datasets,backgroundColor,label,labels}) => {
         label: label ? label : '',
         data: datasets,
         backgroundColor,
-        borderColor: [],
-        borderWidth: 0
+        borderColor: Array.from({ length: 7 }, () => '#fff') ,//borderColor ? borderColor : [],
+        borderWidth: datasets.filter(i=>i).length > 1 ? 1 : 0
       }
     ]
   };

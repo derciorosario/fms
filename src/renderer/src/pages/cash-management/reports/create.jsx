@@ -506,7 +506,7 @@ import {useLocation,useNavigate } from 'react-router-dom';
                                   helperText={parseFloat(formData.amount) > (parseFloat(accountDetails.amount) - parseFloat(accountDetails.paid)) && formData.link_payment ? "Não deve ser maior que o valor do lançamento" :(!formData.amount) && verifiedInputs.includes('amount') ? 'Campo obrigatório':''}
                                   onBlur={()=>validate_feild('amount')}
                                   error={(!formData.amount) && verifiedInputs.includes('amount') || parseFloat(formData.amount) > parseFloat(accountDetails.amount) && formData.link_payment ? "Não deve ser maior que o valor do laçamento" : (!formData.amount) && verifiedInputs.includes('amount') ? true : false}
-                                  onChange={(e)=>setFormData({...formData,amount:e.target.value.replace(/[^0-9]/g, '')})}
+                                  onChange={(e)=>setFormData({...formData,amount:_cn_op(e.target.value)})}
                                   sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                   '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                                   />

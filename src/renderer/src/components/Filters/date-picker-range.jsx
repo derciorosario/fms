@@ -3,7 +3,8 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useData } from '../../contexts/DataContext';
 import moment from 'moment';
-
+import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 
 export default function DatePickerRange({open,options,setFilterOPtions}) {
 const data = useData();
@@ -34,10 +35,12 @@ function selectIgualOrNot(value){
  React.useEffect(()=>{
       let data_from=data[options.field]
 
-      data_from=data._sort_by_date(data_from,'createdAt','full-string')
+      //data_from=data._sort_by_date(data_from,'createdAt','full-string')
+
+      console.log({l:data_from})
       
       
-      if((!options.endDate || !options.startDate) && data_from.length){
+      if((!options.endDate || !options.startDate) && data_from.length!=0){
           let start=new Date(data_from[0].createdAt.split('T')[0])
           let end=new Date(data_from[data_from.length - 1].createdAt.split('T')[0])
           setFilterOPtions({...options,startDate:start,endDate:end})
@@ -71,6 +74,13 @@ function check_and_uncheck(group_field,item){
       })
   })
 }
+
+
+function clear(){
+  setFilterOPtions({...options,endDate:defaultDates.end,startDate:defaultDates.start})
+}
+
+
  
   return (
        <>
@@ -78,25 +88,31 @@ function check_and_uncheck(group_field,item){
  <div className={`__date-picker-period flex items-center justify-center p-1 relative`}>
     <button  onClick={()=>handleClickFilter()}
 
-    
-
     id="dropdownDefault" data-dropdown-toggle="dropdown"
-    className={`${(options.startDate && options.startDate!=defaultDates.start || options.endDate && options.endDate!=defaultDates.end) ? 'text-blue-600 bg-blue-100' :' text-[#42526E] bg-gray-100'} outline-none font-medium rounded-lg text-sm px-2 text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
+    className={`${(options.startDate && options.startDate!=defaultDates.start || options.endDate && options.endDate!=defaultDates.end) ? 'text-blue-600 bg-blue-100' :' text-[#42526E] bg-gray-100'} outline-none border font-medium rounded-lg text-sm px-2 text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
     type="button">
-    <span className={`border my-[4px] px-2 py-[2px] mr-2 bg-slate-50 flex rounded-[4px] text-gray-700`}>{options.igual ? '=' :'!='}</span>
+    <span className={` border my-[4px] px-2 py-[2px] mr-2 bg-slate-50 flex rounded-[4px] text-gray-700`}>{options.igual ? '=' :'!='}</span>
     {options.name}
     <svg className={` w-4 h-4 ml-2 ${open ? 'rotate-180' : ''}`} aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
     </svg>
-    <span className={`px-2 py-[2px] ml-2 ${(options.startDate && options.startDate!=defaultDates.start || options.endDate && options.endDate!=defaultDates.end) ? 'bg-blue-200' :''}  flex rounded-[4px]`}>{startDate ? startDate : '-'} até {endDate ? endDate :'-'}</span>
+    <span className={`px-2 py-[2px] ml-2 ${(options.startDate && options.startDate!=defaultDates.start || options.endDate && options.endDate!=defaultDates.end) ? 'bg-blue-200' :''}  flex rounded-[4px]`}>{startDate} {endDate && startDate && '-'} {endDate}</span>
+  </button>
+
+  <button onClick={()=>handleClickFilter()}  className={`${0!=0 ? 'text-blue-600 bg-blue-100' :' text-[#42526E] bg-gray-100'} px-2 outline-none border hidden font-medium rounded-lg text-sm  text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
+    >
+     <span className="border-r flex mr-1 py-[5px]"><KeyboardArrowLeftIcon/></span> <span>{data._convertDateToWords(options.startDate ? options.startDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],null,'month_and_year')}</span><span className="border-l py-[5px] flex ml-1"><KeyboardArrowRightIcon/></span>
   </button>
 
   {/***Dropdown menu */}
 
   <div id="dropdown" className={`${!open ? 'hidden' :''} z-10 absolute top-0 translate-y-[40px] right-0 w-72 p-3 bg-white rounded-lg shadow dark:bg-gray-700`}>
      <div className="w-full">
-
+    
+     <div className="flex justify-between items-center mb-1">
+      <span onClick={()=>clear(options.field)} className="text-blue-600 text-[15px] hover:underline cursor-pointer">Limpar</span>
+    </div>
   
 
      <div className="mb-2">
@@ -147,8 +163,29 @@ function check_and_uncheck(group_field,item){
                         </li>
                   ))}
             </ul>
+
+
+
+
+            <div class={`${!g.dropdown ? 'hidden' :''} col-span-2 sm:col-span-1`}>
+                          <label for="category" class="hidden mb-2 text-sm font-medium text-gray-900 dark:text-white">Category</label>
+                          <select onChange={(e)=>check_and_uncheck(g.field,g.items[parseInt(e.target.value)])} id="category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                          {g.items.filter((i,_i)=>i.name.toLowerCase().includes(options.search.toLowerCase())).map((i,_i)=>(
+                   
+                              
+                              <option value={_i} key={_i} selected={i.selected}>{i.name}</option>
+                             
+
+                          ))}
+                          </select>
+            </div>
+
+
            
            </>
+
+
+
             
 
 

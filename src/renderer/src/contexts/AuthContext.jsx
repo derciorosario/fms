@@ -19,12 +19,17 @@ export const AuthProvider = ({ children }) => {
   const db={
     managers:new PouchDB('managers'),
     clients:new PouchDB('clients'),
+    investors:new PouchDB('investors'),
     suppliers:new PouchDB('suppliers'),
     account_categories:new PouchDB('account_categories'),
     bills_to_pay:new PouchDB('bills_to_pay'),
     bills_to_receive:new PouchDB('bills_to_receive'),
     accounts:new PouchDB('accounts'),
+    investments:new PouchDB('investments'),
     transations:new PouchDB('transations'),
+    categories:new PouchDB('categories'),
+    payment_methods:new PouchDB('payment_methods'),
+    budget:new PouchDB('budget'),
     user:new PouchDB('user')
   }
   
@@ -58,14 +63,14 @@ export const AuthProvider = ({ children }) => {
 
 
   const logout =async () => {
-    setUser(null);
-    setToken(null);
+    //setUser(null);
+    //setToken(null);
     let user=await  db.user.get('user')
-    db.user.remove(user)
+    //db.user.remove(user)
     Object.keys(db).filter(i=>i!='user').forEach((i,_i)=>{
-      db[i].destroy()
+       db[i].destroy()
     })
-    localStorage.removeItem('token');
+    //localStorage.removeItem('token');
   };
 
   const isAuthenticated = () => {
@@ -74,6 +79,9 @@ export const AuthProvider = ({ children }) => {
 
 
     useEffect(() => {
+
+
+    //logout()
      
       const fetchUserData = async () => {
 

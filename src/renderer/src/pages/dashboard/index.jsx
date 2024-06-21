@@ -11,7 +11,7 @@ import Doughnut from '../../components/Charts/chart-4'
 function App() {
  
 
-  const {_get_cash_managment_stats,_loaded,_get_stat,_cn} = useData();
+  const {_get_cash_managment_stats,_loaded,_get_stat,_cn,_categories,_get} = useData();
   
   const [filterOptions,setFilterOPtions]=useState([
     {
@@ -31,13 +31,25 @@ function App() {
 
 useEffect(()=>{
 
+  if(!_loaded.includes('categories')) return
+
   const {datasets:d_cm,labels:l_cm} = _get_cash_managment_stats([filterOptions.filter(i=>i.id=="monthy_cm")[0]],'m')
   setDataChartCM({datasets:d_cm,labels:l_cm})
 
  },[_loaded,filterOptions])
 
+ useEffect(()=>{
+  _get('categories')
+ },[])
 
+
+
+ 
   let {user}=useAuth()
+
+  if(!_loaded.includes('categories')){
+     return (<></>)
+  }
 
   return (
     <>
@@ -151,7 +163,7 @@ useEffect(()=>{
       {_get_stat('upcomming_payments')[i].map((f,_f)=>(
              <tr key={_f} class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 px-1">
              <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                 {f.account_origin == "expenses" ? "Despesas" :f.account_origin == "state" ? "Estado" : f.account_origin == "supplier" ? "Fornecedor" : f.account_origin == "client" ? "Cliente" : f.account_origin == "investments" ? "Investimento" :"Outro"}
+                 {_categories.filter(i=>i.field==f.account_origin)[0].name}
              </th>
              <td class="px-6 py-4">
                  {f.description}
@@ -191,11 +203,11 @@ useEffect(()=>{
 
   <div className="flex w-full  mb-2">
            
-<div class="w-[48.8%] dark:bg-gray-800 p-4  mb-3 rounded-[0.3rem] border bg-white mr-2 ">
+<div class="w-[48.8%] dark:bg-gray-800 min-w-[560px] p-4  mb-3 rounded-[0.3rem] border bg-white mr-2 ">
   
   <div class="flex justify-between mb-3">
       <div class="flex justify-center items-center">
-          <h5 class="text-xl font-semibold leading-none text-gray-900 dark:text-white pe-1">Desempenho do mês</h5>
+          <h5 class="text-xl font-semibold leading-none text-gray-900 dark:text-white pe-1">Desempenho do mês por categorias</h5>
           
       </div>
       <div>
@@ -257,12 +269,12 @@ useEffect(()=>{
 </div>
 
 
-  <div class="mb-3 p-2 flex flex-col rounded-[0.3rem] border bg-white w-[50%]">
+  <div class="mb-3 p-2 flex flex-col rounded-[0.3rem] border bg-white flex-1">
       <div class="flex p-2 pt-1">
           <h5 class="text-xl font-medium leading-none text-gray-900 dark:text-white pt-1">Saldo por contas</h5>
           
       </div>
-      <div className=" h-full">
+      <div>
       <MixedChart {..._get_stat('accounts_balance')} />
       </div>
   </div>

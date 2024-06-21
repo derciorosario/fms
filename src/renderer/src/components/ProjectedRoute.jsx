@@ -5,9 +5,17 @@ import toast from 'react-hot-toast';
 
 const ProtectedRoute = ({ children, redirectTo = '/',path}) => {
 
-  const { isAuthenticated, user, login, loading, token,logout } = useAuth();
 
-  
+  const {pathname}=useLocation()
+
+  const { isAuthenticated, user, login, loading, token,logout,reset} = useAuth();
+
+
+  if(redirectTo=="reset"){
+       alert(0)
+       return <Outlet/>;
+  }
+
   
   if(redirectTo=="/logout" && token && user){
     logout() 
@@ -15,6 +23,8 @@ const ProtectedRoute = ({ children, redirectTo = '/',path}) => {
     toast.success('Logout successfuly!')
     return <Navigate to={'/login'} replace />
   }
+
+ 
 
 
   if (loading) {

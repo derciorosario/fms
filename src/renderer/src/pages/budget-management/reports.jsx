@@ -1,20 +1,16 @@
 import React,{useEffect, useState} from 'react';
-import DefaultLayout from '../../../layout/DefaultLayout';
-import { useData  } from '../../../contexts/DataContext';
+import DefaultLayout from '../../layout/DefaultLayout';
+import { useData  } from '../../contexts/DataContext';
 import LocalPrintshopOutlinedIcon from '@mui/icons-material/LocalPrintshopOutlined';
-import Filter from '../../../components/Filters/basic';
-import SearchIcon from '@mui/icons-material/Search';
-import DatePickerRange from '../../../components/Filters/date-picker-range'
-import CircularProgress from '@mui/material/CircularProgress';
-import Box from '@mui/material/Box';
-import Chart  from '../../../components/Charts/chart-1';
+import Filter from '../../components/Filters/basic';
+import Chart  from '../../components/Charts/chart-1';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import { Button } from '@mui/material';
 import { useNavigate,useLocation } from 'react-router-dom';
-import StatsTable from '../components/table';
+import StatsTable from '../reports/components/table';
 function App() {
 
-  const {_get_cash_managment_stats,_transations,_bills_to_pay,_bills_to_receive,_loaded,_get} = useData();
+  const {_get_budget_managment_stats,_transations,_bills_to_pay,_bills_to_receive,_loaded,_account_categories} = useData();
   const {pathname} = useLocation()
   const [search,setSearch]=React.useState('')
   const [data,setData]=React.useState([])
@@ -51,18 +47,7 @@ function App() {
       ]
     },
 
-    {
-        field:'_week_and_month',
-        name:'Periodo',
-        page:'cash-managemnt-stats',
-        igual:true,
-        not_fetchable:true,
-        search:'',
-        single:true,
-        groups:[
-          {field:'_week_and_month',name:'Visão',items:[{id:'week',name:'Diário',to:'/reports/cash-management/daily',selected:pathname.includes('/daily') ? true : false},{id:'month',name:'Mensal',selected:pathname.includes('/monthly') ? true :false,to:'/reports/cash-management/monthly'}],selected_ids:['month']}
-        ]
-      },
+   
    
 ])
 
@@ -163,9 +148,7 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
 
 
   useEffect(()=>{
-
-     if(!_loaded.includes('categories')) return
-     let {data,datasets,labels}=_get_cash_managment_stats(filterOptions,period)
+     let {data,datasets,labels}=_get_budget_managment_stats(filterOptions,period)
      setData(data)
      setChartDataSets(datasets)
      setChartLabels(labels)
@@ -174,15 +157,11 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
   },[_loaded,filterOptions])
  
 
-  useEffect(()=>{
-    _get('categories')
-   },[])
-
  
   return (
     <>
     
-        <DefaultLayout details={{name:'Relatórios de fluxo de caixa'}}>
+        <DefaultLayout details={{name:'Relatórios de orçamento'}}>
 
         
     
@@ -200,7 +179,7 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
         <div className="shadow bg-white p-3 mb-1">
                <div className="flex justify-between mb-2">
                      <div>
-                        <span>Relatório de entradas x Saídas</span>
+                        <span>Relatório de Orçamento</span>
                      </div>
                      <div className="mr-4 cursor-pointer flex">
                        <LocalPrintshopOutlinedIcon/>

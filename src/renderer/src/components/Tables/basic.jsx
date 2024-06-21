@@ -11,16 +11,22 @@ import Filter from '../Filters/basic';
 import DatePickerRange from '../Filters/date-picker-range';
 import CloseIcon from '@mui/icons-material/Close';
 
-function BasicTable({page,_filtered_content,_setFilteredContent,options,res}) {
+import { useLocation,useParams } from 'react-router-dom';
 
-  const {_delete,_transations} = useData();
+function BasicTable({page,_filtered_content,_setFilteredContent,res}) {
+
+
+  //console.log(useLocation())
+
+  const {_delete,_transations,_categories} = useData();
   const [itemsToDelete,setItemsToDelete]=React.useState([])
   const [deleteLoading,setDeleteLoading]=React.useState(false)
   const [search,setSearch]=React.useState('')
   const [watchFilterChanges,setWatchFilterChanges]=React.useState('')
   const [settings,setSettings]=React.useState({
       filters:[],
-      has_add_btn:true
+      has_add_btn:true,
+      from:'_transations'
   })
   
   const [filterOptions,setFilterOPtions]=useState([
@@ -28,7 +34,6 @@ function BasicTable({page,_filtered_content,_setFilteredContent,options,res}) {
       open:false,
       field:'transation_method',
       name:'Método de pagamento',
-      page:'finacial-reconciliation',
       get_deleted:true,
       not_fetchable:true,
       igual:true,
@@ -46,50 +51,70 @@ function BasicTable({page,_filtered_content,_setFilteredContent,options,res}) {
           {name:'Stripe',id:'stripe'},
           {name:'Strill',id:'Strill'},
           {name:'Valor inicial',id:'initial'},
-        ],selected_ids:[]}
+        ],selected_ids:[],default_ids:[]}
       ]
     },
       {
         open:false,
         field:'_accounts',
         name:'Contas',
-        page:'finacial-reconciliation',
         get_deleted:true,
         db_name:'accounts',
         igual:true,
         search:'',
         groups:[
-          {field:'_accounts',name:'contas',db_name:'accounts',items:[],selected_ids:[]}
+          {field:'_accounts',name:'contas',db_name:'accounts',items:[],selected_ids:[],default_ids:[]}
         ]
       },
       {
         open:false,
         field:'_managers',
         name:'Gestores',
-        page:'finacial-reconciliation',
         igual:true,
         search:'',
-        groups:[{field:'_managers',name:'Gestores',items:[],selected_ids:[]}]
+        groups:[{field:'_managers',name:'Gestores',items:[],selected_ids:[],default_ids:[]}]
+      },
+      {
+        open:false,
+        field:'payment_status',
+        name:'Estado de pagamento',
+        not_fetchable:true,
+        igual:true,
+        search:'',
+        groups:[{field:'payment_status',name:'Estado de pagamento',items:[{id:'pending',name:'Pendente'},{id:'paid',name:'Pago'},{id:'delayed',name:'Em atraso'}],selected_ids:[],default_ids:[]}]
       },
       {
         open:false,
         field:'if_consiliated',
         name:'Consiliado',
         not_fetchable:true,
-        page:'finacial-reconciliation',
         igual:true,
         search:'',
-        groups:[{field:'if_consiliated',name:'Consiliado',items:[{id:true,name:'Sim'},{id:false,name:'Não',selected:true}],selected_ids:[false]}]
+        groups:[{field:'if_consiliated',name:'Consiliado',items:[{id:true,name:'Sim'},{id:false,name:'Não',selected:true}],selected_ids:[false],default_ids:[]}]
       },
+
+      {
+        open:false,
+        field:'categories',
+        name:'Categorias de conta',
+        not_fetchable:true,
+        igual:true,
+        search:'',
+        groups:[
+          {field:'categories_in',name:'Entrada',items:_categories.filter(i=>i.type=="in").map(i=>({id:i.field,name:i.name})),selected_ids:[],default_ids:[]},
+          {field:'categories_out',name:'Saída',items:_categories.filter(i=>i.type=="out").map(i=>({id:i.field,name:i.name})),selected_ids:[],default_ids:[]}
+        ]
+      },
+
+
       {
         open:false,
         field:'transation_type',
         name:'Tipo de transação',
         not_fetchable:true,
-        page:'finacial-reconciliation',
         igual:true,
         search:'',
-        groups:[{field:'transation_type',name:'Tipo de transação',items:[{id:'in',name:'Entrada'},{id:'out',name:'Saída'}],selected_ids:[]}]
+        groups:[{field:'transation_type',name:'Tipo de transação',items:[{id:'in',name:'Entrada'},{id:'out',name:'Saída'}],selected_ids:[],default_ids:[]}]
       }
   ])
 
@@ -110,10 +135,7 @@ function BasicTable({page,_filtered_content,_setFilteredContent,options,res}) {
      
   })
   
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
 
-  
  React.useEffect(()=>{
 
     let _settings=JSON.parse(JSON.stringify(settings))
@@ -124,13 +146,50 @@ function BasicTable({page,_filtered_content,_setFilteredContent,options,res}) {
            
     }
 
-    if(page=='cash-managment-stats'){
+   if(page=='cash-managment-stats'){
       _settings.filters=['_accounts','if_consiliated','transation_type']
       _settings.has_add_btn=false
-     
+      
    }
 
-    setSettings(_settings)
+
+    if(page=='bills-to-pay'){
+      _settings.filters=['payment_status','account_categories']
+      _settings.from='_bills_to_pay'
+    }
+
+    if(page=='bills-to-receive'){
+      _settings.filters=['payment_status','account_categories']
+      _settings.from='_bills_to_receive'
+    }
+
+    if(page=="budget-management"){
+       _settings.filters=['categories']
+       _settings.from='_budget'
+    }
+
+    if(page=="account-categories"){
+      _settings.from='_account_categories'
+      _settings.create_path='accounts'
+   }
+   if(page=="inflows"){
+    _settings.from='_transations'
+    _settings.create_path='cash-management/inflow'
+   }
+   if(page=="outflows"){
+    _settings.from='_transations'
+    _settings.create_path='cash-management/outflow'
+   }
+
+   if(page=="payment-methods"){
+    _settings.from='_payment_methods'
+   }
+
+   
+
+
+     setSettings(_settings)
+     setDatePickerPeriodOptions({...datePickerPeriodOptions,field:_settings.from})
 
  },[])
 
@@ -139,7 +198,27 @@ function BasicTable({page,_filtered_content,_setFilteredContent,options,res}) {
 
    setWatchFilterChanges(Math.random().toString())
 
+
+    filterOptions.some(i=>i.groups.some(f=>f.default_ids.toString()!=f.selected_ids.toString()))
+
 },[filterOptions])
+
+
+function clearAllFilters(){
+
+      
+      
+      setFilterOPtions(filterOptions.map(f=>{
+            
+        return  {...f,groups:f.groups.map(g=>{
+              
+                return {...g,items:g.items.map(i=>{return g.default_ids.includes(i.id) ? {...i,selected:true} : {...i,selected:false}}),selected_ids:g.default_ids}
+            
+        })}
+
+
+      }))
+}
 
 
 
@@ -156,6 +235,8 @@ function BasicTable({page,_filtered_content,_setFilteredContent,options,res}) {
 
   
   const navigate=useNavigate()
+
+  
  
   
   return (
@@ -191,7 +272,7 @@ function BasicTable({page,_filtered_content,_setFilteredContent,options,res}) {
 
                     <div>
 
-                    {settings.has_add_btn && <Button variant="contained" onClick={()=>navigate(`/${page}/create`)}>Adicionar</Button>
+                    {settings.has_add_btn && <Button variant="contained" onClick={()=>navigate(`/${settings.create_path ? settings.create_path : page}/create`)}>Adicionar</Button>
                     }
                     </div>
 
@@ -202,13 +283,18 @@ function BasicTable({page,_filtered_content,_setFilteredContent,options,res}) {
 
                <div className="flex px-3 mb-3">
                          
-                          <div className="flex items-center mr-3">
-                              <span className="mr-2">Filtros:</span>
-                              <button onClick={()=>alert('still working one it!')} type="button" className="text-gray-900 mt-2 bg-white flex hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-[5px] text-center items-center dark:focus:ring-gray-600 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:bg-gray-700 me-2 mb-2">
-                              <CloseIcon style={{width:'15px'}}/>
-                              <span className="ml-1">Limpar filtros</span>
-                              </button>
-                          </div>
+                         {filterOptions.filter(f=>settings.filters.some(i=>i==f.field)).length!=0 && <div className="flex items-center mr-3">
+                            
+                            <span className="mr-2">Filtros:</span>
+                              
+                              { 
+                                filterOptions.filter(f=>settings.filters.some(i=>i==f.field)).some(i=>i.groups.some(f=>f.default_ids.toString()!=f.selected_ids.toString())) && <button onClick={()=>clearAllFilters()} type="button" className="text-gray-900 mt-2 bg-white flex hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-[5px] text-center items-center dark:focus:ring-gray-600 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:bg-gray-700 me-2 mb-2">
+                                <CloseIcon style={{width:'15px'}}/>
+                                <span className="ml-1">Limpar filtros</span>
+                                </button>
+                              }
+
+                          </div>}
                           <div className="flex mr-3 flex-wrap">
 
                                 {filterOptions.filter(f=>settings.filters.some(i=>i==f.field)).map((i,_i)=>(
@@ -226,7 +312,7 @@ function BasicTable({page,_filtered_content,_setFilteredContent,options,res}) {
                <div className="flex border-b mt-2 p-2 items-center">
                      <span className="mr-2">Resultado:</span>
                      {res.map((i,_i)=>(
-                         <div className="flex border rounded-[4px] p-1 mr-2" key={_i}> 
+                         <div className="flex border justify-center rounded-[4px] p-1 mr-2 min-w-[100px]" key={_i}> 
                                  <span className="mr-2">{i.name}</span>
                                  <span className="opacity-55">{i.value}</span>
                          </div>

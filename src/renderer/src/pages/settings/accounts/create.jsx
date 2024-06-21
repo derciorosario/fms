@@ -1,16 +1,16 @@
 
 import React, { useEffect, useState } from 'react';
-import DefaultLayout from '../../../layout/DefaultLayout';
 import TextField from '@mui/material/TextField';
-import SendIcon from '@mui/icons-material/Send';
-import LoadingButton from '@mui/lab/LoadingButton';
 import toast from 'react-hot-toast';
 import { useData  } from '../../../contexts/DataContext';
-import {useParams, useNavigate} from 'react-router-dom';
+import {useParams} from 'react-router-dom';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
+import ListSubheader from '@mui/material/ListSubheader';
+import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select';
+import FormLayout from '../../../layout/DefaultFormLayout';
+
 
 import PouchDB from 'pouchdb';
        
@@ -43,15 +43,17 @@ import PouchDB from 'pouchdb';
 
           const [loading, setLoading] = React.useState(false);
           const [valid, setValid] = React.useState(false);
-          const {makeRequest,_add,_update,_loaded} = useData();
+          const {makeRequest,_add,_update,_loaded,_categories} = useData();
           
             let initial_form={
                name:'',
-               type:'fixed',
-               description:'',
-               account_origin:'expenses',
+               notes:'',
+               account_origin:'',
+               transation_type:'',
                deleted:false
            }
+
+
 
           const [formData, setFormData] = React.useState(initial_form);
 
@@ -61,9 +63,13 @@ import PouchDB from 'pouchdb';
                 setItems(docs.rows.map(i=>i.doc).filter(i=>!i.deleted))
             })()
           },[formData])
+
+          useEffect(()=>{
+            setFormData({...formData,transation_type:_categories.filter(i=>i.field==formData.account_origin)?.[0]?.type})
+          },[formData.account_origin])
         
        
-          let required_fields=['name','description']
+          let required_fields=['name','account_origin']
        
           const [verifiedInputs, setVerifiedInputs] = React.useState([]);
        
@@ -105,25 +111,24 @@ import PouchDB from 'pouchdb';
           useEffect(()=>{
                 let v=true
                 Object.keys(formData).forEach(f=>{
-                if((!formData[f].length && required_fields.includes(f))){
+                if((!formData[f]?.length && required_fields.includes(f))){
                     v=false
                 }
                })
              setValid(v)
           },[formData])
+
+          console.log(formData)
         
         
          return (
            <>
-              <DefaultLayout details={{name: (id ?'Actualizar' :'Nova')+' categoria'}} >
-                   <div className="bg-white shadow py-1 rounded-[5px] pb-5 max-w-[675px]">
-       
-                      <div className="p-[15px] border-b border-zinc-300 mb-4 opacity-75">
-                         <span className="font-medium text-[18px]">{id ? 'Actualizar' :'Adicionar nova categoria'} </span>
-                      </div>
-       
-                      <div className="flex flex-wrap p-4 w-[100%] [&>_div]:mb-[20px] [&>_div]:mr-[20px] [&>_div]:w-[46%]">
-                       <div>
+
+         <FormLayout maxWidth={'700px'} name={id ? 'Actualizar' : 'Nova conta'} formTitle={id ? 'Actualizar' : 'Adicionar nova'}>
+
+                    <FormLayout.Section maxWidth={'700px'}>
+
+                      <div>
                         <TextField
                            id="outlined-textarea"
                            label="Nome *"
@@ -139,7 +144,7 @@ import PouchDB from 'pouchdb';
                            />
                         </div>
 
-                        <div>
+                        <div className="hidden">
                         <FormControl sx={{ m: 1, width: '100%',margin:0,height:40 }} size="small">
 
                                 <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Variação</InputLabel>
@@ -157,68 +162,90 @@ import PouchDB from 'pouchdb';
                                 </Select>
 
                         </FormControl>
+
+
+                   
                         </div>
 
                   <div>
 
-                     <FormControl sx={{ m: 1, width: '100%',margin:0,height:40 }} size="small">
+                     <FormControl sx={{ m: 1, width: '100%',margin:0,height:40,display:'none' }} size="small">
                                     <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Tipo de conta *</InputLabel>
                                     <Select
                                     labelId="demo-simple-select-error-label"
                                     id="demo-simple-select-error"
                                     value={formData.account_origin}
-                                    label="Tipo de conta"
+                                    label="Tipo de conta*"
                                     onChange={(e)=>setFormData({...formData,account_origin:e.target.value})}
                                     sx={{width:'100%','& .MuiInputBase-root':{height:40},'& .css-1869usk-MuiFormControl-root':{margin:0},'& .Mui-focused.MuiInputLabel-root': { top:0 },
                                     '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                                     >
+
+                                   {_categories.map(i=>(
+                                     <MenuItem value={i.field} key={i.field}><span style={{color:i.type=='in' ? '#16a34a' : 'crimson'}}>{i.sub_name ? i.sub_name : i.name}</span></MenuItem>
+                                   ))}
+
                                     
-                                    <MenuItem value={'expenses'}>Despesas</MenuItem>
-                                    <MenuItem value={'supplier'}>Fornecedor</MenuItem>
-                                    <MenuItem value={'state'}>Estado</MenuItem>
-                                    <MenuItem value={'client'}>Cliente</MenuItem>
-                                    <MenuItem value={'investments'}>Investimentos</MenuItem>
-                                    <MenuItem value={'others'}>Outros</MenuItem>
+                                   
 
                                     </Select>
 
                      </FormControl>
+
+
+                     <FormControl sx={{ m: 1, width: '100%',margin:0,height:40 }} size="small">
+                     <InputLabel htmlFor="grouped-select">Tipo de conta</InputLabel>
+                     <Select defaultValue="" id="grouped-select"
+                     
+                       value={formData.account_origin}
+                        label="Tipo de conta"
+                        onChange={(e)=>setFormData({...formData,account_origin:e.target.value})}
+                     >
+                     
+                   
+                        <MenuItem value="">
+                           <em>Selecione uma opção</em>
+                        </MenuItem>
+                        <ListSubheader><span className="font-semibold text-[#16a34a] opacity-70">Entradas</span></ListSubheader>
+                        {_categories.filter(i=>i.type=="in").map(i=>(
+                              <MenuItem value={i.field} key={i.field}><span className=" w-[7px] rounded-full h-[7px] bg-[#16a34a] inline-block mr-2"></span> <span>{i.name}</span></MenuItem>
+                        ))}
+                        <ListSubheader><span className="font-semibold text-red-600 opacity-70">Saídas</span></ListSubheader>
+                        {_categories.filter(i=>i.type=="out").map(i=>(
+                             <MenuItem value={i.field} key={i.field}><span className=" w-[7px] rounded-full h-[7px] bg-red-500 inline-block mr-2"></span> <span>{i.name}</span></MenuItem>
+                        ))}
+                     </Select>
+                     </FormControl>
+
+
                      </div>
        
                        <div className="w-[100%]">
 
                                 <TextField
                                         id="outlined-multiline-static"
-                                        label="Descrição *"
+                                        label="Nota"
                                         multiline
                                         rows={4}
-                                        onBlur={()=>validate_feild('description')}
-                                        error={(!formData.description) && verifiedInputs.includes('description') ? true : false}
-                                        helperText={!formData.description && verifiedInputs.includes('description') ? "Descrição obrigatória" :''}
-                                        value={formData.description}
-                                        onChange={(e)=>setFormData({...formData,description:e.target.value})}
+                                        value={formData.notes}
+                                         onChange={(e)=>setFormData({...formData,notes:e.target.value})}
                                         defaultValue=""
                                         sx={{width:'100%'}}
                                         />
-                                </div>
+                     </div>
        
-                      </div>
-       
-                      <div className="px-3 mb-2">
-                      <LoadingButton
-                         onClick={SubmitForm}
-                         endIcon={<SendIcon />}
-                         loading={loading}
-                         loadingPosition="end"
-                         variant="contained"
-                         disabled={!valid}
-                      >
-                         <span>{loading ? `${id ? 'A actualizar...' :'A enviar...'}`:`${id ? 'Actualizar' :'Enviar'}`}</span>
-                       </LoadingButton>
-                      </div>
-       
-                   </div>
-               </DefaultLayout>
+                      
+
+
+                    </FormLayout.Section>
+
+
+                  
+               
+             
+                    <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={id}/>
+
+               </FormLayout>
            </>
          )
        }

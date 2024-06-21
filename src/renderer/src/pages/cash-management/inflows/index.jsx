@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import BillsPage from '../bills/index'
+import TransationsIndex from '../transations/index'
 function App() {
 
 
   return (
     <>
-       <BillsPage/>
+       <TransationsIndex/>
     </>
   )
 }

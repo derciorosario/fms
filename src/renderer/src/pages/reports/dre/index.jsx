@@ -11,46 +11,19 @@ import Chart  from '../../../components/Charts/chart-1';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import { Button } from '@mui/material';
 import { useNavigate,useLocation } from 'react-router-dom';
-import StatsTable from '../components/table';
+import StatsTable from '../components/table'
 function App() {
 
-  const {_get_cash_managment_stats,_transations,_bills_to_pay,_bills_to_receive,_loaded,_get} = useData();
+  const {_get_dre_stats,_transations,_bills_to_pay,_bills_to_receive,_loaded,_get} = useData();
   const {pathname} = useLocation()
   const [search,setSearch]=React.useState('')
   const [data,setData]=React.useState([])
   const [updater,setUpdater]=React.useState(1)
   const [showProjected,setShowProjected]=React.useState(1)
-  const period=pathname.includes('/daily') ? 'd' : 'm'
+  const period=pathname.includes('/daily')  ? 'd' : 'm'
   
   const [filterOptions,setFilterOPtions]=useState([
-    {
-      field:'_accounts',
-      name:'Contas',
-      page:'cash-managemnt-stats',
-      get_deleted:true,
-      db_name:'accounts',
-      igual:true,
-      search:'',
-      groups:[
-        {field:'_accounts',name:'contas',db_name:'accounts',items:[],selected_ids:[]}
-      ]
-    },
-
-    {
-      field:'_show_projected',
-      name:'Visão',
-      page:'cash-managemnt-stats',
-      not_fetchable:true,
-      igual:true,
-      search:'',
-      hide_igual:true,
-      hide_search:true,
-      single:true,
-      groups:[
-        {field:'_show_projected',name:'Mês',items:[{name:'projectado e realizado',id:1,selected:true},{name:'Realizado',id:2},{name:'Projectado',id:3}],selected_ids:[1]}
-      ]
-    },
-
+  
     {
         field:'_week_and_month',
         name:'Periodo',
@@ -60,7 +33,7 @@ function App() {
         search:'',
         single:true,
         groups:[
-          {field:'_week_and_month',name:'Visão',items:[{id:'week',name:'Diário',to:'/reports/cash-management/daily',selected:pathname.includes('/daily') ? true : false},{id:'month',name:'Mensal',selected:pathname.includes('/monthly') ? true :false,to:'/reports/cash-management/monthly'}],selected_ids:['month']}
+          {field:'_week_and_month',name:'Periodo',items:[{id:'week',name:'Diário',to:'/reports/dre/daily',selected:pathname.includes('/daily') ? true : false},{id:'month',name:'Mensal',selected:!pathname.includes('/daily') ? true :false,to:'/reports/dre/monthly'}],selected_ids:['month']}
         ]
       },
    
@@ -87,7 +60,7 @@ useEffect(()=>{
         single:true,
         groups:[
           {field:'_month',dropdown:true,name:'Mês',items:months.map((i,_i)=>({name:i.toString(),id:_i,selected:_i==new Date().getMonth() ? true : false})),selected_ids:[new Date().getMonth()]}
-        ]
+         ]
       },
     ]))
   }else{
@@ -149,23 +122,21 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
      
   })
 
-  
-
 
   
   const [chartDataSets,setChartDataSets]=useState([])
   const [chartLabels,setChartLabels]=useState([])
 
 
- 
+  const [openItems,setOpenItems]=useState([])
+
 
  
 
 
   useEffect(()=>{
-
      if(!_loaded.includes('categories')) return
-     let {data,datasets,labels}=_get_cash_managment_stats(filterOptions,period)
+     let {data,datasets,labels}=_get_dre_stats(filterOptions.filter(i=>i.field=="_month"),period)
      setData(data)
      setChartDataSets(datasets)
      setChartLabels(labels)
@@ -178,12 +149,10 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
     _get('categories')
    },[])
 
- 
   return (
     <>
     
         <DefaultLayout details={{name:'Relatórios de fluxo de caixa'}}>
-
         
     
         <div className="flex flex-wrap bg-white p-3 mb-2 shadow z-10">
@@ -197,28 +166,24 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
                 ))}
         </div>
 
-        <div className="shadow bg-white p-3 mb-1">
+        <div className="shadow bg-white p-3">
                <div className="flex justify-between mb-2">
                      <div>
-                        <span>Relatório de entradas x Saídas</span>
+                        <span>Demonstração de resultados</span>
                      </div>
                      <div className="mr-4 cursor-pointer flex">
                        <LocalPrintshopOutlinedIcon/>
                        <span className="ml-2">Imprimir</span>
                      </div>
                </div>
-
-               <div className="min-h-[400px] relative">
-                     <Chart datasets={chartDataSets} labels={chartLabels}/>
-               </div>
         </div>
-        
 
-        <StatsTable content={{data,period,showProjected}}/>
+        <StatsTable content={{data,period,openItems,showProjected, showIcons:true}}/>
+
 
         </DefaultLayout>
     </>
-  )
+  ) 
 }
 export default App
 

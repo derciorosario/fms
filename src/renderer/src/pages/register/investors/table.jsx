@@ -8,7 +8,7 @@ import { useData } from '../../../contexts/DataContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import {useParams, useNavigate} from 'react-router-dom';
 export default function Table({itemsToDelete,setItemsToDelete}) {
-       const {_account_categories,_get,_loaded}= useData()
+       const {_investors,_get,_loaded}= useData()
        const navigate=useNavigate()
        const [selectedItems,setSelectedItems]=React.useState([])
        const columns = [
@@ -22,36 +22,79 @@ export default function Table({itemsToDelete,setItemsToDelete}) {
               },
               {
                 field: 'last_name',
-                headerName: 'Descrição',
+                headerName: 'Apelido',
                 width: 150,
                 renderCell: (params) => (
-                  <span>{params.row.description ? params.row.description : '-'}</span>
+                  <span>{params.row.last_name ? params.row.last_name : '-'}</span>
                 ),
               },
               {
                 field: 'email',
-                headerName: 'Tipo de conta',
+                headerName: 'Email',
                 width: 150,
                 renderCell: (params) => (
-                  <span>{params.row.type=="fixed" ? 'Fixa' : 'Variável'}</span>
+                  <span>{params.row.email ? params.row.email : '-'}</span>
                 ),
               },
               {
-                field: 'origin',
-                headerName: 'Origem',
+                field: 'contacts',
+                headerName: 'Contactos',
+                width: 170,
+                renderCell: (params) => (
+                  <div>
+                      {params.row.contacts.map((i,_i)=>(
+                              <span key={_i}>{i}{_i!=params.row.contacts.length - 1 && ', '}</span>
+                      ))}
+                       <span>{!params.row.contacts.length && '-'}</span>
+                  </div>
+                ),editable: true,
+              },
+
+               {
+                field: 'address',
+                headerName: 'Endereço',
                 width: 150,
                 renderCell: (params) => (
-                  <span>{params.row.account_origin=="supplier" ? 'Fornecedor' : params.row.account_origin=="expenses" ? 'Despesa' : params.row.account_origin== 'state' ? 'Estado' : params.row.account_origin=="client" ? 'Cliente' : params.row.account_origin=="investments" ? 'Investimentos' : 'Outros'}</span>
+                  <span>{params.row.address ? params.row.address : '-'}</span>
                 ),
+                editable: true,
               },
-             
+            {
+              field: 'status',
+              headerName: 'Estado',
+              width: 120,
+              renderCell: (params) => (
+                <div>
+                   
+                        <span style={{backgroundColor:!params.row.status || params.row.status=='active' ? '#C9E8E8': '#F3D4D1', color: '#111' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='active' || !params.row.status ? 'Activo' : 'Inactivo'}</span>
+                   
+                </div>
+              )
+            },
+            {
+                field: 'notes',
+                headerName: 'Observações',
+                width: 170,
+                renderCell: (params) => (
+                <span>-</span>
+                )
+            },
+            {
+              field: '-',
+              headerName: 'Data de  criação',
+              width: 170,
+              renderCell: (params) => (
+              <span>-</span>
+              )
+            },
+            
             {
                 field: 'edit',
                 headerName: '',
                 width: 170,
                 renderCell: (params) => (
                    <div style={{opacity:.8}}>
-                        <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/account-categorie/'+params.row._id)}>
+                        <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/supplier/'+params.row._id)}>
                             <EditOutlinedIcon/>
                         </span>
                         <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
@@ -63,15 +106,15 @@ export default function Table({itemsToDelete,setItemsToDelete}) {
        
       ];
    
-      const [rows,setRows]=React.useState(_account_categories)
+      const [rows,setRows]=React.useState(_investors)
 
       useEffect(()=>{
-        _get('account_categories')
+        _get('investors')
       },[])
 
       useEffect(()=>{
-             setRows(_account_categories)
-      },[_account_categories])
+             setRows(_investors)
+      },[_investors])
 
       function handleDelete(id){
          let ids=JSON.parse(JSON.stringify([...selectedItems.filter(i=>i!=id), id]))
@@ -80,6 +123,11 @@ export default function Table({itemsToDelete,setItemsToDelete}) {
       }
 
       
+      
+
+         
+
+    
       return (
         <Box sx={{ height:'400px', width: '100%' }}>
           <DataGrid
@@ -103,7 +151,7 @@ export default function Table({itemsToDelete,setItemsToDelete}) {
             disableSelectionOnClick
             onRowSelectionModelChange={(e)=>setSelectedItems(e)}
             //onSelectionModelChange={handleSelectionModelChange}
-            localeText={{ noRowsLabel: <TableLoader loading={!_loaded.includes('account_categories') ? true : false}/>}}
+            localeText={{ noRowsLabel: <TableLoader loading={!_loaded.includes('investors') ? true : false}/>}}
           />
         </Box>
       );

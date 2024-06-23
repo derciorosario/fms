@@ -182,13 +182,12 @@ import FormLayout from '../../../layout/DefaultFormLayout';
            const [formData, setFormData] = React.useState(initial_form);
 
            useEffect(()=>{
-
-            if(type=="receive"){
+            if(formData.account_origin=="loans_out" || formData.account_origin=="loans_in"){
+              setReferenceOptions(_investors)
+            }else if(type=="receive"){
                 setReferenceOptions(_clients)
-            }else if(formData.account_origin!="loans_out"){
-                setReferenceOptions(_suppliers)
             }else{
-                setReferenceOptions(_investors)
+                setReferenceOptions(_suppliers)
             }
            },[formData.reference,_suppliers,_investors,_clients])
 
@@ -199,13 +198,11 @@ import FormLayout from '../../../layout/DefaultFormLayout';
             })()
 
             setCountFormUpdates(prev=>prev + 1)
+
+            console.log(formData)
           },[formData])
 
 
-
-          useEffect(()=>{
-             console.log(countFormUpdates)
-          },[countFormUpdates])
 
 
 
@@ -345,7 +342,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                         if(formData.reference.name && !formData.reference.id){
                            reference_id=Math.random().toString()
 
-                          _add(type=="receive" ? 'clients' : (formData.account_origin=="loans_out" ? 'investors' : 'suppliers'),[{
+                          _add(type=="receive" ? 'clients' : (formData.account_origin=="loans_out" || formData.account_origin=="loans_in" ? 'investors' : 'suppliers'),[{
                             id:reference_id,
                             _id:Math.random().toString(),
                             name:formData.reference.name,
@@ -441,19 +438,22 @@ import FormLayout from '../../../layout/DefaultFormLayout';
 
 
           const handleFileChange = (event) => {
-            console.log('hi')
-            return
-            const file = event.target.files[0];
-            if (file) {
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                 // setFileContent(e.target.result);
-                const filePath = `path/${file.name}`;
-                fs.writeFileSync(filePath, e.target.result);
-              };
-              reader.readAsText(file);
-            }
+            console.log(event.target.files[0])
+            const {name,size,path} = event.target.files[0]
+            window.electron.ipcRenderer.send('file-upload',{name,path,size})
+            
           }
+
+
+          useEffect(()=>{
+
+              if(!window.electron) return
+
+              window.electron.ipcRenderer.on('file-progress',(a,b)=>{
+                console.log({a,b})
+              })
+              
+          },[])
 
 
 
@@ -539,8 +539,8 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                                 disabled={formData.paid ? true : false}
                                 renderInput={(params) => <TextField {...params}
                                 helperText={!accountCategories.some(a=>a.id==formData.account_id) && formData.account_name ? "(Nova conta será adicionada)" :''}
-                    
-                                 value={formData.account_name} label="Nome da conta *" />}
+                                sx={{'& .MuiFormHelperText-root': {color: !formData.reference.id && formData.reference.name ? 'green' : 'crimson'}}}
+                                value={formData.account_name} label="Nome da conta *" />}
                         />   
                             </div>
                         <div>
@@ -555,7 +555,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                                             label="Categoria"
                                             defaultValue=""
                                             onChange={(e)=>{
-                                                setFormData({...formData,account_origin:e.target.value,reference: type=="receive" ? formData.reference : (e.target.value=="loans_out" || !e.target.value || (e.target.value!="loans_out" && formData.account_origin=="loans_out") ? {id:null,name:null} : formData.reference)})
+                                                setFormData({...formData,account_origin:e.target.value,reference: ((e.target.value=="loans_in" || !e.target.value || (e.target.value!="loans_in" && formData.account_origin=="loans_in")))          ||         (e.target.value=="loans_out" || !e.target.value || ((e.target.value!="loans_out" && formData.account_origin=="loans_out"))) ? {id:null,name:null} : formData.reference})
                                             }}
                                             sx={{width:'100%','& .MuiInputBase-root':{height:40},'& .css-1869usk-MuiFormControl-root':{margin:0},'& .Mui-focused.MuiInputLabel-root': { top:0 },
                                             '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
@@ -593,17 +593,18 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                                     setFormData({...formData,reference:{...formData.reference,name:newInputValue,id:reference_id}})
                             
                                 }}
+                                
                                 id="_referece"
                                 options={referenceOptions.map(i=>i.name)}
                                 sx={{ width: 300 }}
-                                disabled={type=="receive" ? false : (!formData.account_origin ? true : false)}
+                                disabled={(!formData.account_origin ? true : false)}
                                 renderInput={(params) => <TextField {...params}
 
                                 onBlur={()=>validate_feild('reference')}
-                                error={(!formData.reference.name) && verifiedInputs.includes('reference') ? true : false}
-                                helperText={(!formData.reference.name) && verifiedInputs.includes('reference') ? "Insira nome": !formData.reference.id && formData.reference.name ? `(Novo ${formData.type=='receive' ? 'cliente' :formData.account_origin=='loans_out' ? 'investidor' :'fornecedor'} será adicionado) `: ''}
-                                
-                                value={formData.reference.name} label={type=="receive" ? 'Cliente' : (!formData.account_origin ? 'Fornecedor / Investidor' : formData.account_origin == "loans_out" ? 'Investidor' :'Fornecedor')}  />}
+                                error={(!formData.reference.name) && formData.account_origin  && verifiedInputs.includes('reference') ? true : false}
+                                helperText={(!formData.reference.name) && formData.account_origin && verifiedInputs.includes('reference') ? "Insira nome": !formData.reference.id && formData.reference.name ? `(Novo ${type=="receive" ? (formData.account_origin=="loans_in" ? "Investidor" : "Cliente")  : (formData.account_origin == "loans_out" ? 'Investidor' :'Fornecedor')} será adicionado) `: ''}
+                                sx={{'& .MuiFormHelperText-root': {color: !formData.reference.id && formData.reference.name ? 'green' : 'crimson'}}}
+                                value={formData.reference.name} label={type=="receive" ? (!formData.account_origin ? 'Cliente / Investidor' : formData.account_origin=="loans_in" ? "Investidor" : "Cliente")  : (!formData.account_origin ? 'Fornecedor / Investidor' : formData.account_origin == "loans_out" ? 'Investidor' :'Fornecedor')}  />}
                                 />   
                             </div>
 

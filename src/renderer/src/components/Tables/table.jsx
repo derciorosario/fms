@@ -42,95 +42,12 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
   
   function search_f(array){
 
-    function search_from_object(object,text){
-           text=search
-           let add=false
-           Object.keys(object).forEach(k=>{
-             if(typeof object[k]=="string" || typeof object[k]=="number"){
-                if(typeof object[k]=="number") object[k]=`${object[k]}`
-                if(object[k].toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(text.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))){
-                  add=true
-               }
-             }
-           })
-           return add
-        }
 
-      if (!array) return []
-
-      let d=JSON.parse(JSON.stringify(array))
-
-      if(periodFilters.startDate){
-          if(periodFilters.igual){
-            d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() >= periodFilters.startDate.getTime())
-          }else{
-            d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() <= periodFilters.startDate.getTime())
-          }
-      }
-
-      if(periodFilters.endDate){
-          if(periodFilters.igual){
-            d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() <= periodFilters.endDate.getTime())
-          }else{
-            d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() >= periodFilters.endDate.getTime())
-          }
-      }
-       
-      
-      filterOptions.forEach(f=>{
-           let g=f.groups
-           let igual=f.igual
-           g.filter(g=>{
-
-                  if(g.field=='transation_type' && g.selected_ids.length){
-                     d=d.filter(i=>(igual ?  g.selected_ids.includes(i.type) : !g.selected_ids.includes(i.type)))
-                  }
-
-                  if(g.field=='if_consiliated' && g.selected_ids.length){
-                     d=d.filter(i=>(igual ?  g.selected_ids.includes(!!(i.confirmed)) : !g.selected_ids.includes(!!(i.confirmed))))
-                  }
-
-                  if(g.field=='payment_status' && g.selected_ids.length){
-                    d=d.filter(i=>(igual ?  g.selected_ids.includes(i.status) : !g.selected_ids.includes(i.status)))
-                  }
-
-
-                  if(g.field=='transation_methods' && g.selected_ids.length){
-
-                     d=d.filter(i=>(igual ?  g.selected_ids.includes(i.payment_origin) : !g.selected_ids.includes(i.payment_origin)))
-                  } 
-                  
-                  if((g.field=='categories_in' || g.field=='categories_out' ) && g.selected_ids.length){
-                      d=d.filter(i=>(igual ?  g.selected_ids.includes(i.account_origin) : !g.selected_ids.includes(i.account_origin)))
-                  } 
-
-                  if(g.field=='_accounts' && g.selected_ids.length){
-                    d=d.filter(i=>(igual ?  g.selected_ids.includes(i.transation_account.id) : !g.selected_ids.includes(i.transation_account.id)))
-                  }    
-
-           })
-
-
-      })
-
-
-
-
-      let res=[]
-      d.forEach((t,i)=>{
-        if(search_from_object(t)) {
-            res.push(array.filter(j=>j.id==t.id)[0])
-        }
-      })
-
-
-      console.log({page})
-
+      let res=data._search(search,array,filterOptions,periodFilters)
 
       if(page=="inflows" || page=="outflows"){
           res=res.filter(v=>v.type==(page=="inflows" ? 'in' :'out'))
       }
-
 
       _setFilteredContent(res)
       return res
@@ -153,7 +70,6 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
 
     let _settings=JSON.parse(JSON.stringify(settings))
 
-
    if(page=='financial-reconciliation'){
        _settings.selected='_transations'
        _settings.hide_checkbox=true
@@ -162,25 +78,39 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
       _settings.selected='_bills_to_receive'
       _settings.required_data=['bills_to_receive','account_categories']
    }else if(page=="bills-to-pay"){
-    _settings.selected='_bills_to_pay'
-    page=="bills-to-pay"
-    _settings.required_data=['bills_to_pay','account_categories']
+      _settings.selected='_bills_to_pay'
+      page=="bills-to-pay"
+      _settings.required_data=['bills_to_pay','account_categories']
    }else if(page=="investments"){
       _settings.selected='_investments'
       _settings.required_data=['investments']
   }else if(page=="budget-management"){
-    _settings.selected='_budget'
-    _settings.required_data=['budget']
+      _settings.selected='_budget'
+      _settings.required_data=['budget']
   }else if(page=="account-categories"){
-    _settings.selected='_account_categories'
-    _settings.required_data=['account_categories']
+      _settings.selected='_account_categories'
+      _settings.required_data=['account_categories']
   }else if(page=="payment-methods"){
-    _settings.selected='_payment_methods'
-    _settings.required_data=['payment_methods']
+      _settings.selected='_payment_methods'
+      _settings.required_data=['payment_methods']
   }else if(page=="inflows" || page=="outflows"){
-    _settings.selected='_transations'
-    _settings.required_data=['transations']
+      _settings.selected='_transations'
+      _settings.required_data=['transations']
+  }else if(page=="clients"){
+      _settings.selected='_clients'
+      _settings.required_data=['clients']
+  }else if(page=="suppliers"){
+      _settings.selected='_suppliers'
+      _settings.required_data=['suppliers']
+  }else if(page=="investors"){
+      _settings.selected='_investors'
+      _settings.required_data=['investors']
+  }else if(page=="managers"){
+      _settings.selected='_managers'
+      _settings.required_data=['managers']
   }
+
+  
 
   
      setSettings(_settings)
@@ -288,7 +218,7 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
               width: 90,
               renderCell: (params) => (
                 <div style={{opacity:.6}}>
-                      <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/bills-to-pay/'+params.row._id)}>
+                      <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/'+page+'/'+params.row._id)}>
                           <EditOutlinedIcon/>
                       </span>
                       <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
@@ -636,7 +566,7 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
         headerName: 'Tipo',
         width: 200,
         renderCell: (params) => (
-          <span>{params.row.type=="mobile" ? 'Móvel' : params.row.type=="bank" ? 'Bancaria' : params.row.type=="cashier" ? 'Caixa' : 'Outro'}</span>
+          <span>{params.row.type=="mobile" ? 'Móvel' : params.row.type=="bank" ? 'Bancária' : params.row.type=="cashier" ? 'Caixa' : 'Outro'}</span>
         ),
       },
 
@@ -728,6 +658,199 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
          </div>
       )
   }
+
+];
+}else if(page=="clients" || page=="suppliers" || page=="investors"){
+
+  columns = [
+    {
+      field: 'edit',
+      headerName: '',
+      width: 170,
+      renderCell: (params) => (
+         <div style={{opacity:.8}}>
+              <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate(`/${page.slice(0,page.length - 1)}/`+params.row._id)}>
+                  <EditOutlinedIcon/>
+              </span>
+              <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
+                  <DeleteOutlineOutlinedIcon/>
+              </span>
+         </div>
+      )
+    },
+    {
+        field: 'name',
+        headerName: 'Nome',
+        width: 150,
+        renderCell: (params) => (
+          <span>{params.row.name ? params.row.name : '-'}</span>
+        ),
+      },
+      {
+        field: 'last_name',
+        headerName: 'Apelido',
+        width: 150,
+        renderCell: (params) => (
+          <span>{params.row.last_name ? params.row.last_name : '-'}</span>
+        ),
+      },
+      {
+        field: 'email',
+        headerName: 'Email',
+        width: 150,
+        renderCell: (params) => (
+          <span>{params.row.email ? params.row.email : '-'}</span>
+        ),
+      },
+      {
+        field: 'contacts',
+        headerName: 'Contactos',
+        width: 170,
+        renderCell: (params) => (
+          <div>
+              {params.row.contacts.map((i,_i)=>(
+                      <span key={_i}>{i}{_i!=params.row.contacts.length - 1 && ', '}</span>
+              ))}
+               <span>{!params.row.contacts.length && '-'}</span>
+          </div>
+        ),editable: true,
+      },
+
+       {
+        field: 'address',
+        headerName: 'Endereço',
+        width: 150,
+        renderCell: (params) => (
+          <span>{params.row.address ? params.row.address : '-'}</span>
+        ),
+        editable: true,
+      },
+    {
+      field: 'status',
+      headerName: 'Estado',
+      width: 120,
+      renderCell: (params) => (
+        <div>
+           
+                <span style={{backgroundColor:!params.row.status || params.row.status=='active' ? '#C9E8E8': '#F3D4D1', color: '#111' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='active' || !params.row.status ? 'Activo' : 'Inactivo'}</span>
+           
+        </div>
+      )
+    },
+    {
+        field: 'notes',
+        headerName: 'Observações',
+        width: 170,
+        renderCell: (params) => (
+        <span>-</span>
+        )
+    },
+    {
+      field: '-',
+      headerName: 'Data de  criação',
+      width: 170,
+      renderCell: (params) => (
+      <span>-</span>
+      )
+    },
+    
+   
+
+];
+
+}else if(page=="managers"){
+  columns = [
+    {
+        field: 'name',
+        headerName: 'Nome',
+        width: 150,
+        renderCell: (params) => (
+          <span>{params.row.name ? params.row.name : '-'}</span>
+        ),
+      },
+      {
+        field: 'last_name',
+        headerName: 'Apelido',
+        width: 150,
+        renderCell: (params) => (
+          <span>{params.row.last_name ? params.row.last_name : '-'}</span>
+        ),
+      },
+      {
+        field: 'email',
+        headerName: 'Email',
+        width: 150,
+        renderCell: (params) => (
+          <span>{params.row.email ? params.row.email : '-'}</span>
+        ),
+      },
+      {
+        field: 'contacts',
+        headerName: 'Contactos',
+        width: 170,
+        renderCell: (params) => (
+          <div>
+              {params.row.contacts.map((i,_i)=>(
+                      <span key={_i}>{i}{_i!=params.row.contacts.length - 1 && ', '}</span>
+              ))}
+               <span>{!params.row.contacts.length && '-'}</span>
+          </div>
+        ),editable: true,
+      },
+
+       {
+        field: 'address',
+        headerName: 'Endereço',
+        width: 150,
+        renderCell: (params) => (
+          <span>{params.row.address ? params.row.address : '-'}</span>
+        ),
+        editable: true,
+      },
+    {
+      field: 'status',
+      headerName: 'Estado',
+      width: 120,
+      renderCell: (params) => (
+        <div>
+           
+                <span style={{backgroundColor:!params.row.status || params.row.status=='active' ? '#C9E8E8': '#F3D4D1', color: '#111' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='active' || !params.row.status ? 'Activo' : 'Inactivo'}</span>
+           
+        </div>
+      )
+    },
+    {
+        field: 'notes',
+        headerName: 'Observações',
+        width: 170,
+        renderCell: (params) => (
+        <span>-</span>
+        )
+    },
+    {
+      field: '-',
+      headerName: 'Data de  criação',
+      width: 170,
+      renderCell: (params) => (
+      <span>-</span>
+      )
+    },
+    
+    {
+        field: 'edit',
+        headerName: '',
+        width: 170,
+        renderCell: (params) => (
+           <div style={{opacity:.8}}>
+                <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/manager/'+params.row._id)}>
+                    <EditOutlinedIcon/>
+                </span>
+                <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
+                    <DeleteOutlineOutlinedIcon/>
+                </span>
+           </div>
+        )
+    }
 
 ];
 }

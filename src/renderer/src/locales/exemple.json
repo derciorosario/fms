@@ -1,0 +1,78 @@
+{
+    "app": {
+      "title": "Inventory Management",
+      "description": "Manage your inventory with ease"
+    },
+    "navigation": {
+      "dashboard": "Dashboard",
+      "products": "Products",
+      "categories": "Categories",
+      "orders": "Orders",
+      "settings": "Settings",
+      "logout": "Logout"
+    },
+    "dashboard": {
+      "welcome": "Welcome, {{name}}!",
+      "overview": "Overview",
+      "totalProducts": "Total Products",
+      "totalCategories": "Total Categories",
+      "totalOrders": "Total Orders",
+      "recentActivity": "Recent Activity"
+    },
+    "products": {
+      "title": "Products",
+      "addProduct": "Add Product",
+      "editProduct": "Edit Product",
+      "deleteProduct": "Delete Product",
+      "productDetails": "Product Details",
+      "name": "Name",
+      "description": "Description",
+      "price": "Price",
+      "quantity": "Quantity",
+      "category": "Category",
+      "actions": "Actions",
+      "searchPlaceholder": "Search products..."
+    },
+    "categories": {
+      "title": "Categories",
+      "addCategory": "Add Category",
+      "editCategory": "Edit Category",
+      "deleteCategory": "Delete Category",
+      "categoryDetails": "Category Details",
+      "name": "Name",
+      "description": "Description",
+      "actions": "Actions",
+      "searchPlaceholder": "Search categories..."
+    },
+    "orders": {
+      "title": "Orders",
+      "addOrder": "Add Order",
+      "editOrder": "Edit Order",
+      "deleteOrder": "Delete Order",
+      "orderDetails": "Order Details",
+      "customerName": "Customer Name",
+      "date": "Date",
+      "totalAmount": "Total Amount",
+      "status": "Status",
+      "actions": "Actions",
+      "searchPlaceholder": "Search orders..."
+    },
+    "settings": {
+      "title": "Settings",
+      "language": "Language",
+      "preferences": "Preferences",
+      "profile": "Profile",
+      "saveChanges": "Save Changes"
+    },
+    "common": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "confirmDelete": "Are you sure you want to delete?",
+      "yes": "Yes",
+      "no": "No",
+      "loading": "Loading...",
+      "error": "An error occurred. Please try again."
+    }
+  }
+  

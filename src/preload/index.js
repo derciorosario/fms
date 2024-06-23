@@ -10,6 +10,11 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('electron', {
+      process: {
+        versions: process.versions
+      }
+    });
   } catch (error) {
     console.error(error)
   }

@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
-import DefaultLayout from '../../../layout/DefaultLayout';
 import IconButton from '@mui/material/IconButton';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputLabel from '@mui/material/InputLabel';
@@ -11,13 +10,12 @@ import TextField from '@mui/material/TextField';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Autocomplete from '@mui/material/Autocomplete'
-import SendIcon from '@mui/icons-material/Send';
-import LoadingButton from '@mui/lab/LoadingButton';
 import toast from 'react-hot-toast';
-import { useAuth  } from '../../../contexts/AuthContext';
-import { useData  } from '../../../contexts/DataContext';
-import {useParams, useNavigate} from 'react-router-dom';
+import { useData  } from '../../contexts/DataContext';
+import {useParams, useNavigate,useLocation} from 'react-router-dom';
 import PouchDB from 'pouchdb';
+import FormLayout from '../../layout/DefaultFormLayout';
+
        
        
        function App() {
@@ -26,29 +24,36 @@ import PouchDB from 'pouchdb';
 
           const { id } = useParams()
 
+          const {pathname} = useLocation()
+
+          console.log({pathname})
+
           const db={
-            clients:new PouchDB('clients')
+            clients:new PouchDB('clients'),
+            suppliers:new PouchDB('suppliers'),
+            investors:new PouchDB('investors')
           } 
 
           const [items,setItems]=React.useState([])
           
           
-         
+          let page=pathname.includes('/client') ? 'clients' : pathname.includes('/supplier') ? 'suppliers' :'investors';
+
           
 
           useEffect(()=>{
-            if(!id) return
+            if(!id || id==formData.id) return
 
             (async()=>{
               try {
-                let item=await db.clients.get(id)
+                let item=await db[page].get(id)
                 setFormData(item)
               } catch (error) {
                 console.log(error)
               }
             })()
 
-          },[])
+          },[pathname])
 
 
        
@@ -72,7 +77,7 @@ import PouchDB from 'pouchdb';
 
           useEffect(()=>{
             (async()=>{
-                let docs=await db.clients.allDocs({ include_docs: true })
+                let docs=await db[page].allDocs({ include_docs: true })
                 setItems(docs.rows.map(i=>i.doc).filter(i=>!i.deleted))
             })()
           },[formData])
@@ -103,12 +108,12 @@ import PouchDB from 'pouchdb';
                   }
                    try{
                      if(id){
-                        _update('clients',[{...formData}])
-                        toast.success('Cliente actualizado')
+                        _update(page,[{...formData}])
+                        toast.success('Actualizado com sucesso')
                      }else{
-                        _add('clients',[{...formData,id:Math.random(),_id:Math.random().toString()}])
+                        _add(page,[{...formData,id:Math.random(),_id:Math.random().toString()}])
                         setVerifiedInputs([])
-                        toast.success('Cliente adicionado')
+                        toast.success('Adicionado com sucesso')
                         setFormData(initial_form)
                      }
                  }catch(e){
@@ -137,14 +142,10 @@ import PouchDB from 'pouchdb';
         
          return (
            <>
-              <DefaultLayout details={{name: (id ?'Actualizar' :'Novo')+' cliente'}} >
-                   <div className="bg-white shadow py-1 rounded-[5px] pb-5 max-w-[675px]">
-       
-                      <div className="p-[15px] border-b border-zinc-300 mb-4 opacity-75">
-                         <span className="font-medium text-[18px]">{id ? 'Actualizar' :'Adicionar novo cliente'} </span>
-                      </div>
-       
-                      <div className="flex flex-wrap p-4 w-[100%] [&>_div]:mb-[20px] [&>_div]:mr-[20px] [&>_div]:w-[46%]">
+              <FormLayout name={ `${id ? 'Actualizar ' : 'Novo '} ${page=="clients" ? "Cliente" : page=="supplier" ? "Fornecedor" : "Investidor"}`} formTitle={id ? 'Actualizar' : 'Adicionar'}>
+                  
+                  <FormLayout.Section>
+
                        <div>
                         <TextField
                            id="outlined-textarea"
@@ -296,23 +297,15 @@ import PouchDB from 'pouchdb';
        
                            
                        
-                      </div>
-       
-                      <div className="px-3 mb-2">
-                      <LoadingButton
-                         onClick={SubmitForm}
-                         endIcon={<SendIcon />}
-                         loading={loading}
-                         loadingPosition="end"
-                         variant="contained"
-                         disabled={!valid}
-                      >
-                         <span>{loading ? `${id ? 'A actualizar...' :'A enviar...'}`:`${id ? 'Actualizar' :'Enviar'}`}</span>
-                       </LoadingButton>
-                      </div>
-       
-                   </div>
-               </DefaultLayout>
+                   
+
+
+                  </FormLayout.Section>
+
+                  <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={id}/>
+
+                  
+               </FormLayout>
            </>
          )
        }

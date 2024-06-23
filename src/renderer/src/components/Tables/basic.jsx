@@ -171,19 +171,19 @@ function BasicTable({page,_filtered_content,_setFilteredContent,res}) {
     if(page=="account-categories"){
       _settings.from='_account_categories'
       _settings.create_path='accounts'
-   }
-   if(page=="inflows"){
-    _settings.from='_transations'
-    _settings.create_path='cash-management/inflow'
-   }
-   if(page=="outflows"){
-    _settings.from='_transations'
-    _settings.create_path='cash-management/outflow'
-   }
+    }
+    if(page=="inflows"){
+      _settings.from='_transations'
+      _settings.create_path='cash-management/inflow'
+    }
+    if(page=="outflows"){
+      _settings.from='_transations'
+      _settings.create_path='cash-management/outflow'
+    }
 
-   if(page=="payment-methods"){
-    _settings.from='_payment_methods'
-   }
+    if(page=="payment-methods"){
+      _settings.from='_payment_methods'
+    }
 
    
 

@@ -62,6 +62,7 @@ export default function CustomizedMenus({text,options}) {
   const handleClose = (path) => {
    
     setAnchorEl(null);    
+    
     if(typeof path == "string") navigate(path)
 
   };

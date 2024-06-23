@@ -23,12 +23,12 @@ export default function AccountMenu() {
     setAnchorEl(event.currentTarget);
   };
   const navigate = useNavigate();
-  const handleClose = (a) => {
+  const handleClose = (to) => {
 
     setAnchorEl(null);
-    if(a=="logout"){
-         navigate('/logout')
-    }
+    
+    
+   if(typeof to=="string")  navigate(`${to}`)
 
   };
 
@@ -85,17 +85,17 @@ export default function AccountMenu() {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem onClick={handleClose}>
+        <MenuItem onClick={()=>handleClose('/user-preferences')}>
           <Avatar /> Perfil
         </MenuItem>
         <Divider />
-        <MenuItem onClick={handleClose}>
+        {/**<MenuItem onClick={handleClose}>
           <ListItemIcon>
             <Settings fontSize="small" />
           </ListItemIcon>
           Configurações
-        </MenuItem>
-        <MenuItem onClick={()=>handleClose('logout')}>
+        </MenuItem> */}
+        <MenuItem onClick={()=>handleClose('/logout')}>
           <ListItemIcon>
             <Logout fontSize="small" />
           </ListItemIcon>

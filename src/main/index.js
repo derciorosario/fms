@@ -1,18 +1,51 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 const { session } = require('electron');
-
+const fs = require('fs');
+const path = require('path');
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io')
+const cors = require('cors');
 
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.jpg?asset'
 
+
+const expressApp = express();
+const server = http.createServer(expressApp);
+const io = socketIo(server,{
+  maxHttpBufferSize: 1e7,
+  cors:{
+    origin:'*'
+  }
+});
+
+
+io.on('connection', (socket) => {
+  console.log('a user connected');
+
+  // Handle messages from the React frontend
+  socket.on('messageFromReact', (data) => {
+    console.log('Message from React:', data);
+    // Respond back to the React frontend
+    socket.emit('messageFromElectron', { response: 'Message received' });
+  });
+
+  socket.on('disconnect', () => {
+    console.log('user disconnected');
+  });
+});
+
+
+let mainWindow
 function createWindow() {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+   mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
-    autoHideMenuBar: true,
+    autoHideMenuBar: false,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -20,8 +53,27 @@ function createWindow() {
     }
   })
 
+
+  let upload_file_path=join(__dirname,'./uploads')
+
+  function create_upload_folder(){
+   if (!fs.existsSync(upload_file_path)) {
+      fs.mkdirSync(upload_file_path, { recursive: true });
+      return `Folder created at ${upload_file_path}`;
+    } else {
+      return `Folder already exists at ${upload_file_path}`;
+    }
+  }
+
   mainWindow.on('ready-to-show', () => {
      //mainWindow.webContents.session.clearStorageData()
+    /* server.listen(3001, () => {
+      console.log('Express server listening on port 3001');
+    });*/
+
+
+    create_upload_folder()
+    
     mainWindow.show()
   })
 
@@ -52,9 +104,37 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
-
+  
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
+
+  ipcMain.on('file-upload', (event,file) => {
+
+    const fileStream = fs.createReadStream(join(file.path));
+    const fileSize = fs.statSync(file.path).size;
+    let uploadedSize = 0;
+
+   
+    console.log(mainWindow.webContents.ipc)
+    console.log(Object.keys(mainWindow.webContents))
+    return
+    fileStream.on('data', (chunk) => {
+      uploadedSize += chunk.length;
+      const progress = Math.round((uploadedSize / fileSize) * 100);
+      console.log(Object.keys(mainWindow))
+     
+      mainWindow.webContents//.ipc.send('file-progress', progress)
+    });
+  
+    fileStream.on('end', () => {
+      //mainWindow.webContents.send('upload-complete', true);
+    });
+  
+    fileStream.pipe(fs.createWriteStream(join(__dirname,'./uploads/'+file.name)));
+  });
+
+
+
 
   createWindow()
 
@@ -72,8 +152,9 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+  server.close()
 })
-
+  
 
 // Receiving data from React
 ipcMain.on('toMain', (event, data) => {

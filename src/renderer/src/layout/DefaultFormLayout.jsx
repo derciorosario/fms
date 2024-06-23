@@ -11,7 +11,7 @@ const FormLayout = ({name,formTitle,maxWidth, children, topLeftContent}) => {
 
     <>
       <DefaultLayout details={{name}}>
-               <div style={{maxWidth:maxWidth ? maxWidth :'100%'}} className={`bg-white py-1 pb-5 border rounded-[0.3rem]`}>
+               <div style={{maxWidth:maxWidth ? maxWidth :'100%'}} className={`bg-white py-1 pb-5 shadow rounded-[0.3rem]`}>
 
                <div className="p-[15px] opacity-75 flex justify-between items-center">
                   <span className="font-medium text-[18px]">{formTitle}</span>

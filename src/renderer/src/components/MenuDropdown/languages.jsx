@@ -5,17 +5,43 @@ import MenuItem from '@mui/material/MenuItem';
 import Fade from '@mui/material/Fade';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import LanguageIcon from '@mui/icons-material/Language';
-
+import { useTranslation } from 'react-i18next';
 
 export default function FadeMenu() {
+  let langs=['pt','en']
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [selectedLang, setSelectedLang] = React.useState(localStorage.getItem('lang') ? localStorage.getItem('lang') : langs[0]);
+  const { t, i18n } = useTranslation();
+
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
+
+     setAnchorEl(event.currentTarget);
+
   };
   const handleClose = () => {
-    setAnchorEl(null);
+     setAnchorEl(null);
   };
+
+  
+
+  React.useEffect(()=>{
+
+
+
+  },[])
+ 
+  
+  
+  const changeLanguage = (lng) => {
+      i18n.changeLanguage(lng);
+      setSelectedLang(lng)
+      localStorage.setItem('lang',lng)
+      handleClose()
+  };
+
+
+
 
   return (
     <div>
@@ -27,9 +53,10 @@ export default function FadeMenu() {
         onClick={handleClick}
         sx={{color:'#000'}}
       >
-         <LanguageIcon/>
+
+         <LanguageIcon sx={{opacity:'.8'}}/>
                       
-         <span className="mx-2">Português</span>
+         <span className="mx-2 capitalize">{selectedLang}</span>
         <KeyboardArrowDownIcon/>
       </Button>
       <Menu
@@ -42,9 +69,11 @@ export default function FadeMenu() {
         onClose={handleClose}
         TransitionComponent={Fade}
       >
-       {/** <MenuItem onClick={handleClose}>Português</MenuItem> */}
-        <MenuItem onClick={handleClose}>English</MenuItem>
-        <MenuItem onClick={handleClose}>Español</MenuItem>
+        {langs.filter(i=>i!=selectedLang).map((i,_i)=>(
+              <MenuItem onClick={()=>changeLanguage(i)}><span className=" capitalize min-w-[60px] flex">{i}</span></MenuItem>
+        ))}
+        
+        {/**<MenuItem onClick={handleClose}>Español</MenuItem>
         <MenuItem onClick={handleClose}>Français</MenuItem>
         <MenuItem onClick={handleClose}>Deutsch</MenuItem>
         <MenuItem onClick={handleClose}>Italiano</MenuItem>
@@ -52,7 +81,7 @@ export default function FadeMenu() {
         <MenuItem onClick={handleClose}>日本語 (Japanese)</MenuItem>
         <MenuItem onClick={handleClose}>한국어 (Korean)</MenuItem>
         <MenuItem onClick={handleClose}>Русский (Russian)</MenuItem>
-        <MenuItem onClick={handleClose}>العربية (Arabic)</MenuItem>
+        <MenuItem onClick={handleClose}>العربية (Arabic)</MenuItem> */}
 
       </Menu>
     </div>

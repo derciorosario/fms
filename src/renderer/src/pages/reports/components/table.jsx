@@ -87,7 +87,7 @@ function StatsTable({content}) {
 
                                        {(i2.sub?.length ? true : false) && (
                                            <>
-                                               {i2.sub.i.sub.filter(i=>!i.disabled).map((i3,_i3)=>(
+                                               {i2.sub.filter(i=>!i.disabled).map((i3,_i3)=>(
                                                      <tr key={'i3'+_i3} style={{display:openItems.includes('i2-'+_i2+'-'+i.field) && openItems.includes('i-'+_i) ? 'table-row':'none'}}  class="[&>_td]:px-6 [&>_td]:py-4 [&>_td]:min-h-[50px] bg-white border-b ">
                                                         <td className={` flex items-center relative font-medium`} ><span style={{borderColor:i.color}} className={`border-l-[3px]  h-full flex w-full absolute left-0 top-0`}></span>
                                                           <span className="pl-14 flex items-center">

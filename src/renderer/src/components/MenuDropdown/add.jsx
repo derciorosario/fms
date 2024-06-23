@@ -3,11 +3,8 @@ import { styled, alpha } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import EditIcon from '@mui/icons-material/Edit';
 import Divider from '@mui/material/Divider';
-import ArchiveIcon from '@mui/icons-material/Archive';
-import FileCopyIcon from '@mui/icons-material/FileCopy';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import { useNavigate } from 'react-router-dom';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 const StyledMenu = styled((props) => (
@@ -54,12 +51,17 @@ const StyledMenu = styled((props) => (
 export default function CustomizedMenus() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
+  const navigate = useNavigate();
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
-  const handleClose = () => {
+  const handleClose = (to) => {
     setAnchorEl(null);
+     
+   if(typeof to=="string")  navigate(`${to}`)
+
   };
+  
 
   return (
     <div>
@@ -85,18 +87,29 @@ export default function CustomizedMenus() {
         open={open}
         onClose={handleClose}
       >
-        <MenuItem onClick={handleClose} disableRipple>
+        <MenuItem onClick={()=>handleClose('/bills-to-pay/create')} disableRipple>
           Conta a pagar
         </MenuItem>
-        <MenuItem onClick={handleClose} disableRipple>
+        <MenuItem onClick={()=>handleClose('/bills-to-receive/create')} disableRipple>
           Conta a receber
         </MenuItem>
         <Divider sx={{ my: 0.5 }} />
-        <MenuItem onClick={handleClose} disableRipple>
-          Transação
+        <MenuItem onClick={()=>handleClose('/cash-management/inflow/create')} disableRipple>
+          Entrada
         </MenuItem>
-        <MenuItem onClick={handleClose} disableRipple>
-          Categoria de conta
+        <MenuItem onClick={()=>handleClose('/cash-management/outflow/create')} disableRipple>
+          Saida
+        </MenuItem>
+        <MenuItem onClick={()=>handleClose('/account/create')} disableRipple>
+          Conta
+        </MenuItem>
+
+        <Divider sx={{ my: 0.5 }} />
+        <MenuItem onClick={()=>handleClose('/client/create')} disableRipple>
+          Cliente
+        </MenuItem>
+        <MenuItem onClick={()=>handleClose('/supplier/create')} disableRipple>
+          Fornecedor
         </MenuItem>
       
       </StyledMenu>

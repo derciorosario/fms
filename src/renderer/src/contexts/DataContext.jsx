@@ -2,12 +2,41 @@ import { createContext, useContext, useState ,useEffect} from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import PouchDB from 'pouchdb';
+import io from 'socket.io-client';
+//const socket = io('http://localhost:3001');
+import { useTranslation } from 'react-i18next';
+
 
 const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
-  let process={env:{REACT_APP_BASE_URL:'https://server-fms.onrender.com'}}
 
+  
+  const { t } = useTranslation();
+
+
+  let process={env:{REACT_APP_BASE_URL:'https://server-fms.onrender.com'}}
+  
+  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState([]);
+
+  /*useEffect(() => {
+    // Listen for messages from the server
+    socket.on('message', (data) => {
+      setMessages((prevMessages) => [...prevMessages, data]);
+    });
+
+    // Clean up the socket connection
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  const sendMessage = () => {
+    socket.emit('message', message);
+    setMessage('');
+  };
+*/
   const {token} = useAuth();
   const db={
     managers:new PouchDB('managers'),
@@ -43,20 +72,21 @@ export const DataProvider = ({ children }) => {
   const [_filtered_content,_setFilteredContent]=useState([])
 
   let dbs=[
-    {name:'managers',update:setManagers,db:db.managers, remote:true,get:_managers},
-    {name:'clients',update:setClients,db:db.clients,get:_clients},
-    {name:'suppliers',update:setSuppliers,db:db.suppliers,get:_suppliers},
-    {name:'investors',update:setInvestors,db:db.investors,get:_investments},
-    {name:'account_categories',update:setAccountCategories,db:db.account_categories,get:_account_categories},
-    {name:'investments',update:setInvestments,db:db.investments,get:_investments},
-    {name:'bills_to_pay',update:setABillsToPay,db:db.bills_to_pay,get:_bills_to_pay},
-    {name:'bills_to_receive',update:setABillsToReceive,db:db.bills_to_receive,get:_bills_to_receive},
-    {name:'accounts',update:setAccounts,db:db.accounts,get:_accounts},
+    {name:'managers',edit_name:'manager',update:setManagers,db:db.managers, remote:true,get:_managers,n:t('common.dbItems.managers')},
+    {name:'clients',edit_name:'client',update:setClients,db:db.clients,get:_clients,n:t('common.dbItems.clients')},
+    {name:'suppliers',edit_name:'supplier',update:setSuppliers,db:db.suppliers,get:_suppliers,n:t('common.dbItems.suppliers')},
+    {name:'investors',edit_name:'investor',update:setInvestors,db:db.investors,get:_investments,n:t('common.dbItems.investors')},
+    {name:'account_categories',edit_name:'accounts',update:setAccountCategories,db:db.account_categories,get:_account_categories,n:t('common.dbItems.accounts')},
+    {name:'investments',edit_name:'investment',update:setInvestments,db:db.investments,get:_investments,n:t('common.dbItems.investments')},
+    {name:'bills_to_pay',edit_name:'bills-to-pay',update:setABillsToPay,db:db.bills_to_pay,get:_bills_to_pay,n:t('common.dbItems.billsToPay')},
+    {name:'bills_to_receive',edit_name:'receive',update:setABillsToReceive,db:db.bills_to_receive,get:_bills_to_receive,n:t('common.dbItems.billsToreceive')},
+    {name:'accounts',edit_name:'account',update:setAccounts,db:db.accounts,get:_accounts},
     {name:'categories',update:setACategories,db:db.categories,get:_categories},
-    {name:'payment_methods',update:setPaymentMethods,db:db.payment_methods,get:_payment_methods},
-    {name:'transations',update:setTransations,db:db.transations,get:_transations},
+    {name:'payment_methods',edit_name:'payment_methods',update:setPaymentMethods,db:db.payment_methods,get:_payment_methods,n:t('common.dbItems.paymentMethods')},
+    {name:'transations',edit_name:'transations',update:setTransations,db:db.transations,get:_transations,n:t('common.dbItems.transations')},
     {name:'budget',update:setBudget,db:db.budget,get:_budget}
   ]
+
 
   useEffect(()=>{
     (async()=>{
@@ -188,7 +218,12 @@ export const DataProvider = ({ children }) => {
   }
  }
 
- 
+
+ const [_menu, _setMenu] = useState({
+     open:Boolean(localStorage.getItem('menu_open')),
+     float:false
+ });
+
  
  async function _update(from,array){
       let selected=dbs.filter(i=>i.name==from)[0]
@@ -217,6 +252,8 @@ export const DataProvider = ({ children }) => {
 
   async function _get(from){
     let selected=dbs.filter(i=>i.name==from)[0]
+
+    console.log({e:window.electron})
 
    let response
    if(selected.remote){
@@ -1418,9 +1455,113 @@ function generate_color() {
     if(get=="month_and_year"){
       return `${monthName} de ${year}`;
     }
+    if(get=="all"){
+      return `${day} de ${monthName}, ${year}`;
+    }
     return `${_day ? _day : day} de ${monthName}`;
 }
 
+
+
+
+function _search(search,array,filterOptions,periodFilters){
+
+  function search_from_object(object,text){
+         text=search
+         let add=false
+         Object.keys(object).forEach(k=>{
+           if(typeof object[k]=="string" || typeof object[k]=="number"){
+              if(typeof object[k]=="number") object[k]=`${object[k]}`
+              if(object[k].toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(text.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))){
+                add=true
+             }
+           }
+         })
+         return add
+      }
+
+    if (!array) return []
+
+    let d=JSON.parse(JSON.stringify(array))
+
+
+
+
+   if(periodFilters){
+    if(periodFilters.startDate){
+        if(periodFilters.igual){
+          d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() >= periodFilters.startDate.getTime())
+        }else{
+          d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() <= periodFilters.startDate.getTime())
+        }
+    }
+
+    if(periodFilters.endDate){
+        if(periodFilters.igual){
+          d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() <= periodFilters.endDate.getTime())
+        }else{
+          d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() >= periodFilters.endDate.getTime())
+        }
+    }
+   }
+
+
+if(filterOptions){
+
+
+     
+    
+    filterOptions.forEach(f=>{
+         let g=f.groups
+         let igual=f.igual
+         g.filter(g=>{
+
+                if(g.field=='transation_type' && g.selected_ids.length){
+                   d=d.filter(i=>(igual ?  g.selected_ids.includes(i.type) : !g.selected_ids.includes(i.type)))
+                }
+
+                if(g.field=='if_consiliated' && g.selected_ids.length){
+                   d=d.filter(i=>(igual ?  g.selected_ids.includes(!!(i.confirmed)) : !g.selected_ids.includes(!!(i.confirmed))))
+                }
+
+                if(g.field=='payment_status' && g.selected_ids.length){
+                  d=d.filter(i=>(igual ?  g.selected_ids.includes(i.status) : !g.selected_ids.includes(i.status)))
+                }
+
+
+                if(g.field=='transation_methods' && g.selected_ids.length){
+
+                   d=d.filter(i=>(igual ?  g.selected_ids.includes(i.payment_origin) : !g.selected_ids.includes(i.payment_origin)))
+                } 
+                
+                if((g.field=='categories_in' || g.field=='categories_out' ) && g.selected_ids.length){
+                    d=d.filter(i=>(igual ?  g.selected_ids.includes(i.account_origin) : !g.selected_ids.includes(i.account_origin)))
+                } 
+
+                if(g.field=='_accounts' && g.selected_ids.length){
+                  d=d.filter(i=>(igual ?  g.selected_ids.includes(i.transation_account.id) : !g.selected_ids.includes(i.transation_account.id)))
+                }    
+
+         })
+
+
+    })
+
+  }
+
+
+    let res=[]
+    d.forEach((t,_)=>{
+      if(search_from_object(t)) {
+          res.push(array.filter(j=>j.id==t.id)[0])
+      }
+    })
+
+
+ 
+    return res
+
+ }
 
 
   const value = {
@@ -1429,6 +1570,7 @@ function generate_color() {
     _get,
     _update,
     _delete,
+    _search,
     _clients,
     _investors,
     _loaded,
@@ -1442,6 +1584,8 @@ function generate_color() {
     _sort_by_date,
     _filtered_content,
     _setFilteredContent,
+    _menu,
+    _setMenu,
     _get_cash_managment_stats,
     _get_dre_stats,
     _get_budget_managment_stats,

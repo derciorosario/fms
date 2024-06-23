@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
-import DefaultLayout from '../../../layout/DefaultLayout';
 import IconButton from '@mui/material/IconButton';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputLabel from '@mui/material/InputLabel';
@@ -11,14 +10,14 @@ import TextField from '@mui/material/TextField';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Autocomplete from '@mui/material/Autocomplete'
-import SendIcon from '@mui/icons-material/Send';
-import LoadingButton from '@mui/lab/LoadingButton';
 import toast from 'react-hot-toast';
 import { useAuth  } from '../../../contexts/AuthContext';
 import { useData  } from '../../../contexts/DataContext';
 import {useParams, useNavigate} from 'react-router-dom';
 import PouchDB from 'pouchdb';
-       
+import FormLayout from '../../../layout/DefaultFormLayout';
+
+      
        
        function App() {
 
@@ -147,15 +146,14 @@ import PouchDB from 'pouchdb';
         
          return (
            <>
-              <DefaultLayout details={{name: (id ?'Actualizar' :'Novo')+' gestor'}} >
-                   <div className="bg-white shadow py-1 rounded-[5px] pb-5 max-w-[675px]">
-       
-                      <div className="p-[15px] border-b border-zinc-300 mb-4 opacity-75">
-                         <span className="font-medium text-[18px]">{id ? 'Actualizar' :'Adicionar novo gestor'} </span>
-                      </div>
-       
-                      <div className="flex flex-wrap p-4 w-[100%] [&>_div]:mb-[20px] [&>_div]:mr-[20px] [&>_div]:w-[46%]">
-                       <div>
+              <FormLayout name={ `${id ? 'Actualizar Gestor' : 'Novo Gestor'}`} formTitle={id ? 'Actualizar' : 'Adicionar'}>
+              
+
+
+
+
+              <FormLayout.Section>
+              <div>
                         <TextField
                            id="outlined-textarea"
                            label="Nome *"
@@ -298,33 +296,22 @@ import PouchDB from 'pouchdb';
                                label="Obsrvações"
                                multiline
                                rows={4}
-                               value={formData.motes}
+                               value={formData.notes}
                                onChange={(e)=>setFormData({...formData,notes:e.target.value})}
                                defaultValue=""
                                sx={{width:'100%'}}
                                />
                        </div>
+              </FormLayout.Section>
        
        
-                           
-                       
-                      </div>
+              <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={id}/>
+        
+                      
        
-                      <div className="px-3 mb-2">
-                      <LoadingButton
-                         onClick={SubmitForm}
-                         endIcon={<SendIcon />}
-                         loading={loading}
-                         loadingPosition="end"
-                         variant="contained"
-                         disabled={!valid}
-                      >
-                         <span>{loading ? `${id ? 'A actualizar...' :'A enviar...'}`:`${id ? 'Actualizar' :'Enviar'}`}</span>
-                       </LoadingButton>
-                      </div>
+                     
        
-                   </div>
-               </DefaultLayout>
+               </FormLayout>
            </>
          )
        }

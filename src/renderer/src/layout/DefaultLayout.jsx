@@ -1,16 +1,37 @@
 import React, { useState } from 'react';
 import Header from '../components/Header/index';
 import Sidebar from '../components/Sidebar/index';
+import { useData } from '../contexts/DataContext';
+import { Box, CircularProgress } from '@mui/material';
+
+
+
+
+
 
 const DefaultLayout = ({ children , details}) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const {_loaded,dbs,_categories} = useData()
+
+
+  if(_loaded.length < dbs.length || !_categories.length){
+     return (
+
+          <div className="flex justify-center items-center h-lvh bg-white">
+                      <CircularProgress />
+          </div>
+             
+     )
+  }
+  
   return (
     <div className="dark:bg-boxdark-2 dark:text-bodydark">
       {/* <!-- ===== Page Wrapper Start ===== --> */}
       <div className="flex h-screen overflow-hidden">
         {/* <!-- ===== Sidebar Start ===== --> */}
         <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        <Sidebar float={true}/>
         {/* <!-- ===== Sidebar End ===== --> */}
 
         {/* <!-- ===== Content Area Start ===== --> */}

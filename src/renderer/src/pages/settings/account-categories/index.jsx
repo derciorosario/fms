@@ -11,12 +11,12 @@ function App() {
   const [openItems,setOpenItems]=useState([])
   const [formData,setFormData]=useState([])
   
-  async function SubmitForm(){
+  async function SubmitForm(formData){
            
     let res=await _add('categories',formData)
 
     if(res.ok){
-        toast.success('Plano de contas actualizado!')
+        //toast.success('Plano de contas actualizado!')
     }else{
         toast.error(`Erro ao actualizar.  Messagem de erro: (${res.error})`)
     }
@@ -32,6 +32,7 @@ function App() {
 
    },[])
 
+   
   React.useEffect(()=>{
    
       setFormData(_categories)
@@ -48,7 +49,7 @@ function App() {
 
         <div className="w-[97%] m-auto">
           
-        <Alert severity="info">Habilite  as categorias que deseja usar no seu negócio.</Alert>
+        <Alert severity="info">Selecione as categorias que deseja usar no seu negócio.</Alert>
            
           </div>    
                    
@@ -63,13 +64,13 @@ function App() {
                  {formData.filter(i=>i.type==j).map((i,_i)=>(
                     <div className="ml-5" key={_i} id={`category-list-`+_i+_j}>
                         <div className="flex px-[6px] items-center mt-3 pb-2 pl-3">
-                              <Switch
+                              <Checkbox
                               disabled={0===1 ? true : false}
                               checked={!Boolean(i.disabled)}
                               inputProps={{ 'aria-label': 'controlled' }}
-                              onChange={(e)=>{
+                              onChange={()=>{
 
-                                setFormData(formData.map(f=>{
+                                SubmitForm(formData.map(f=>{
                                     return f.field!=i.field ? f : {...f,disabled:!Boolean(f.disabled)}
                                 }))
 
@@ -112,11 +113,11 @@ function App() {
 
              
         </div>
-
+    {/** 
         <FormLayout.SendButton text={{
             create:'Actualizar'
         }} SubmitForm={SubmitForm} loading={loading} valid={true} id={false}/>
-      
+     **/ }
   </FormLayout>
   </>
   )

@@ -7,16 +7,51 @@ import Dropdown from '../MenuDropdown/index'
 import DropdownTest from '../MenuDropdown/add'
 import DropDownProfile from '../MenuDropdown/profile'
 import DropDownLangs from '../MenuDropdown/languages'
-
+import NotificationPopUp from '../PopUps/notifications';
 import { NavLink, useLocation,useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
+import Search from '../PopUps/search';
+
 
 function App({details}) {
     const {user}=useAuth()
     const [addMenuAnchorEl, setAddMenuAnchorEl] = React.useState(null);
+    const [openPopUps, setOpenPopUps] = React.useState({
+        nots:false,
+        search:false
+    });
     const navigate = useNavigate();
+
+    const [searchContent,setSearchContent] = React.useState('')
+
+    const { t, i18n } = useTranslation();
+
+    const changeLanguage = (lng) => {
+        i18n.changeLanguage(lng);
+    };
+
+
+    /***
+     * 
+     * <h1>{t('dashboard.welcome', { name: userName })}</h1>
+     */
     
-     
+    const handleOutsideClick = (event) => {
+        if (!event?.target?.closest(`._nots`) && !event?.target?.closest(`._search`)) {
+            document.removeEventListener('click', handleOutsideClick); 
+            setOpenPopUps({nots:false,search:false})
+        }
+    };
+    
+    const  handleOpenPopUps = (option) => {
+        setTimeout(()=>document.addEventListener('click', handleOutsideClick),100)
+        setOpenPopUps({
+            nots:false,
+            search:false
+        ,[option]:true})
+    }
+    
 
     const handleAddMenuClose = (i) => {
          navigate(i.path)
@@ -28,7 +63,7 @@ function App({details}) {
      
 
     <>
-       <div className="flex justify-between items-center p-4 h-16 bg-white border-b">
+       <div className="flex justify-between items-center p-4 h-16 bg-white shadow-sm">
             <div><span className="text-black font-normal text-[18px]">{details && details.name}</span></div>
             <div className="flex items-center">
 
@@ -51,9 +86,21 @@ function App({details}) {
             
 
                 
-                <div className="flex h-10 w-80 bg-slate-100 items-center px-2 rounded-lg">
+                <div className="flex h-10 w-80 bg-slate-100 items-center px-2 rounded-lg relative">
                     <span className="text-white"><SearchIcon style={{ color: '#5D5FEF' }}/></span>
-                    <input placeholder="Pesquisar..." type="text" className="outline-none bg-transparent flex-grow px-2 text-indigo-500"/>
+                    <input value={searchContent} onChange={(e)=>{
+                        setSearchContent(e.target.value)
+                        if(!e.target.value) {
+                            handleOutsideClick()
+                        }else{
+                            handleOpenPopUps('search')
+                        }
+                    }} onClick={()=>{
+                            handleOpenPopUps('search')
+                       
+                    }} placeholder="Pesquisar..." type="text" className="_search outline-none bg-transparent flex-grow px-2 text-indigo-500"/>
+                    <Search setSearchContent={setSearchContent} searchContent={searchContent} show={openPopUps.search} setOpenPopUps={setOpenPopUps}/>
+
                 </div>
             </div>
             <div className="flex items-center justify-center">
@@ -65,9 +112,17 @@ function App({details}) {
                        
                       
                      </div>
-                    <div className="size-10 rounded-l bg-amber-50 justify-center flex items-center relative">
-                        <span className="absolute top-1 left-1 size-2 rounded-full bg-[#FFA412]"></span>
-                        <NotificationsNoneIcon style={{ color: '#FFA412',width:'60px' }}/>
+                    <div className="_nots size-10 rounded-l bg-amber-50 justify-center flex items-center relative">
+                        <div className="cursor-pointer" onClick={()=>handleOpenPopUps('nots')}>
+
+                            <span className="absolute top-1 left-1 size-2 rounded-full bg-[#FFA412]"></span>
+                            <NotificationsNoneIcon  style={{ color: '#FFA412',width:'60px' }}/>
+
+                        </div>
+                        
+                        <NotificationPopUp show={openPopUps.nots} setOpenPopUps={setOpenPopUps}/>
+
+                        
                     </div>
                     
                     <DropDownProfile/>

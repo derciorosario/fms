@@ -1,0 +1,131 @@
+{
+    "app": {
+      "title": "FMS",
+      "description": "Manage your finance with ease"
+    },
+    "sidebar": {
+      "main":{
+        "dashboard": "Dashboard",
+        "accounts": "Contas",
+        "cashManagement": "Gestão de caixa",
+        "register": "Registro",
+        "settings": "Configurações",
+        "investments": "Investimentos",
+        "finacialReconciliation": "Conciliação finançeira",
+        "reports": "Relatórios",
+        "companies": "Filiais",
+        "userPreferences":"Preferências e conta de usuário"
+      },
+      "accounts":{
+        "toPay":"A pagar",
+        "toReceive":"A receber"
+      },
+      "cashManagement": {
+        "inflows":"Entradas",
+        "outflows":"Saídas"
+      },
+      "register": {
+        "clients":"Clientes",
+        "suppliers":"Fornecedores",
+        "investors":"Investidores"
+  
+      },
+      "settings": {
+        "accountsPlan":"Plano de contas",
+        "accounts":"Contas",
+        "paymentMethods":"Metódos de pagamento",
+        "managers":"Gestores"
+      },
+      "reports": {
+        "monthlyCashManagement":"Relatório mensal de fluxo de caixa",
+        "weeklyCashManagement":"Relatório semanal de fluxo de caixa",
+        "dre":"Demostração de resultados"
+      },
+      "userPreferences":{
+       "notifications":{
+          "notificationsSettings":"Notifications settings",
+          "notificationsSettingsText":"Customize your settings  based on your preferences - Customize as suas notificações de acordo com as suas Preferências",
+          "reminder":"Reminder",
+          "reminderText":"Receive reminder of upcomming bills to pay and bills to receive",
+          "updates":"updates",
+          "updatesText":"Receive Updates of new features",
+          "alerts":"alerts",
+          "alertsText":"Receive alerts of negative balance"
+       }
+    }
+      
+    },
+    "dashboard": {
+      "welcome": "Olá, {{name}}!",
+      "cards":{
+  
+          "cashierBalance":"Saldo de caixa",
+          "billsToPayToday": "Contas a pagar hoje",
+          "billsToPayInDelay": "Contas a pagar em atraso",
+          "billsToReceiveToday": "Contas a receber hoje",
+          "billsToReceiveInDelay": "Contas a receber em atraso"
+  
+      },
+      "billsToPayTable":{
+        "accountsToPay":"Contas a pagar",
+        "accountsToReceive":"Contas a receber",
+        "paymentTimeTitle":"Nos proximos {{days}} dias",
+        "origin":"Oridem",
+        "description":"Descrição",
+        "value":"Valor",
+        "due":"Vencimento"
+      },
+      "monthlyPerformanceByCategories":"Desempenho do mês por categorias",
+      "balanceByAccounts":"Saldo por contas",
+      "inflowsByAccounsPlan":"Entradas por plano de contas",
+      "outflowsByAccounsPlan":"Saídas por plano de contas",
+      "weekBalance":{
+        "title":"Saldo da semana"
+      }
+    },
+    "common": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "confirmDelete": "Are you sure you want to delete?",
+      "yes": "Yes",
+      "no": "No",
+      "loading": "Loading...",
+      "error": "An error occurred. Please try again.",
+      "inflows":"Inflows",
+      "seeMoreDetails":"See more details",
+      "projected":"Projected",
+      "done":"Done",
+      "projectedAndDone":"Projected and done",
+      "weeks":{
+        "monday":"Monday",
+        "tuersday":"tuersday",
+        "wedserday":"wednserday",
+        "wenersday":"wenersday",
+        "friday":"Friday",
+        "sanday":"Sanday"
+      },
+      "balance":"balance",
+      "predictedBalance":"Predicted balance",
+      "projectedBalance":"Projected balance",
+      "predictedInflows":"Predicted inflows",
+      "projectedOutflows":"Projected outflows",
+      "payments":"Payments",
+      "receivings":"Receivings",
+        "dbItems":{
+        "managers":"Managers",
+        "clients":"Clients",
+        "operators":"Operators",
+        "investors":"Investors",
+        "suppliers":"Suppliers",
+        "transations":"Transations",
+        "billsToPay":"Bills to pay",
+        "billsToReceive":"Bills to receive",
+        "accounts":"Accounts",
+        "investments":"Investments",
+        "paymentMethods":"Payment Methods"
+      }
+  
+    }
+  }
+  

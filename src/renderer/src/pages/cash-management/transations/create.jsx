@@ -133,15 +133,15 @@ import TransationNextDate from '../../../components/Dialogs/transationNextDate'
           }
 
           useEffect(()=>{
-
-            if(type=="in"){
-                setReferenceOptions(_clients)
-            }else if(formData.account_origin!="loans_out"){
-                setReferenceOptions(_suppliers)
-            }else{
+            if(formData.account_origin=="loans_out" || formData.account_origin=="loans_in"){
                 setReferenceOptions(_investors)
+            }else if(type=="in"){
+                setReferenceOptions(_clients)
+            }else{
+                setReferenceOptions(_suppliers)
             }
-           },[formData.reference,_suppliers,_investors,_clients])
+
+           },[formData.reference,_suppliers,_investors,_clients,formData.account_origin])
 
 
            useEffect(()=>{
@@ -164,6 +164,7 @@ import TransationNextDate from '../../../components/Dialogs/transationNextDate'
                      //let get_reference=type=="in" ? _clients : account.account_origin=="loans_out" ? _investors : _suppliers 
                      //alert- update referrence name
                      setAccountDetails(account)
+                     setTransationAccountOptions(_account_categories.filter(i=>i.account_origin==account.account_origin))
                      setFormData({...formData,
                      account_origin:account.account_origin,
                      reference:{id:account.reference.id,name:account.reference.name}
@@ -178,6 +179,17 @@ import TransationNextDate from '../../../components/Dialogs/transationNextDate'
  
                        
            },[formData.account.id])
+
+
+
+           useEffect(()=>{
+
+                 if(!accountDetails.id)  return
+                 setFormData({...formData,transation_account:{id:accountDetails.account_id,name:_account_categories.filter(i=>i.id==accountDetails.account_id)[0].name}})
+
+
+                  
+        },[transationAccountOptions])
 
 
            useEffect(()=>{
@@ -497,7 +509,9 @@ import TransationNextDate from '../../../components/Dialogs/transationNextDate'
                         defaultValue="" id="grouped-select"
                         value={formData.account_origin}
                         label="Categoria"
-                        onChange={(e)=>setFormData({...formData,account_origin:e.target.value})}
+                        onChange={(e)=>{
+                          setFormData({...formData,account_origin:e.target.value,reference: ((e.target.value=="loans_in" || !e.target.value || (e.target.value!="loans_in" && formData.account_origin=="loans_in")))          ||         (e.target.value=="loans_out" || !e.target.value || ((e.target.value!="loans_out" && formData.account_origin=="loans_out"))) ? {id:null,name:null} : formData.reference})
+                        }}
                                
                      >
                      
@@ -552,7 +566,8 @@ import TransationNextDate from '../../../components/Dialogs/transationNextDate'
                     id="_transation_account"
                     options={transationAccountOptions.map(i=>i.name)}
                     sx={{ width: 300 }}
-                    disabled={formData.transation_account.type=="none" ? true : false}
+
+                    disabled={formData.transation_account.type=="none" || accountDetails.id ? true : false}
                     renderInput={(params) => <TextField {...params}
                     helperText={(!formData.transation_account.name) && verifiedInputs.includes('transation_account') ? 'Campo obrigatório':''}
                     error={(!formData.transation_account.name) && verifiedInputs.includes('transation_account') ? true : false}             
@@ -562,7 +577,7 @@ import TransationNextDate from '../../../components/Dialogs/transationNextDate'
                    </div>
 
 
-                   <div className={`${formData.reference.id && formData.link_payment ? 'pointer-events-none' :''}`}>
+                   <div>
                                 <Autocomplete size="small"
                                 value={formData.reference.name && formData.account_origin ? formData.reference.name : null}
                                 onChange={(event, newValue) => {
@@ -579,22 +594,19 @@ import TransationNextDate from '../../../components/Dialogs/transationNextDate'
                                     setFormData({...formData,reference:{...formData.reference,name:newInputValue,id:reference_id}})
                             
                                 }}
+                                
                                 id="_referece"
                                 options={referenceOptions.map(i=>i.name)}
                                 sx={{ width: 300 }}
-                                disabled={type=="in" ? false : (!formData.account_origin ? true : false)}
+                                disabled={(!formData.account_origin || accountDetails.id ? true : false) }
                                 renderInput={(params) => <TextField {...params}
-                                disabled={formData.reference.id && formData.link_payment}
+ 
                                 onBlur={()=>validate_feild('reference')}
-                                error={(!formData.reference.name) && verifiedInputs.includes('reference') ? true : false}
-                                helperText={(!formData.reference.name) && verifiedInputs.includes('reference') ? "Insira o nome": !formData.reference.id && formData.reference.name ? `(Novo ${type=='in' ? 'cliente' : formData.account_origin=='loans_out' ? 'investidor' :'fornecedor'} será adicionado) `: ''}
-                                
-                                value={formData.reference.name} label={type=="in" ? 'Cliente' : (!formData.account_origin ? 'Fornecedor / Investidor' : formData.account_origin == "loans_out" ? 'Investidor' :'Fornecedor')}  />}
+                                error={(!formData.reference.name) && formData.account_origin  && verifiedInputs.includes('reference') ? true : false}
+                                helperText={(!formData.reference.name) && formData.account_origin && verifiedInputs.includes('reference') ? "Insira nome": !formData.reference.id && formData.reference.name ? `(Novo ${type=="in" ? (formData.account_origin=="loans_in" ? "Investidor" : "Cliente")  : (formData.account_origin == "loans_out" ? 'Investidor' :'Fornecedor')} será adicionado) `: ''}
+                                value={formData.reference.name} label={type=="in" ? (!formData.account_origin ? 'Cliente / Investidor' : formData.account_origin=="loans_in" ? "Investidor" : "Cliente")  : (!formData.account_origin ? 'Fornecedor / Investidor' : formData.account_origin == "loans_out" ? 'Investidor' :'Fornecedor')}  />}
                                 />   
-                    </div>
-
-                     
-                   
+                            </div>
 
 
 
@@ -663,7 +675,7 @@ import TransationNextDate from '../../../components/Dialogs/transationNextDate'
                                   placeholder="Digite o valor"
                                   multiline
                                   value={i.amount}
-                                  helperText={formData.payments.map(i=>parseFloat(i.amount)).reduce((acc, curr) => acc + curr, 0) > (parseFloat(accountDetails.amount) - parseFloat(accountDetails.paid)) && formData.link_payment ? "Valor é maior que o agendado" :(!i.amount) && verifiedInputs.includes('amount') ? 'Campo obrigatório':''}
+                                  helperText={i.amount && formData.payments.map(i=>i.amount ? parseFloat(i.amount): 0).reduce((acc, curr) => acc + curr, 0) > (parseFloat(accountDetails.amount) - parseFloat(accountDetails.paid)) && formData.link_payment ? "Maior que o agendado" :(!i.amount) && verifiedInputs.includes('amount') ? 'Campo obrigatório':''}
                                   onBlur={()=>validate_feild('amount'+_i)}
                                   error={(!i.amount) && verifiedInputs.includes('amount'+_i) ? true : false}
                                   onChange={(e)=>{
@@ -671,7 +683,8 @@ import TransationNextDate from '../../../components/Dialogs/transationNextDate'
                                       return _f!=_i ? f : {...f,amount:_cn_n(e.target.value)}
                                     })})
                                   }}
-                                  sx={{width:'100%',maxWidth:'200px','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
+                                
+                                  sx={{'& .MuiFormHelperText-root': {color:i.amount && formData.payments.map(i=> i.amount ? parseFloat(i.amount) : 0).reduce((acc, curr) => acc + curr, 0) > (parseFloat(accountDetails.amount) - parseFloat(accountDetails.paid)) && formData.link_payment ? 'orange' : 'crimson'},width:'100%',maxWidth:'200px','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                   '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                                   />
                       </div>

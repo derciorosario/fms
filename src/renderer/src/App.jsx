@@ -31,7 +31,11 @@ function App() {
   )
 }
 
-export default App*/
+export default App
+
+*/
+
+
 
 import React from 'react';
 import { BrowserRouter, Route, Routes, HashRouter } from 'react-router-dom';
@@ -40,14 +44,16 @@ import BillsToPay from './pages/payments/bills-to-pay/index'
 import BillsToReceive from './pages/payments/bills-to-receive/index'
 import CreateBills from './pages/payments/bills/create'
 
+
+
+
+import CreateClientSupplierInvestor from './pages/register/create'
+
 import Clients from './pages/register/clients/index'
-import CreateClient from './pages/register/clients/create'
 
 import Sullpiers from './pages/register/suppliers/index'
-import CreateSupplier from './pages/register/suppliers/create'
 
 import Investors from './pages/register/investors/index'
-import CreateInvestors from './pages/register/investors/create'
 
 import Managers from './pages/settings/managers/index'
 import CreateManager from './pages/settings/managers/create'
@@ -87,10 +93,19 @@ import ProtectedRoute from './components/ProjectedRoute'
 
 import Admin from './pages/admin'
 
+import UserPreferences from './pages/user-preferences/index'
+
 
 function App() {
 
   const ipcHandle = () => window.electron.ipcRenderer.send('ping')
+
+
+  React.useEffect(() => {
+    
+       //console.log(ipcMain)
+  
+  }, []);
 
   return (
 
@@ -115,6 +130,10 @@ function App() {
 
         <Route path="/financial-reconciliation" element={<ProtectedRoute redirectTo="/login"> <FinancialReconciliation/> </ProtectedRoute>} />
         
+
+        <Route path="/user-preferences" element={<ProtectedRoute redirectTo="/login"> <UserPreferences/> </ProtectedRoute>} />
+
+        
         <Route path="/investments" element={<ProtectedRoute redirectTo="/login"> <Investments/> </ProtectedRoute>} />
         <Route path="/investments/create" element={<ProtectedRoute redirectTo="/login"> <CreateInvestments/> </ProtectedRoute>} />
         <Route path="/investments/:id" element={<ProtectedRoute redirectTo="/login"> <CreateInvestments/> </ProtectedRoute>} />
@@ -124,19 +143,19 @@ function App() {
         <Route path="/budget-management/:id" element={<ProtectedRoute redirectTo="/login"> <CreateBudgetManagement/> </ProtectedRoute>} />
         <Route path="/budget-management/reports" element={<ProtectedRoute redirectTo="/login"> <BudgetManagementReports/> </ProtectedRoute>} />
         
-        
-        
         <Route path="/clients" element={<ProtectedRoute redirectTo="/login"> <Clients/> </ProtectedRoute>} />
-        <Route path="/clients/create" element={<ProtectedRoute redirectTo="/login"> <CreateClient/> </ProtectedRoute>} />
+        <Route path="/clients/create" element={<ProtectedRoute redirectTo="/login"> <CreateClientSupplierInvestor/> </ProtectedRoute>} />
         <Route path="/managers" element={<ProtectedRoute redirectTo="/login"> <Managers/> </ProtectedRoute>} />
         <Route path="/manager/:id" element={<ProtectedRoute redirectTo="/login"> <CreateManager/> </ProtectedRoute>} />
-        <Route path="/client/:id" element={<ProtectedRoute redirectTo="/login"> <CreateClient/> </ProtectedRoute>} />
-        <Route path="/supplier/:id" element={<ProtectedRoute redirectTo="/login"> <CreateSupplier/> </ProtectedRoute>} />
+        <Route path="/client/:id" element={<ProtectedRoute redirectTo="/login"> <CreateClientSupplierInvestor/> </ProtectedRoute>} />
+        <Route path="/supplier/:id" element={<ProtectedRoute redirectTo="/login"> <CreateClientSupplierInvestor/> </ProtectedRoute>} />
         <Route path="/managers/create" element={<ProtectedRoute redirectTo="/login"> <CreateManager/> </ProtectedRoute>} />
         <Route path="/suppliers" element={<ProtectedRoute redirectTo="/login"> <Sullpiers/> </ProtectedRoute>} />
-        <Route path="/suppliers/create" element={<ProtectedRoute redirectTo="/login"> <CreateSupplier/> </ProtectedRoute>} />
+        <Route path="/suppliers/create" element={<ProtectedRoute redirectTo="/login"> <CreateClientSupplierInvestor/> </ProtectedRoute>} />
         <Route path="/investors" element={<ProtectedRoute redirectTo="/login"> <Investors/> </ProtectedRoute>} />
-        <Route path="/investors/create" element={<ProtectedRoute redirectTo="/login"> <CreateInvestors/> </ProtectedRoute>} />
+        <Route path="/investors/create" element={<ProtectedRoute redirectTo="/login"> <CreateClientSupplierInvestor/> </ProtectedRoute>} />
+        <Route path="/investor/:id" element={<ProtectedRoute redirectTo="/login"> <CreateClientSupplierInvestor/> </ProtectedRoute>} />
+
 
 
         <Route path="/cash-management/inflow" element={<ProtectedRoute redirectTo="/login"> <InflowsPage/> </ProtectedRoute>} />

@@ -9,7 +9,7 @@ export default function CircularIndeterminate({loading}) {
        {loading ? (
               <div className={`${!loading ? 'hidden':''}`}>
               <Box sx={{ display: 'flex' }}>
-              <CircularProgress />
+                <CircularProgress />
               </Box>
             </div>
        ): (

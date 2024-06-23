@@ -1,0 +1,138 @@
+{
+  "app": {
+    "title": "FMS",
+    "description": "Manage your finance with ease"
+  },
+  "sidebar": {
+    "main":{
+      "dashboard": "Dashboard",
+      "accounts": "Accounts",
+      "cashManagement": "Cash managment",
+      "register": "Register",
+      "settings": "Settings",
+      "investments": "Investments",
+      "finacialReconciliation": "finacial reconcilation",
+      "reports": "Reports",
+      "companies": "Companies",
+      "userPreferences":"User preferences and account"
+    },
+    "accounts":{
+      "toPay":"To pay",
+      "toReceive":"To Receive"
+    },
+    "cashManagement": {
+      "inflows":"Inflows",
+      "outflows":"Outflows"
+    },
+    "register": {
+      "clients":"Clients",
+      "suppliers":"Suppliers",
+      "investors":"Inverstors"
+
+    },
+    "settings": {
+      "accountsPlan":"Accounts plan",
+      "accounts":"accounts",
+      "paymentMethods":"Payment Methods",
+      "managers":"Managers"
+    },
+    "reports": {
+      "monthlyCashManagement":"Monthly cash management",
+      "weeklyCashManagement":"Weekly cash management",
+      "dre":"Results demostration"
+    }
+    
+  },
+  "userPreferences":{
+       "title":"Preferences",
+       "menu":{
+         "profile":"Profile",
+         "notifications":"Notifications"
+       },
+       "notifications":{
+          "notificationsSettings":"Notifications settings",
+          "notificationsSettingsText":"Customize your settings  based on your preferences - Customize as suas notificações de acordo com as suas Preferências",
+          "reminders":"Reminder",
+          "remindersText":"Receive reminder of upcomming bills to pay and bills to receive",
+          "updates":"Updates",
+          "updatesText":"Receive Updates of new features",
+          "alerts":"Alerts",
+          "alertsText":"Receive alerts of negative balance"
+       },
+       "profile":{
+          
+       }
+  },
+  "dashboard": {
+    "welcome": "Welcome, {{name}}!",
+    "cards":{
+
+        "cashierBalance":"Chashier balance",
+        "billsToPayToday": "Bills to pay today",
+        "billsToPayInDelay": "Bills to pay in delay",
+        "billsToReceiveToday": "Bills to receive today",
+        "billsToReceiveInDelay": "Bills to receive in delay"
+
+    },
+    "billsToPayTable":{
+      "accountsToPay":"Bills to pay",
+      "accountsToReceive":"Bills to receive",
+      "paymentTimeTitle":"In the next upcomming {{days}} days",
+      "origin":"Origin",
+      "description":"Description",
+      "value":"Valor",
+      "due":"Due"
+    },
+    "monthlyPerformanceByCategories":"Monthly performance by categories",
+    "balanceByAccounts":"Balance by accounts",
+    "inflowsByAccounsPlan":"Inflows by accounts plan",
+    "outflowsByAccounsPlan":"Outflows by accounts plan",
+    "weekBalance":{
+      "title":"Week balance"
+    }
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete?",
+    "yes": "Yes",
+    "no": "No",
+    "loading": "Loading...",
+    "error": "An error occurred. Please try again.",
+    "inflows":"Inflows",
+    "seeMoreDetails":"See more details",
+    "projected":"Projected",
+    "done":"Done",
+    "projectedAndDone":"Projected and done",
+    "weeks":{
+      "monday":"Monday",
+      "tuersday":"tuersday",
+      "wedserday":"wednserday",
+      "wenersday":"wenersday",
+      "friday":"Friday",
+      "sanday":"Sanday"
+    },
+    "balance":"balance",
+    "predictedBalance":"Predicted balance",
+    "projectedBalance":"Projected balance",
+    "predictedInflows":"Predicted inflows",
+    "projectedOutflows":"Projected outflows",
+    "payments":"Payments",
+    "receivings":"Receivings",
+    "dbItems":{
+      "managers":"Managers",
+      "clients":"Clients",
+      "operators":"Operators",
+      "investors":"Investors",
+      "suppliers":"Suppliers",
+      "transations":"Transations",
+      "billsToPay":"Bills to pay",
+      "billsToReceive":"Bills to receive",
+      "accounts":"Accounts",
+      "investments":"Investments",
+      "paymentMethods":"Payment Methods"
+    }
+
+  }
+}

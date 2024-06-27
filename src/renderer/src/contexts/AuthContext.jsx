@@ -9,7 +9,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   
-  let process={env:'http://localhost:4000'}  //https://server-fms.onrender.com
+  let process={env:'https://server-fms.onrender.com'}  //https://server-fms.onrender.com
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);

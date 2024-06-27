@@ -16,7 +16,7 @@ const DataContext = createContext();
 export const DataProvider = ({ children }) => {
 
     const { t } = useTranslation();
-    let process={env:{REACT_APP_BASE_URL:'http://localhost:4000'}}
+    let process={env:{REACT_APP_BASE_URL:'https://server-fms.onrender.com'}}
 
     let initial_filters={
       search: '',

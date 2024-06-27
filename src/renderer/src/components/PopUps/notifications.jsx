@@ -7,7 +7,7 @@ export default function NotificationPopUp({show,setOpenPopUps}) {
 
   return (
    <>
-     <div className={`_nots transition duration-75 ease-in-out ${show ? 'translate-y-2  z-10' : ' opacity-0 translate-y-4'} flex absolute flex-col rounded-[0.3rem] right-0 top-[100%] w-[350px] h-[400px] bg-white shadow`}>
+     <div className={`_nots transition duration-75 ease-in-out ${show ? 'translate-y-2  z-10' : ' opacity-0 pointer-events-none translate-y-4'} flex absolute flex-col rounded-[0.3rem] right-0 top-[100%] w-[350px] h-[400px] bg-white shadow`}>
      <div className="flex items-center justify-between p-2 border-b">
         <span>Notifications</span> 
         <span onClick={()=>setOpenPopUps({nots:false,search:false})} className="cursor-pointer hover:opacity-95"><CloseIcon sx={{width:20}}/></span>

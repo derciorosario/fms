@@ -13,7 +13,7 @@
         "investments": "Investimentos",
         "finacialReconciliation": "Conciliação finançeira",
         "reports": "Relatórios",
-        "companies": "Filiais",
+        "companies": "Empresas",
         "userPreferences":"Preferências e conta de usuário"
       },
       "accounts":{
@@ -40,21 +40,29 @@
         "monthlyCashManagement":"Relatório mensal de fluxo de caixa",
         "weeklyCashManagement":"Relatório semanal de fluxo de caixa",
         "dre":"Demostração de resultados"
-      },
-      "userPreferences":{
-       "notifications":{
-          "notificationsSettings":"Notifications settings",
-          "notificationsSettingsText":"Customize your settings  based on your preferences - Customize as suas notificações de acordo com as suas Preferências",
-          "reminder":"Reminder",
-          "reminderText":"Receive reminder of upcomming bills to pay and bills to receive",
-          "updates":"updates",
-          "updatesText":"Receive Updates of new features",
-          "alerts":"alerts",
-          "alertsText":"Receive alerts of negative balance"
-       }
-    }
+      }
       
     },
+      "userPreferences":{
+        "title":"Preferences",
+        "menu":{
+          "profile":"Profile",
+          "notifications":"Notifications"
+        },
+        "notifications":{
+          "notificationsSettings":"Notifications settings",
+          "notificationsSettingsText":"Customize your settings  based on your preferences - Customize as suas notificações de acordo com as suas Preferências",
+          "reminders":"Reminder",
+          "remindersText":"Receive reminder of upcomming bills to pay and bills to receive",
+          "updates":"Updates",
+          "updatesText":"Receive Updates of new features",
+          "alerts":"Alerts",
+          "alertsText":"Receive alerts of negative balance"
+        },
+        "profile":{
+          
+        }
+  },
     "dashboard": {
       "welcome": "Olá, {{name}}!",
       "cards":{
@@ -123,7 +131,8 @@
         "billsToReceive":"Bills to receive",
         "accounts":"Accounts",
         "investments":"Investments",
-        "paymentMethods":"Payment Methods"
+        "paymentMethods":"Payment Methods",
+        "companies":"Companies"
       }
   
     }

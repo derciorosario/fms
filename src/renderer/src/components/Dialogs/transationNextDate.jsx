@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 
-export default function transationNextDate({formData,show,setShow,setFormData,SubmitForm}) {
+export default function transationNextDate({formData,show,setShow,setFormData,SubmitForm,last_date}) {
   return (
 <>
 
@@ -28,7 +28,7 @@ export default function transationNextDate({formData,show,setShow,setFormData,Su
             </div>
             <div className="p-4 md:p-5">
                 <div className="space-y-4" action="#">
-                <Alert severity="warning">Precisa definir a data do proximo pagamento para o valor em falta</Alert>
+                <Alert severity="warning">Este pagamento está em atraso, recomendamos que troque a data do proximo pagamento para o valor em falta. (data definida:{last_date})</Alert>
                 <div>
                             <LocalizationProvider adapterLocale={'en-gb'} dateAdapter={AdapterDayjs} style={{paddingTop:0}} size="small">
                                 <DatePicker minDate={dayjs(new Date())} value={dayjs(formData.next_payday).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.next_payday)) : null}  inputFormat="DD-MM-YYYY" onChange={(e)=>setFormData({...formData,next_payday:e.$d})} error={true} size="small" label="Data de proximo pagamento*"  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, 
@@ -58,7 +58,10 @@ export default function transationNextDate({formData,show,setShow,setFormData,Su
                         <a href="#" className="text-sm text-blue-700 hover:underline dark:text-blue-500">Lost Password?</a>
                     </div> */}
 
-                    <button onClick={SubmitForm} className={`w-full text-white ${formData.next_payday ? 'bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none' :'bg-gray-300 cursor-not-allowed'} font-medium rounded-lg text-sm px-5 py-2.5 text-center`}>Enviar</button>
+                    <button onClick={()=>SubmitForm(false)} className={`w-full text-white ${formData.next_payday ? 'bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none' :'bg-gray-300 cursor-not-allowed'} font-medium rounded-lg text-sm px-5 py-2.5 text-center`}>Alterar</button>
+                    <button onClick={()=>{
+                        SubmitForm('ignore_next_payday')
+                    }} className={`w-full text-white  bg-orange-400  focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center`}>Manter como atrasado</button>
                     <button onClick={()=>setShow(false)} className="w-full bg-white text-gray-700 border  font-medium rounded-lg text-sm px-5 py-2.5 text-center">Cancelar</button>
                    
                    

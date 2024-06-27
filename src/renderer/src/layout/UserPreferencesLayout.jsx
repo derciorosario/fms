@@ -33,15 +33,15 @@ function UserPreferencesLayout({children,page,setPage}) {
         <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
       </svg>
       <ul className="max-h-0 select-none flex-col overflow-hidden rounded-b-lg shadow-md transition-all duration-300 peer-checked:max-h-56 peer-checked:py-3">
-        <li className="cursor-pointer px-3 py-2 text-sm text-slate-600 hover:bg-blue-700 hover:text-white">{t('userPreferences.menu.notifications')}</li>
-        <li className="cursor-pointer px-3 py-2 text-sm text-slate-600 hover:bg-blue-700 hover:text-white">{t('userPreferences.menu.profile')}</li>
+        <li className="cursor-pointer px-3 py-2 text-sm text-slate-600 hover:bg-app_orange-400 hover:text-white">{t('userPreferences.menu.notifications')}</li>
+        <li className="cursor-pointer px-3 py-2 text-sm text-slate-600 hover:bg-app_orange-400 hover:text-white">{t('userPreferences.menu.profile')}</li>
       </ul>
     </div>
 
     <div className="col-span-2 sm:block">
       <ul>
-        <li onClick={()=>setPage('profile')} className={`mt-5 cursor-pointer border-l-2 border-transparent px-2 py-2 font-semibold transition hover:border-l-blue-700 hover:text-blue-700 ${page=="profile" ? 'text-blue-700 border-l-blue-700':''}`}>{t('userPreferences.menu.profile')}</li>
-        <li onClick={()=>setPage('notifications')} className={`mt-5 cursor-pointer border-l-2 border-transparent px-2 py-2 font-semibold transition hover:border-l-blue-700 hover:text-blue-700 ${page=="notifications" ? 'text-blue-700 border-l-blue-700':''}`}>{t('userPreferences.menu.notifications')}</li>
+        <li onClick={()=>setPage('profile')} className={`mt-5 cursor-pointer border-l-2 border-transparent px-2 py-2  transition hover:border-l-app_orange-500 hover:text-app_orange-400 ${page=="profile" ? 'text-app_orange-500 font-semibold border-l-app_orange-500':''}`}>{t('userPreferences.menu.profile')}</li>
+        <li onClick={()=>setPage('notifications')} className={`mt-5 cursor-pointer border-l-2 border-transparent px-2 py-2  transition hover:border-l-app_orange-500 hover:text-app_orange-400 ${page=="notifications" ? 'text-app_orange-500 font-semibold border-l-app_orange-500':''}`}>{t('userPreferences.menu.notifications')}</li>
       </ul>
     </div>
 

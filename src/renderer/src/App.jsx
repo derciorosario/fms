@@ -58,12 +58,16 @@ import Investors from './pages/register/investors/index'
 import Managers from './pages/settings/managers/index'
 import CreateManager from './pages/settings/managers/create'
 
+import Companies from './pages/companies/index'
+import CreateCompanies from './pages/companies/create'
+
 import InflowsPage from './pages/cash-management/inflows/index'
 import OutflowsPage from './pages/cash-management/outflows/index'
 import CreateTransation from './pages/cash-management/transations/create'
 
 import CashManagementAccounts from './pages/cash-management/accounts/index'
 import CreateCashManagementAccount from './pages/cash-management/accounts/create'
+
 
 import AccountCategories from './pages/settings/account-categories/index'
 
@@ -100,7 +104,6 @@ function App() {
 
   const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 
-
   React.useEffect(() => {
     
        //console.log(ipcMain)
@@ -129,6 +132,11 @@ function App() {
         <Route path="/payment-methods" element={<ProtectedRoute redirectTo="/login"> <PaymentMethods/> </ProtectedRoute>} />
 
         <Route path="/financial-reconciliation" element={<ProtectedRoute redirectTo="/login"> <FinancialReconciliation/> </ProtectedRoute>} />
+      
+
+        <Route path="/companies" element={<ProtectedRoute redirectTo="/login"> <Companies/> </ProtectedRoute>} />
+        <Route path="/company/:id" element={<ProtectedRoute redirectTo="/login"> <CreateCompanies/> </ProtectedRoute>} />
+        <Route path="/companies/create" element={<ProtectedRoute redirectTo="/login"> <CreateCompanies/> </ProtectedRoute>} />
         
 
         <Route path="/user-preferences" element={<ProtectedRoute redirectTo="/login"> <UserPreferences/> </ProtectedRoute>} />
@@ -162,13 +170,13 @@ function App() {
         <Route path="/cash-management/outflow" element={<ProtectedRoute redirectTo="/login"> <OutflowsPage/> </ProtectedRoute>} />
         <Route path="/cash-management/inflow/create" element={<ProtectedRoute redirectTo="/login"> <CreateTransation/> </ProtectedRoute>} />
         <Route path="/cash-management/outflow/create" element={<ProtectedRoute redirectTo="/login"> <CreateTransation/> </ProtectedRoute>} />
-        <Route path="/cash-management/:id" element={<ProtectedRoute redirectTo="/login"> <CreateTransation/> </ProtectedRoute>} />
+        <Route path="/cash-management/inflow/:id" element={<ProtectedRoute redirectTo="/login"> <CreateTransation/> </ProtectedRoute>} />
+        <Route path="/cash-management/outflow/:id" element={<ProtectedRoute redirectTo="/login"> <CreateTransation/> </ProtectedRoute>} />
         <Route path="/cash-management/accounts" element={<ProtectedRoute redirectTo="/login"> <CashManagementAccounts/> </ProtectedRoute>} />
         <Route path="/cash-management/account/create" element={<ProtectedRoute redirectTo="/login"> <CreateCashManagementAccount/> </ProtectedRoute>} />
         <Route path="/cash-management/account/:id" element={<ProtectedRoute redirectTo="/login"> <CreateCashManagementAccount/> </ProtectedRoute>} />
        
         
-
         <Route path="reports/cash-management/monthly" element={<ProtectedRoute redirectTo="/login"> <CashManagementReports/> </ProtectedRoute>} />
         <Route path="reports/cash-management/daily" element={<ProtectedRoute redirectTo="/login"> <CashManagementReports/> </ProtectedRoute>} />
         <Route path="reports/dre/monthly" element={<ProtectedRoute redirectTo="/login"> <DREReports/> </ProtectedRoute>} />

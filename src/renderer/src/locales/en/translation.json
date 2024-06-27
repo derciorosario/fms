@@ -131,7 +131,8 @@
       "billsToReceive":"Bills to receive",
       "accounts":"Accounts",
       "investments":"Investments",
-      "paymentMethods":"Payment Methods"
+      "paymentMethods":"Payment Methods",
+      "companies":"Companies"
     }
 
   }

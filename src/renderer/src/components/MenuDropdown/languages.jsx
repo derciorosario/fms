@@ -6,6 +6,8 @@ import Fade from '@mui/material/Fade';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import LanguageIcon from '@mui/icons-material/Language';
 import { useTranslation } from 'react-i18next';
+import colors from '../../assets/colors.json'
+
 
 export default function FadeMenu() {
   let langs=['pt','en']
@@ -54,10 +56,10 @@ export default function FadeMenu() {
         sx={{color:'#000'}}
       >
 
-         <LanguageIcon sx={{opacity:'.8'}}/>
+         <div className="hidden"> <LanguageIcon sx={{opacity:'.8'}}/></div>
                       
-         <span className="mx-2 capitalize">{selectedLang}</span>
-        <KeyboardArrowDownIcon/>
+         <span className="mx-2 capitalize text-gray-800">{selectedLang}</span>
+        <KeyboardArrowDownIcon sx={{color:'rgb(31 41 55 / 70%)'}}/>
       </Button>
       <Menu
         id="fade-menu"
@@ -70,7 +72,7 @@ export default function FadeMenu() {
         TransitionComponent={Fade}
       >
         {langs.filter(i=>i!=selectedLang).map((i,_i)=>(
-              <MenuItem onClick={()=>changeLanguage(i)}><span className=" capitalize min-w-[60px] flex">{i}</span></MenuItem>
+              <MenuItem onClick={()=>changeLanguage(i)}><span className=" capitalize min-w-[60px] flex text-gray-800">{i}</span></MenuItem>
         ))}
         
         {/**<MenuItem onClick={handleClose}>Español</MenuItem>

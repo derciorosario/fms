@@ -18,7 +18,7 @@ import 'dayjs/locale/en-gb';
 import { Switch } from '@mui/material';
        
        
-       function App() {
+       function App({isPopUp}) {
 
           const { id } = useParams()
 
@@ -147,7 +147,7 @@ import { Switch } from '@mui/material';
          return (
            <>
 
-         <FormLayout maxWidth={'700px'} name={id ? 'Actualizar' : 'Nova conta'} formTitle={id ? 'Actualizar' : 'Adicionar nova'}>
+         <FormLayout isPopUp={isPopUp} maxWidth={'700px'} name={id ? 'Actualizar' : 'Nova conta'} formTitle={id ? 'Actualizar' : 'Adicionar nova'}>
 
                     <FormLayout.Section maxWidth={'700px'}>
 

@@ -2,15 +2,20 @@ import * as React from 'react';
 import Close from '@mui/icons-material/Close';
 import { useData } from '../../contexts/DataContext';
 import { useNavigate } from 'react-router-dom';
-
-export default function Search({show,setOpenPopUps,searchContent,setSearchContent}) {
+import SearchIcon from '@mui/icons-material/Search';
+import colors from '../../assets/colors.json'
+export default function Search({show}) {
+  const [searchContent,setSearchContent] = React.useState('')
 
   const data = useData()
 
   const [content,setContent]=React.useState([])
 
   const navigate = useNavigate()
-  
+
+
+
+    
   
   React.useEffect(()=>{
 
@@ -25,6 +30,7 @@ export default function Search({show,setOpenPopUps,searchContent,setSearchConten
         array=array.concat(i.get.map(f=>({...f,n:i.n,_from:i.edit_name})))
       })
 
+    
 
       setContent(data._search(searchContent,array).filter(i=>i.name || i.description || i.notes))
 
@@ -39,13 +45,29 @@ export default function Search({show,setOpenPopUps,searchContent,setSearchConten
   return (
    <>
 
-      <div className={`w-[600px] ${show ? 'translate-y-2 z-10 ' : ' opacity-0 translate-y-4'} border-t flex-col flex h-[300px] top-[100%] shadow-lg bg-white rounded-[0.5rem] _search absolute left-[50%] -translate-x-[50%]`}>
+<div className={`fixed z-10 left-0 ${show ? 'flex':" opacity-0 pointer-events-none"} items-center justify-center top-0 bg-[rgba(0,0,0,0.4)] w-full h-[100vh]`}>
+      
+
+     <div className={`w-[600px] h-[300px] ${show ? 'translate-y-2 z-10 ' : ' opacity-0 pointer-events-none translate-y-4'} border-t flex-col flex transition duration-150 ease-in-out   shadow-lg bg-white rounded-[0.5rem] _search`}>
             <div className="flex justify-between p-3 border-b">
-                <div>
-                <span>Resultados </span>{(searchContent.length!=0) && <span>({content.length})</span>}
+                <div className="flex items-center">
+                <div className="flex h-10 bg-slate-100 items-center px-2 rounded-lg relative">
+                    <span className="text-white"><SearchIcon style={{ color:colors.app_orange[500] }}/></span>
+                    <input value={searchContent} onChange={(e)=>{
+                        setSearchContent(e.target.value)
+                    }} placeholder="Pesquisar..." type="text" className="_search outline-none bg-transparent flex-grow px-2"/>
+                    {/** <Search setSearchContent={setSearchContent} searchContent={searchContent} show={openPopUps.search} setOpenPopUps={setOpenPopUps}/> */}
+
                 </div>
 
-                <div className="cursor-pointer" onClick={()=>setOpenPopUps({nots:false,search:false})}>
+                {(searchContent.length!=0) && <span className="ml-2">Resultados: ({content.length})</span>}
+                
+                
+                </div>
+
+                
+
+                <div className="cursor-pointer" onClick={()=>data._closeAllPopUps()}>
                     <Close sx={{width:20}}/>
                 </div>
                 
@@ -84,14 +106,13 @@ export default function Search({show,setOpenPopUps,searchContent,setSearchConten
                 {content.map(i=>(
                  <tr onClick={()=>{
                     navigate(`/${i._from}/${i._id}`)
-                    setOpenPopUps({nots:false,search:false})
-                    setSearchContent('')
+                    data._closeAllPopUps()
                  }} class="bg-white [&>_td]:px-3 [&>_td]:py-2 [&>_td]:border-b hover:bg-gray-100 cursor-pointer">
                  <th scope="row" class="px-3 py-2 border-b font-medium text-gray-900 whitespace-nowrap dark:text-white">
                      <span className="text-[13px] p-1 rounded bg-gray-100">{i.n}</span>
                  </th>
                  <td className="min-w-0">
-                    <span className="truncate">{(i.description ? i.description : i.name ? i.name  : i.notes).slice(0,45)}{(i.description ? i.description : i.name ? i.name  : i.notes).length >= 45 && '...'}</span>
+                    <span className="truncate">{(i.description ? i.description : i.name ? i.name  : i.notes).slice(0,35)}{(i.description ? i.description : i.name ? i.name  : i.notes).length >= 35 && '...'}</span>
                  </td>
                  <td>
                     {data._convertDateToWords(i.createdAt.split('T')[0],null,'all')}
@@ -110,6 +131,8 @@ export default function Search({show,setOpenPopUps,searchContent,setSearchConten
  
             </div>
       </div>
+
+     </div>
  
    </>
   );

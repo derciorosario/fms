@@ -24,7 +24,7 @@ function App() {
 
       Object.keys(statResponses).forEach(o=>{
                 let from=o=="global" ? data._transations.filter(i=>i.type==type) : _filtered_content 
-                let total=from.map(item => (item.type=="out" ? - (item.amount) : item.amount)).reduce((acc, curr) => acc + curr, 0);
+                let total=from.map(item => (item.type=="out" ? - (parseFloat(item.amount)) : parseFloat(item.amount))).reduce((acc, curr) => acc + curr, 0);
                 res[o]={
                 ...res[o],
                 total:data._cn(total)

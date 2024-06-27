@@ -1,9 +1,12 @@
 import * as React from 'react';
 import { useData  } from '../../contexts/DataContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate ,useSearchParams} from 'react-router-dom';
+import colors from '../../assets/colors.json'
 export default function filter({open,options,filterOptions,setFilterOPtions}) {
 
   const navigate = useNavigate();
+
+  const [searchParams,setSearchParams]= useSearchParams()
 
 
   const handleOutsideClick = (event) => {
@@ -28,7 +31,7 @@ const  handleClickFilter = () => {
 
   function check_and_uncheck(group_field,item){
     if(item.to) navigate(item.to)
-    setFilterOPtions(filterOptions.map(f=>{
+      let new_filters=filterOptions.map(f=>{
         return f.field==options.field ? {...f,groups:f.groups.map(g=>{
               if(g.field==group_field){
                  return {...g,items:g.items.map(i=>{return i.id==item.id ? {...i,selected:options.single ? true : !i.selected} : {...i,selected:options.single ? false : i.selected}}),selected_ids:options.single ? [item.id] : (item.selected ? g.selected_ids.filter(id=>id!=item.id) : [...g.selected_ids,item.id])}
@@ -36,22 +39,41 @@ const  handleClickFilter = () => {
                  return g
               }
         })} : f
-    }))
+    })
+    setFilterOPtions(new_filters)
+    sendFilters(new_filters)
   }
 
 
   const data=useData()
+
+
+  function sendFilters(new_filters){
+
+    
+    let params_names=Object.keys(data._filters)
+
+    let new_params={}
+    
+    new_filters.forEach(f=>{
+          f.groups.forEach(g=>{
+              if(params_names.includes(g.param)){
+                   new_params[g.param]=g.selected_ids
+              }
+          })
+    })
+
+    console.log('sdfsfd')
+
+    data._updateFilters(new_params,setSearchParams)
+        
+  }
  
 
   React.useEffect(()=>{
     if(options.not_fetchable) return
 
-    /**(async()=>{
-                
-                setItems(docs.rows.map(i=>i.doc).filter(i=>!i.deleted))
-            })() */
-
-   
+    
       (async()=>{
         let groups=[]
 
@@ -59,7 +81,7 @@ const  handleClickFilter = () => {
         for (let i = 0; i < options.groups.length; i++) {
             if(options.get_deleted){
                 let docs=await data.dbs.filter(d=>d.name==options.groups[i].db_name)[0].db.allDocs({ include_docs: true })
-                docs=docs.rows.map(i=>i.doc).filter(d=>data._transations.some(t=>t.transation_account.id==d.id))
+                docs=options.field=="_account_categories" ? docs.rows.map(i=>i.doc).filter(d=>data._transations.some(t=>t.transation_account.id==d.id)) : docs   
                 groups[i]={...options.groups[i],items:docs.map(item=>{return {...item,selected:options.groups[i].selected_ids.includes(item.id)}})}
             }else{
                 groups[i]={...options.groups[i],items:data[options.groups[i].field].map(item=>{return {...item,selected:options.groups[i].selected_ids.includes(item.id)}})}
@@ -76,9 +98,9 @@ const  handleClickFilter = () => {
 
 
   function clear(){
-   
-   
-    setFilterOPtions(filterOptions.map(f=>{
+
+
+    let new_filters=filterOptions.map(f=>{
         
       return f.field==options.field ? {...f,groups:f.groups.map(g=>{
             
@@ -87,7 +109,11 @@ const  handleClickFilter = () => {
       })} : f
 
 
-     }))
+     })
+
+   
+    setFilterOPtions(new_filters)
+    sendFilters(new_filters)
 
 
   }
@@ -97,19 +123,19 @@ const  handleClickFilter = () => {
   return (
        <>
 
- <div className={`__${options.field} flex items-center justify-center p-1 relative`}>
+ <div className={`__${options.field} _filter flex items-center justify-center p-1 relative`}>
    
     <button  onClick={()=>handleClickFilter()}
     id="dropdownDefault" data-dropdown-toggle="dropdown"
-    className={`${!options.groups.some(i=>i.selected_ids.length) ? 'text-[#42526E] bg-gray-100' :' text-blue-600 bg-blue-100'} border outline-none font-medium rounded-lg text-sm  ${!options.groups.map(i=>i.selected_ids.length).reduce((acc, curr) => acc + curr, 0) ? 'py-2 px-4' : 'px-2'} ${options.hide_igual ? ' py-[6px]' :''} text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
+    className={`${!options.groups.some(i=>i.selected_ids.length) ? 'text-[#42526E] bg-gray-100' :' text-app_black-500 border-app_orange-100'} border  outline-none font-medium rounded-lg text-sm  ${!options.groups.map(i=>i.selected_ids.length).reduce((acc, curr) => acc + curr, 0) ? 'py-2 px-4' : 'px-2'} ${options.hide_igual ? ' py-[6px]' :''} text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
     type="button">
-    <span className={`${!options.groups.map(i=>i.selected_ids.length).reduce((acc, curr) => acc + curr, 0) || options.hide_igual ? 'hidden' :''} my-[6px] px-2 py-[2px] mr-2 bg-slate-50 flex rounded-[4px] text-gray-700`}>{options.igual ? '=' :'!='}</span>
+    <span className={`${!options.groups.map(i=>i.selected_ids.length).reduce((acc, curr) => acc + curr, 0) || options.hide_igual ? 'hidden' :''} my-[6px] px-2 py-[2px] mr-2 bg-app_orange-200 flex rounded-[4px] text-white`}>{options.igual ? '=' :'!='}</span>
     {options.name}
     <svg className={`w-4 h-4 ml-2 ${open ? 'rotate-180' : ''}`} aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg">
       <path strokeLinecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
     </svg>
-    <span className={`${!options.groups.map(i=>i.selected_ids.length).reduce((acc, curr) => acc + curr, 0) ? 'hidden' :''} px-2 py-[2px] ml-2 bg-blue-200 flex rounded-[4px] text-blue-700`}>{options.groups.map(i=>i.selected_ids.length).reduce((acc, curr) => acc + curr, 0) == 1 ? options.groups.map(i=>i.items.filter(f=>f.selected)[0]).filter(i=>i)[0]?.name : options.groups.map(i=>i.selected_ids.length).reduce((acc, curr) => acc + curr, 0) }</span>
+    <span className={`${!options.groups.map(i=>i.selected_ids.length).reduce((acc, curr) => acc + curr, 0) ? 'hidden' :''} px-2 py-[2px] ml-2 flex rounded-[4px] text-app_orange-400`}>{options.groups.map(i=>i.selected_ids.length).reduce((acc, curr) => acc + curr, 0) == 1 ? options.groups.map(i=>i.items.filter(f=>f.selected)[0]).filter(i=>i)[0]?.name : options.groups.map(i=>i.selected_ids.length).reduce((acc, curr) => acc + curr, 0) }</span>
   </button>
 
   {/***Dropdown menu */}
@@ -118,7 +144,7 @@ const  handleClickFilter = () => {
      <div className="w-full">
 
      <div className="flex justify-between items-center mb-1">
-      <span onClick={()=>clear(options.field)} className="text-blue-600 text-[15px] hover:underline cursor-pointer">Limpar</span>
+      <span onClick={()=>clear(options.field)} className="text-app_orange-500 text-[15px] hover:underline cursor-pointer">Limpar</span>
     </div>
 
      <div className={`mb-2 ${options.hide_igual ? 'hidden':''}`}>
@@ -133,10 +159,10 @@ const  handleClickFilter = () => {
                    <div id="dropdown" className="z-10 absolute bg-white divide-y divide-gray-100 rounded-lg shadow w-full dark:bg-gray-700">
                         <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
                             <li>
-                                <a onClick={()=>selectIgualOrNot(true)} className={`block cursor-pointer px-4 py-2 ${!options.igual ? 'hover:bg-gray-100' :' text-blue-500 hover:bg-blue-200 bg-blue-100'}  dark:hover:bg-gray-600 dark:hover:text-white`}>{options.name} = (igual a)</a>
+                                <a onClick={()=>selectIgualOrNot(true)} className={`block cursor-pointer px-4 py-2 ${!options.igual ? 'hover:bg-gray-100' :' text-app_orange-500 hover:bg-app_orange-100 bg-app_orange-50'}  dark:hover:bg-gray-600 dark:hover:text-white`}>{options.name} = (igual a)</a>
                             </li>
                             <li>
-                                <a onClick={()=>selectIgualOrNot(false)} className={`block cursor-pointer px-4 py-2 ${options.igual ? 'hover:bg-gray-100' :' text-blue-500 hover:bg-blue-200 bg-blue-100'}  dark:hover:bg-gray-600 dark:hover:text-white`}>{options.name} != (diferente de)</a>
+                            <a onClick={()=>selectIgualOrNot(false)} className={`block cursor-pointer px-4 py-2 ${options.igual ? 'hover:bg-gray-100' :' text-app_orange-500 hover:bg-app_orange-100 bg-app_orange-50'}  dark:hover:bg-gray-600 dark:hover:text-white`}>{options.name} != (diferente de)</a>
                             </li>
                         </ul>
                     </div>
@@ -169,7 +195,7 @@ const  handleClickFilter = () => {
             </svg>
             </h6>
 
-            <ul className={`${g.dropdown ? 'hidden' :''} mb-4 space-y-2 text-sm mt-3`} aria-labelledby="dropdownDefault">
+            <ul className={`${g.dropdown ? 'hidden' :''} mb-4 ml-1 space-y-2 text-sm mt-3`} aria-labelledby="dropdownDefault">
                   {g.items.filter((i,_i)=>i.name.toLowerCase().includes(options.search.toLowerCase())).map((i,_i)=>(
                         <li key={_i}  className="flex items-center">
                           <input onChange={()=>({})} onClick={()=>check_and_uncheck(g.field,i)} id={`fitbit`+g.field+_i} name={options.single ? `fitbit`+options.field : `fitbit`+g.field+_i} type={options.single ? 'radio' :'checkbox'} checked={i.selected && true} value=""

@@ -12,7 +12,9 @@ import PersonAdd from '@mui/icons-material/PersonAdd';
 import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
 import { useAuth } from '../../contexts/AuthContext';
+import {Person} from '@mui/icons-material'
 import {useLocation,useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 
 export default function AccountMenu() {
@@ -46,7 +48,10 @@ export default function AccountMenu() {
             aria-haspopup="true"
             aria-expanded={open ? 'true' : undefined}
           >
-            <Avatar sx={{ width: 32, height: 32 }}>{user.name.charAt().toUpperCase()}</Avatar>
+            <Avatar sx={{ width: 32, height: 32 }}>
+               <Person/>
+               <span className="hidden">{user.name.charAt().toUpperCase()}</span>
+            </Avatar>
           </IconButton>
         </Tooltip>
       </Box>
@@ -95,7 +100,9 @@ export default function AccountMenu() {
           </ListItemIcon>
           Configurações
         </MenuItem> */}
-        <MenuItem onClick={()=>handleClose('/logout')}>
+        <MenuItem onClick={()=>{
+            handleClose('/logout')
+        }}>
           <ListItemIcon>
             <Logout fontSize="small" />
           </ListItemIcon>

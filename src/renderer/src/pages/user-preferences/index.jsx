@@ -19,6 +19,9 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Autocomplete from '@mui/material/Autocomplete'
 import ExpandMoreOutlined from '@mui/icons-material/ExpandMoreOutlined';
+import DefaultButton from '../../components/Buttons/default';
+import colors from '../../assets/colors.json'
+
 function App() {
  const { t } = useTranslation();
  const [page,setPage]=React.useState('profile')
@@ -134,6 +137,14 @@ async function SubmitForm(){
         },[formData])
 
 
+     
+        
+    function editProfile(){
+      setTimeout(()=>_scrollToSection('edit-profile'),100)
+      setEditMode(true)
+    }
+
+
   return (
 
     <>
@@ -142,11 +153,11 @@ async function SubmitForm(){
            {page=="profile"  ? <>
                
                <div className="py-6">
-                    <div className="bg-blue-400 w-full rounded h-[150px] shadow-sm flex items-end justify-center mb-[100px]">
+                    <div className=" bg-app_orange-200 w-full rounded h-[150px] shadow-sm flex items-end justify-center mb-[100px]">
                            
                            
                            <div className="flex items-center justify-center size-36 rounded-full bg-white shadow-sm translate-y-[50%] ">
-                                <CameraAltRounded sx={{color:'rgb(59,130,246)'}}/>
+                                <CameraAltRounded sx={{color:colors.app_orange[400]}}/>
                            </div>
                            
                     </div>
@@ -157,11 +168,8 @@ async function SubmitForm(){
                     </div>
 
 
-                    {!editMode && <div className="flex justify-center mt-4">
-                      <Button onClick={()=>{
-                          setTimeout(()=>_scrollToSection('edit-profile'),100)
-                          setEditMode(true)
-                      }} endIcon={<ExpandMoreOutlined/>} variant="contained">Editar perfil</Button>
+                    {!editMode && <div className="flex justify-center mt-4" >
+                       <DefaultButton goTo={editProfile} text={'Editar perfil'} no_bg={true} disabled={false}/>
                     </div>}
 
 
@@ -295,7 +303,7 @@ async function SubmitForm(){
                        <div className="w-[100%]">
                        <TextField
                                id="outlined-multiline-static"
-                               label="Obsrvações"
+                               label="Observações"
                                multiline
                                rows={4}
                                value={formData.notes}

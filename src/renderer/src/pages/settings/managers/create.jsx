@@ -16,7 +16,7 @@ import { useData  } from '../../../contexts/DataContext';
 import {useParams, useNavigate} from 'react-router-dom';
 import PouchDB from 'pouchdb';
 import FormLayout from '../../../layout/DefaultFormLayout';
-
+import MultipleSelectChip from '../../../components/TextField/chipInput';
       
        
        function App() {
@@ -36,9 +36,11 @@ import FormLayout from '../../../layout/DefaultFormLayout';
               try {
                 let item=await db.managers.get(id)
                 setFormData(item)
+                handleLoaded('form','add')
                 
               } catch (error) {
                 console.log(error)
+                toast.error('Erro, Item não encontrado')
               }
             })()
 
@@ -49,12 +51,28 @@ import FormLayout from '../../../layout/DefaultFormLayout';
           const [showPassword, setShowPassword] = React.useState(false);
           const [loading, setLoading] = React.useState(false);
           const [valid, setValid] = React.useState(false);
+          const [loaded, setLoaded] = React.useState([]);
+          const [initialized, seTinitialized] = React.useState(false);
+          const [canEdit,setCanEdit] = React.useState(true)
+
+
+          function handleLoaded(item,action){
+              if(action=='add'){
+                setLoaded((prev)=>[...prev.filter(i=>i!=item),item])
+              }else{
+                setLoaded((prev)=>prev.filter(i=>i!=item))
+              }
+          }
+
+
           const {makeRequest,_add,_update,_loaded} = useData();
-          
+          const data= useData()
+          const {user}=useAuth()
             let initial_form={
                name:'',
                last_name:'',
-               contacts:[],
+               contacts:[''],
+               company_ids:[],
                nuit:'',
                notes:'',
                email:'',
@@ -62,7 +80,41 @@ import FormLayout from '../../../layout/DefaultFormLayout';
          }
 
           const [formData, setFormData] = React.useState(initial_form);
-       
+
+          const [chipOptions, setChipOptions] = React.useState([]);
+          const [chipNames, setChipNames] = React.useState([]);
+
+
+          React.useEffect(()=>{
+
+            if(_loaded.includes('companies') && _loaded.includes('managers') &&  (loaded.includes('form') || !id)){
+               seTinitialized(true)
+                if(id){
+                  if(!user.companies.filter(i=>i.admin_id==user.id).some(i=>formData.companies.includes(i.id))){
+                     setCanEdit(false)
+                 }
+                }
+
+           }
+                  
+          },[data._companies,data._managers,loaded])
+
+         
+
+          React.useEffect(()=>{
+            if(!initialized) return
+
+            
+
+            if(id){
+               setChipOptions(data._companies.filter(i=>(formData.companies.includes(i.id) && i.admin_id==user.id) || (!canEdit && formData.companies.includes(i.id))).map(i=>i.name))
+            }else{
+               setChipNames(data._companies.filter(i=>i.admin_id==user.id).map(i=>i.name))
+            }
+               
+          },[initialized])
+
+         
           let required_fields=['email','name','last_name']
        
           const [verifiedInputs, setVerifiedInputs] = React.useState([]);
@@ -84,7 +136,9 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                   setLoading(true)
                   toast.loading(`${id ? 'A actualizar...' :'A enviar...'}`)
                   try{
-                     let response = await makeRequest({method:'post',url:`api/user/`+(id ? "update" : "create"),data:formData, error: ``},0);
+                     let response = await makeRequest({method:'post',url:`api/user/`+(id ? "update" : "create"),data:{
+                        ...formData,companies:data._companies.filter(i=>chipOptions.includes(i.name)).map(i=>i.id)
+                     }, error: ``},0);
                      toast.remove()
                      toast.success('Usuário '+(id ? "actualizado" : "criado"))
 
@@ -94,7 +148,12 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                         _add('managers',[response])
                         setVerifiedInputs([])
                         setFormData(initial_form)
+                        setChipOptions([])
+                       
+                        
                      }
+
+                    
                      
                      setLoading(false)
                      
@@ -138,19 +197,23 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                   v=false
                }
            })
+
+           if(!chipOptions.length || !canEdit) v=false
+
            setValid(v)
-          },[formData])
+          },[formData,chipOptions])
        
           
         
         
          return (
            <>
-              <FormLayout name={ `${id ? 'Actualizar Gestor' : 'Novo Gestor'}`} formTitle={id ? 'Actualizar' : 'Adicionar'}>
+              <FormLayout loading={!initialized} name={ `${id ? 'Actualizar Gestor' : 'Novo Gestor'}`} formTitle={id ? 'Actualizar' : 'Adicionar'}>
               
 
 
-
+            <div className={`${!initialized ? 'opacity-50 pointer-events-none' :''}`}>
+               
 
               <FormLayout.Section>
               <div>
@@ -159,6 +222,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                            label="Nome *"
                            placeholder="Digite o nome"
                            multiline
+                           disabled={!canEdit}
                            value={formData.name}
                            onBlur={()=>validate_feild('name')}
                            onChange={(e)=>setFormData({...formData,name:e.target.value})}
@@ -175,6 +239,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                            label="Apelido *"
                            placeholder="Digite o apelido"
                            value={formData.last_name}
+                           disabled={!canEdit}
                            onBlur={()=>validate_feild('last_name')}
                            onChange={(e)=>setFormData({...formData,last_name:e.target.value})}
                            error={(!formData.last_name)  && verifiedInputs.includes('last_name') ? true : false}
@@ -191,6 +256,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                            label="Email *"
                            placeholder="Digite o email"
                            multiline
+                           disabled={formData.fistLogin || !canEdit ? true : false}
                            value={formData.email}
                            onBlur={()=>validate_feild('email')}
                            onChange={(e)=>setFormData({...formData,email:e.target.value})}
@@ -208,6 +274,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                                multiple
                                id="size-small-outlined-multi"
                                size="small"
+                               disabled={!canEdit}
                                options={formData.contacts}
                                getOptionLabel={(option) => option}
                                renderInput={(params) => (
@@ -222,18 +289,22 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                             </div>
                            
                          </div>
-                       <div>
-                        <TextField
-                           id="outlined-textarea"
-                           label="Contacto"
-                           placeholder="Digite o Contacto"
-                           multiline
-                           value={formData.contacts[0]}
-                           onChange={(e)=>setFormData({...formData,contacts:[e.target.value]})}
-                           sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
-                           '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
-                           />
-                       </div>
+
+                         {formData.contacts.map((i,_i)=>(
+                           <div key={_i}>
+                              <TextField
+                                 id="outlined-textarea"
+                                 label="Contacto"
+                                 disabled={(user.id!=formData.admin_id && id) || canEdit ? true : false}
+                                 placeholder="Digite o Contacto"
+                                 multiline
+                                 value={i}
+                                 onChange={(e)=>setFormData({...formData,contacts:[e.target.value]})}
+                                 sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
+                                 '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
+                                 />
+                          </div>
+                         ))}
        
        
                        <div>
@@ -242,6 +313,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                            label="Endereço"
                            placeholder="Digite o endereço"
                            multiline
+                           disabled={!canEdit}
                            value={formData.address}
                            onChange={(e)=>setFormData({...formData,address:e.target.value})}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
@@ -255,12 +327,17 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                            label="Nuit"
                            placeholder="Digite o nuit"
                            multiline
+                           disabled={!canEdit}
                            value={formData.nuit}
                            onChange={(e)=>setFormData({...formData,nuit:e.target.value})}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
                        </div>
+
+
+                      
+
        
                        <div className="hidden" style={{transform:'translateX(-0.5rem)'}}>
                        <FormControl sx={{ m: 1 ,width:'100%'}} variant="outlined">
@@ -270,6 +347,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                                type={showPassword ? 'text' : 'password'}
                                onBlur={()=>validate_feild('password')}
                                value={formData.password}
+                               disabled={!canEdit}
                                onChange={(e)=>setFormData({...formData,password:e.target.value})}
                                error={true}
                                helperText={(formData.length <= 5 && verifiedInputs.includes('password')) ? 'Senha deve ter no minimo 6 caracteres' : verifiedInputs.includes('password') && !formData.password ? "Senha obrigatória" :''}
@@ -288,29 +366,39 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                                label="Senha"
                             />
                    </FormControl>
+
+                     
+
                        </div>
        
                        <div className="w-[100%]">
                        <TextField
                                id="outlined-multiline-static"
-                               label="Obsrvações"
+                               label="Observações"
                                multiline
                                rows={4}
+                               disabled={!canEdit}
                                value={formData.notes}
                                onChange={(e)=>setFormData({...formData,notes:e.target.value})}
                                defaultValue=""
                                sx={{width:'100%'}}
                                />
                        </div>
+
+                       <div className=" relative">
+                          <MultipleSelectChip disabled={!canEdit} validate_feild={validate_feild} label={'Acesso a empresas'} setItems={setChipOptions} names={chipNames} items={chipOptions}/>
+                        <div className="text-[13px] absolute right-[0px] top-0 translate-y-[-100%] flex items-center">
+                              {(verifiedInputs.includes('company') && chipOptions.length==0) && <span className='text-[11px] text-red-500'>Campo obrigatório</span>}
+                        </div>
+
+                       </div>
+
               </FormLayout.Section>
+            </div>
        
        
               <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={id}/>
         
-                      
-       
-                     
-       
                </FormLayout>
            </>
          )

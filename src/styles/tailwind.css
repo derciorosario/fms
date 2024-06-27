@@ -2,6 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
+.inset-right-shadow {
+   box-shadow:   inset 10px 0px 15px -10px rgba(0, 0, 0, 0.1);
+}
+
+  /* Hide the default radio button */
+ ._filter input[type="radio"]  {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    outline: 1px solid #ffb380;
+    position: relative;
+    cursor: pointer;
+    background: rgb(255, 255, 255);
+  }
+  ._filter input[type="chekbox"]{
+    border-radius: 0.2rem;
+    accent-color: #ff7626;
+  }
+  
+  /* Background color of the radio button */
+ ._filter input[type="radio"]::before
+  {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-color: #ccc; /* default background color */
+    border-radius: 50%;
+    transition: background-color 0.3s;
+  }
+  
+ ._filter input[type="radio"]:checked::before {
+    background-color: #ff7626; /* background color when checked */
+  }
+  
+  ._filter input[type="radio"]:focus::before {
+    outline: 2px solid #ffb380 ; /* outline color when focused */
+  }
+  
+
 body{
     background-color: #FAFBFC;
     background-color: #F6F6F7;
@@ -39,6 +82,14 @@ body{
    
 }
 
+.MuiInputBase-root.Mui-focused .css-1d3z3hw-MuiOutlinedInput-notchedOutline{
+    /*border-color: #ff944d !important;*/
+   
+}
+.MuiInputBase-root.Mui-focused .MuiInputLabel-root{
+    
+}
+
 .MuiButton-contained{
    background:rgb(59,130,246) !important;
    border-radius: 0.3rem !important;
@@ -66,6 +117,11 @@ body{
     display: none !important;
 }
 */
+
+.MuiDataGrid-row:nth-child(2n){
+    background-color: rgb(243 244 246 / 100%);
+    border-top: 0 !important;
+}
 
 
 

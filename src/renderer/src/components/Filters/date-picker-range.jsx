@@ -5,6 +5,9 @@ import { useData } from '../../contexts/DataContext';
 import moment from 'moment';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown';
+import { useSearchParams, useLocation } from 'react-router-dom';
+
 
 export default function DatePickerRange({open,options,setFilterOPtions}) {
 const data = useData();
@@ -12,6 +15,9 @@ const [endDate,setEndDate]=React.useState('')
 const [startDate,setStartDate]=React.useState('')
 const [defaultDates,setDefaultDates]=React.useState({end:'',start:''}) 
 const [openIgualOpions,setOpenIgualOptions]=React.useState(false)
+const [currentDateType,setCurrentDateType]=React.useState('monthly')
+const [searchParams, setSearchParams] = useSearchParams();
+
 
 const handleOutsideClick = (event) => {
     if (!event.target.closest(`.__date-picker-period`) && !event.target.closest(`.react-datepicker__month-container`) ) {
@@ -20,6 +26,99 @@ const handleOutsideClick = (event) => {
     }
 };
 
+function get_fist_and_last_day_of(get){
+
+        if(get=="this_month"){
+            const firstDayOfMonth = new Date();
+            firstDayOfMonth.setDate(2);
+            firstDayOfMonth.setHours(0, 0, 0, 0);
+            const lastDayOfMonth = new Date(firstDayOfMonth);
+            lastDayOfMonth.setMonth(firstDayOfMonth.getMonth() + 1);
+            lastDayOfMonth.setDate(0);
+            lastDayOfMonth.setHours(23, 59, 59, 999);
+
+            console.log("First Day of Month:", firstDayOfMonth.toISOString());
+console.log("Last Day of Month:", lastDayOfMonth.toISOString());
+
+          
+            return {start:firstDayOfMonth.toISOString(),end:lastDayOfMonth.toISOString()} 
+
+        }else if(get=="this_week"){
+            const now = new Date();
+            const firstDayOfWeek = new Date(now);
+            const dayOfWeek = now.getDay()  - 1;
+            firstDayOfWeek.setDate(now.getDate() - dayOfWeek);
+            firstDayOfWeek.setHours(0, 0, 0, 0);
+            const lastDayOfWeek = new Date(firstDayOfWeek);
+            lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
+            lastDayOfWeek.setHours(23, 59, 59, 999);
+            return {start:firstDayOfWeek.toISOString(),end:lastDayOfWeek.toISOString()}    
+       
+          }else if(get=="this_year"){
+
+            const firstDayOfYear = new Date();
+            firstDayOfYear.setMonth(0, 2); // January is 0, day is 1
+            firstDayOfYear.setHours(0, 0, 0, 0);
+            const lastDayOfYear = new Date(firstDayOfYear);
+            lastDayOfYear.setFullYear(firstDayOfYear.getFullYear() + 1);
+            lastDayOfYear.setMonth(0, 0); // January 0 is the last day of the previous year
+            lastDayOfYear.setHours(23, 59, 59, 999);
+
+            return {start:firstDayOfYear.toISOString(),end:lastDayOfYear.toISOString()}
+
+        }else if(get=="last_month"){
+                
+        const now = new Date();
+
+        const firstDayOfPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 2);
+        firstDayOfPreviousMonth.setHours(0, 0, 0, 0);
+        
+        const lastDayOfPreviousMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+        lastDayOfPreviousMonth.setHours(23, 59, 59, 999);
+
+        console.log("First Day of Previous Month:", firstDayOfPreviousMonth.toISOString());
+        console.log("Last Day of Previous Month:", lastDayOfPreviousMonth.toISOString());
+        
+
+        return {start:firstDayOfPreviousMonth.toISOString(),end:lastDayOfPreviousMonth.toISOString()}
+
+
+      }else if(get=="last_week"){
+        const now = new Date();
+
+        const dayOfWeek = now.getDay();
+
+        const firstDayOfPreviousWeek = new Date(now);
+        firstDayOfPreviousWeek.setDate(now.getDate() - dayOfWeek - 7);
+        firstDayOfPreviousWeek.setHours(0, 0, 0, 0);
+        
+        // Last day of the previous week (Saturday)
+        const lastDayOfPreviousWeek = new Date(firstDayOfPreviousWeek);
+        lastDayOfPreviousWeek.setDate(firstDayOfPreviousWeek.getDate() + 6);
+        lastDayOfPreviousWeek.setHours(23, 59, 59, 999);
+
+   
+        return {start:firstDayOfPreviousWeek.toISOString(),end:lastDayOfPreviousWeek.toISOString()}
+
+      }
+}
+function  GoTonexPreviousMonth(to){
+
+        const first = new Date(options.startDate.getFullYear(),  (to=="n" ? options.startDate.getMonth() + 1 : options.startDate.getMonth() - 1), 2);
+        first.setHours(0, 0, 0, 0);
+        
+        const last = new Date(options.startDate.getFullYear(), to=="n" ? options.startDate.getMonth()  + 3 : options.startDate.getMonth(), 0);
+        last.setHours(23, 59, 59, 999);
+
+
+        let new_filters={...options,endDate:last,startDate:first}
+        sendDateFilters(new_filters)
+
+        console.log({new_filters})
+        setFilterOPtions(new_filters)
+        setCurrentDateType('monthly')
+   
+}
 
 const  handleClickFilter = () => {
     document.addEventListener('click', handleOutsideClick);
@@ -34,11 +133,6 @@ function selectIgualOrNot(value){
 
  React.useEffect(()=>{
       let data_from=data[options.field]
-
-      //data_from=data._sort_by_date(data_from,'createdAt','full-string')
-
-      console.log({l:data_from})
-      
       
       if((!options.endDate || !options.startDate) && data_from.length!=0){
           let start=new Date(data_from[0].createdAt.split('T')[0])
@@ -47,6 +141,33 @@ function selectIgualOrNot(value){
           setDefaultDates({end,start})
       }
  },[data[options.field]])
+
+
+
+ function sendDateFilters(periodFilters){
+      let new_params={}
+
+      new_params.end_date=periodFilters.endDate ? periodFilters.endDate : '',
+      new_params.start_date=periodFilters.startDate ? periodFilters.startDate :''
+
+      data._updateFilters(new_params,setSearchParams)
+ }
+
+
+ React.useEffect(()=>{
+  
+   if((currentDateType=="monthly") && options.startDate){
+
+      if(options.startDate.getMonth()==new Date().getMonth()){
+        console.log('hi')
+        check_and_uncheck('period',options.groups[0].items.filter(i=>i.id=="this_month")[0])
+      }else{
+        check_and_uncheck('period',{})
+         
+      }
+      
+   }
+},[options.startDate])
 
  React.useEffect(()=>{
    
@@ -60,19 +181,27 @@ function selectIgualOrNot(value){
         setStartDate(`${day}-${month}-${year}`)
     }
 
+
     
 },[options])
 
 
 function check_and_uncheck(group_field,item){
-  setFilterOPtions({...options,groups:options.groups.map(g=>{
-            if(g.field==group_field){
-               return {...g,items:g.items.map(i=>{return i.id==item.id ? {...i,selected:true} : {...i,selected:false}}),selected_ids:[item.id]}
-            }else{
-               return g
-            }
-      })
+
+  if(item.id) setCurrentDateType('selected')
+
+  let new_filters={...options,startDate:!item.id ? options.startDate : new Date(get_fist_and_last_day_of(item.id)?.start),endDate:!item.id ? options.endDate : new Date(get_fist_and_last_day_of(item.id)?.end),groups:options.groups.map(g=>{
+      if(g.field==group_field){
+        return {...g,items:g.items.map(i=>{return i.id==item.id ? {...i,selected:true} : {...i,selected:false}}),selected_ids:[item.id]}
+      }else{
+        return g
+      }
   })
+  }
+
+  sendDateFilters(new_filters)
+  setFilterOPtions(new_filters)
+
 }
 
 
@@ -85,25 +214,32 @@ function clear(){
   return (
        <>
 
- <div className={`__date-picker-period flex items-center justify-center p-1 relative`}>
-    <button  onClick={()=>handleClickFilter()}
+ <div className={`__date-picker-period _filter flex items-center justify-center p-1 relative`}>
+   {currentDateType=="custom" && <button  onClick={()=>handleClickFilter()}
 
     id="dropdownDefault" data-dropdown-toggle="dropdown"
-    className={`${(options.startDate && options.startDate!=defaultDates.start || options.endDate && options.endDate!=defaultDates.end) ? 'text-blue-600 bg-blue-100' :' text-[#42526E] bg-gray-100'} outline-none border font-medium rounded-lg text-sm px-2 text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
+    className={`${(options.startDate && options.startDate!=defaultDates.start || options.endDate && options.endDate!=defaultDates.end) ? ' text-app_black-500 border-app_orange-100' :' text-[#42526E] bg-gray-100'} border outline-none  font-medium rounded-lg text-sm px-2 text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
     type="button">
-    <span className={` border my-[4px] px-2 py-[2px] mr-2 bg-slate-50 flex rounded-[4px] text-gray-700`}>{options.igual ? '=' :'!='}</span>
+    <span className={`my-[4px] px-2 py-[2px] mr-2 bg-app_orange-200 flex rounded-[4px] text-white`}>{options.igual ? '=' :'!='}</span>
     {options.name}
     <svg className={` w-4 h-4 ml-2 ${open ? 'rotate-180' : ''}`} aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
     </svg>
-    <span className={`px-2 py-[2px] ml-2 ${(options.startDate && options.startDate!=defaultDates.start || options.endDate && options.endDate!=defaultDates.end) ? 'bg-blue-200' :''}  flex rounded-[4px]`}>{startDate} {endDate && startDate && '-'} {endDate}</span>
-  </button>
+    <span className={`px-2 py-[2px] ml-2 ${(options.startDate && options.startDate!=defaultDates.start || options.endDate && options.endDate!=defaultDates.end) ? '' :''} text-app_orange-400  flex rounded-[4px]`}>{startDate} {endDate && startDate && '-'} {endDate}</span>
+  </button>}
 
-  <button onClick={()=>handleClickFilter()}  className={`${0!=0 ? 'text-blue-600 bg-blue-100' :' text-[#42526E] bg-gray-100'} px-2 outline-none border hidden font-medium rounded-lg text-sm  text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
+ {currentDateType!="custom" && <button  className={`${0!=0 ? 'text-app_orange-400 bg-app_orange-50' :' text-[#42526E] bg-gray-100'} px-2 outline-none border font-medium rounded-lg text-sm  text-center  inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
     >
-     <span className="border-r flex mr-1 py-[5px]"><KeyboardArrowLeftIcon/></span> <span>{data._convertDateToWords(options.startDate ? options.startDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],null,'month_and_year')}</span><span className="border-l py-[5px] flex ml-1"><KeyboardArrowRightIcon/></span>
-  </button>
+     <span onClick={()=>GoTonexPreviousMonth('p')} className="border-r flex mr-1 py-[5px] hover:opacity-45"><KeyboardArrowLeftIcon/></span> 
+     
+     <div className="relative cursor-pointer">
+         <span className="block" onClick={()=>handleClickFilter()} >{data._convertDateToWords(options.startDate ? options.startDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],null,'month_and_year')}</span>
+         <label className=" cursor-pointer pointer-events-none absolute top-[60%] left-[50%] -translate-x-[50%] opacity-65"><KeyboardArrowDown sx={{width:15,height:15}}/></label>
+     </div>
+     
+     <span onClick={()=>GoTonexPreviousMonth('n')} className="border-l hover:opacity-45 py-[5px] flex ml-1"><KeyboardArrowRightIcon/></span>
+  </button>}
 
   {/***Dropdown menu */}
 
@@ -111,7 +247,7 @@ function clear(){
      <div className="w-full">
     
      <div className="flex justify-between items-center mb-1">
-      <span onClick={()=>clear(options.field)} className="text-blue-600 text-[15px] hover:underline cursor-pointer">Limpar</span>
+      <span onClick={()=>clear(options.field)} className="text-app_orange-500 text-[15px] hover:underline cursor-pointer">Limpar</span>
     </div>
   
 
@@ -127,10 +263,10 @@ function clear(){
                    <div id="dropdown" className="z-10 absolute bg-white divide-y divide-gray-100 rounded-lg shadow w-full dark:bg-gray-700">
                         <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
                             <li>
-                                <a onClick={()=>selectIgualOrNot(true)} className={`block cursor-pointer px-4 py-2 ${!options.igual ? 'hover:bg-gray-100' :' text-blue-500 hover:bg-blue-200 bg-blue-100'}  dark:hover:bg-gray-600 dark:hover:text-white`}>{options.name} = (igual a)</a>
+                                <a onClick={()=>selectIgualOrNot(true)} className={`block cursor-pointer px-4 py-2 ${!options.igual ? 'hover:bg-gray-100' :' text-app_orange-500 hover:bg-app_orange-100 bg-app_orange-50'}  dark:hover:bg-gray-600 dark:hover:text-white`}>{options.name} = (igual a)</a>
                             </li>
                             <li>
-                                <a onClick={()=>selectIgualOrNot(false)} className={`block cursor-pointer px-4 py-2 ${options.igual ? 'hover:bg-gray-100' :' text-blue-500 hover:bg-blue-200 bg-blue-100'}  dark:hover:bg-gray-600 dark:hover:text-white`}>{options.name} != (diferente de)</a>
+                            <a onClick={()=>selectIgualOrNot(false)} className={`block cursor-pointer px-4 py-2 ${options.igual ? 'hover:bg-gray-100' :' text-app_orange-500 hover:bg-app_orange-100 bg-app_orange-50'}  dark:hover:bg-gray-600 dark:hover:text-white`}>{options.name} != (diferente de)</a>
                             </li>
                         </ul>
                     </div>
@@ -192,14 +328,18 @@ function clear(){
       ))}
 
      </div>
+   
 
+
+     <span className="text-[14px] ml-1 mb-2 flex">Data customisada</span>
 
      <div className="flex items-center">
 
       
       <div className="relative">
+
        
-        <span className="flex items-center p-1">
+        <span className="flex items-center p-1  hidden">
             
             <div className="inset-y-0 start-0 flex items-center pointer-events-none">
               <svg
@@ -217,20 +357,28 @@ function clear(){
         
         <DatePicker
           selected={options.startDate}
-          onChange={(date) =>  setFilterOPtions({...options,startDate:date})}
+          onChange={(date) => {
+            check_and_uncheck('period',{})
+            setFilterOPtions(prev=>{
+                let new_filters={...prev,startDate:date}
+                sendDateFilters(new_filters)
+                return new_filters
+            })
+            setCurrentDateType('custom')
+          }}
           selectsStart
           startDate={options.startDate}
           dateFormat="dd-MM-yyyy"
           endDate={options.endDate}
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          className={` ${!options.groups[0].selected_ids[0] ? 'bg-app_orange-50' : 'bg-gray-100'} text-gray-900 outline-none text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
           placeholderText="Data de inicio"
         />
       </div>
       <span className="mx-4 text-gray-500 flex h-[30px] self-end">Até</span>
       <div className="relative">
-      <span className="flex items-center p-1">
+      <span className="flex items-center p-1 hidden">
             
-            <div className="inset-y-0 start-0 flex items-center pointer-events-none">
+            <div className="inset-y-0 start-0 flex items-center pointer-events-none ">
               <svg
                 className="w-4 h-4 text-gray-500 dark:text-gray-400"
                 aria-hidden="true"
@@ -246,13 +394,21 @@ function clear(){
         
         <DatePicker
           selected={options.endDate}
-          onChange={(date) => setFilterOPtions({...options,endDate:date})}
+          onChange={(date) => {
+            check_and_uncheck('period',{})
+            setFilterOPtions(prev=>{
+              let new_filters={...prev,endDate:date}
+              sendDateFilters(new_filters)
+              return new_filters
+            })
+            setCurrentDateType('custom')
+          }}
           selectsEnd
           dateFormat="dd-MM-yyyy"
           startDate={options.startDate}
           endDate={options.endDate}
           minDate={defaultDates.startDate}
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          className={` ${!options.groups[0].selected_ids[0] ? 'bg-app_orange-50' : 'bg-gray-100'} text-gray-900 text-sm outline-none rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
           placeholderText="Date de fim"
         />
       </div>

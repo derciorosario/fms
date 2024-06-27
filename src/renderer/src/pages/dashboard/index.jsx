@@ -7,6 +7,8 @@ import MixedChart from '../../components/Charts/chart-1';
 import { useData } from '../../contexts/DataContext';
 import { useNavigate } from 'react-router-dom';
 import Doughnut from '../../components/Charts/chart-4'
+import colors from '../../assets/colors.json'
+
 
 function App() {
  
@@ -57,36 +59,39 @@ useEffect(()=>{
 
         <div className="max-w-[1424px]">
 
-       <div className="flex items-center  [&>_div]:rounded-[0.3rem] mb-5 [&>_div]:min-h-[80px] [&>_div]:min-w-[200px] [&>_div]:mr-[10px] justify-start">
+       <div className="flex  [&>_div]:rounded-[0.3rem]  mb-5 [&>_div]:min-h-[80px] [&>_div]:min-w-[200px] [&>_div]:mr-[10px] justify-start">
                         <div className="flex shadow-sm items-center bg-white border-b-[rgb(59,130,246)]  px-2 py-2">
-                                <div className="mr-3 opacity-70  flex items-center justify-center size-14 rounded-full bg-slate-200"><MonetizationOn style={{color:'rgb(59,130,246)',width:30,height:30}}/></div> 
+                            <div className="flex">
+                               <div className="mr-3 opacity-70  flex items-center justify-center size-14 rounded-full bg-slate-200"><MonetizationOn style={{color:colors.app_orange[500],width:30,height:30}}/></div> 
                                 <div className="flex justify-center flex-col">
-                                    <span className="text-[15px] text-[#A3AED0] font-light">Saldo de caixa</span>
-                                    <span className="text-[19px] text-[#2B3674] font-semibold">{!_loaded.includes('accounts') ? '-' : _cn(_get_stat('cash_account_balance'))}</span>
+                                    <span className="text-[15px] text-[#A3AED0] font-light mb-2">Saldo de caixa</span>
+                                    <span className="text-[19px] text-[#2B3674] font-semibold">{!_loaded.includes('payment_methods') ? '-' : _cn(_get_stat('accounts_balance').datasets[0].data.map(item => item).reduce((acc, curr) => acc + curr, 0))}</span>
                                 </div>
                                 <span className="absolute hidden bottom-1 right-2 opacity-80 text-[15px]">{0}</span>
+                        
+                            </div>
                         </div>  
 
 
-                        <div className="flex flex-1 [&>_div] [&>_div]:rounded-[0.3rem] [&>_div]:min-h-[80px] [&>_div]:min-w-[170px]">
+                        <div className="flex  flex-1 [&>_div] [&>_div]:rounded-[0.3rem] [&>_div]:min-h-[90px] [&>_div]:min-w-[170px]">
                                 <div className="flex w-[50%] [&>_div]:w-[50%] items-center bg-white px-2 py-2 border-b-red-600  shadow-sm mr-[10px]">
                                     <div className="flex border-r pr-3 relative">
                                           <div className="flex justify-center flex-col">
-                                            <span className="text-[15px] text-[#A3AED0] font-light">Contas a pagar hoje</span>
+                                            <span className="text-[15px] text-[#A3AED0] font-light mb-2">Contas a pagar hoje</span>
                                             <span className="text-[19px] text-red-600 font-semibold">{!_loaded.includes('bills_to_pay') ? '-' : _cn(_get_stat('bills_to_pay').today)}</span>
                                           </div>
-                                          <span className="absolute -bottom-2 right-2 opacity-80 text-[15px]">
+                                          <span onClick={()=>navigate(`/bills-to-pay?status=pending&start_date=${new Date().toISOString().split('T')[0]}&end_date=${new Date().toISOString().split('T')[0]}`)} className="absolute -bottom-2 right-2 opacity-80 text-[15px] cursor-pointer">
                                           <ArrowCircleRightOutlinedIcon  sx={{color:'#A3AED0',width:20}}/>
-                                          </span>
+                                         </span>
                                     </div>
                                     <div className="flex pl-3 relative">
                                           <div className="flex justify-center flex-col relative">
-                                            <span className="text-[15px] text-red-600   font-light ">Contas a pagar em atraso</span>
+                                            <span className="text-[15px] text-red-600   font-light mb-2">Contas a pagar em atraso</span>
                                             <span className="text-[19px] text-red-600 #FF8900 font-semibold">{!_loaded.includes('bills_to_pay') ? '-' : _cn(_get_stat('bills_to_pay').delayed)}</span>
                                           </div>
-                                          <span className="absolute -bottom-2 right-2 opacity-80 text-[15px]">
+                                          <span onClick={()=>navigate('/bills-to-pay?status=delayed')} className="absolute -bottom-2 right-2 opacity-80 text-[15px] cursor-pointer">
                                           <ArrowCircleRightOutlinedIcon  sx={{color:'#A3AED0',width:20}}/>
-                                          </span>
+                                         </span>
                                     </div>
                                 </div> 
 
@@ -94,19 +99,19 @@ useEffect(()=>{
                                 <div className="flex w-[50%] [&>_div]:w-[50%]  items-center bg-white px-2 py-2 border-b-[#3CD856] shadow-sm">
                                   <div className="flex border-r pr-3 relative">
                                         <div className="flex justify-center flex-col">
-                                          <span className="text-[15px] text-[#A3AED0] font-light">Contas a receber hoje</span>
+                                          <span className="text-[15px] text-[#A3AED0] font-light mb-2">Contas a receber hoje</span>
                                           <span className="text-[19px] text-[#3CD856] font-semibold">{!_loaded.includes('bills_to_pay') ? '-' : _cn(_get_stat('bills_to_receive').today)}</span>
                                         </div>
-                                        <span className="absolute -bottom-2 right-2 opacity-80 text-[15px] cursor-pointer">
-                                        <ArrowCircleRightOutlinedIcon  sx={{color:'#A3AED0',width:20}}/>
-                                        </span>
+                                        <span onClick={()=>navigate(`/bills-to-receive?status=pending&start_date=${new Date().toISOString().split('T')[0]}&end_date=${new Date().toISOString().split('T')[0]}`)} className="absolute -bottom-2 right-2 opacity-80 text-[15px] cursor-pointer">
+                                          <ArrowCircleRightOutlinedIcon  sx={{color:'#A3AED0',width:20}}/>
+                                         </span>
                                   </div>
                                   <div className="flex pl-3 relative">
                                         <div className="flex justify-center flex-col relative">
-                                          <span className="text-[15px] text-[#3CD856] font-light">Contas a receber em atraso</span>
+                                          <span className="text-[15px] text-[#3CD856] font-light mb-2">Contas a receber em atraso</span>
                                           <span className="text-[19px] text-[#3CD856] font-semibold">{!_loaded.includes('bills_to_pay') ? '-' : _cn(_get_stat('bills_to_receive').delayed)}</span>
                                         </div>
-                                        <span onClick={()=>navigate('/bills-to-pay?status=delayed')} className="absolute -bottom-2 right-2 opacity-80 text-[15px] cursor-pointer">
+                                        <span onClick={()=>navigate('/bills-to-receive?status=delayed')} className="absolute -bottom-2 right-2 opacity-80 text-[15px] cursor-pointer">
                                           <ArrowCircleRightOutlinedIcon  sx={{color:'#A3AED0',width:20}}/>
                                         </span>
                                   </div>
@@ -133,14 +138,14 @@ useEffect(()=>{
 <div key={_i} className={`w-[50%]  rounded-[0.3rem] shadow-sm ${_i==0} mr-2 bg-white`}>
         
 
-<div>
+<div className="border-b">
     <span className="flex p-2 px-4 justify-between items-center"><label className={`${i=="inflows" ? 'text-green-500':'text-red-600'} font-semibold`}>{i=="inflows" ? ' Contas a receber' :'Contas a pagar '}</label><label className="text-gray-600 text-[13px]">Nos próximos 7 dias</label></span>
 </div>        
 
 
 <div class="relative overflow-x-auto w-[100%]">
-<table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-  <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+<table class="w-full text-sm text-left rtl:text-right text-gray-500">
+  <thead class="text-xs text-gray-700 uppercase bg-gray-50">
       <tr>
           <th scope="col" class="px-6 py-3 font-medium">
               Origem
@@ -161,8 +166,8 @@ useEffect(()=>{
   <tbody>
 
       {_get_stat('upcomming_payments')[i].map((f,_f)=>(
-             <tr key={_f} class="bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700 px-1">
-             <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+             <tr key={_f} class="bg-white shadow-sm px-1">
+             <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                  {_categories.filter(i=>i.field==f.account_origin)[0].name}
              </th>
              <td class="px-6 py-4">
@@ -214,16 +219,16 @@ useEffect(()=>{
 
 
 
-  <div className="flex">
+  <div className="flex mb-5 mt-3">
                 
-                <div className="max-w-sm w-full bg-white rounded-[0.3rem] shadow-sm dark:bg-gray-800 p-4 md:p-6">
-                  <div className="flex justify-between border-gray-200 border-b dark:border-gray-700 pb-3">
-                    <dl>
-                      <dt className={`text-base font-medium  text-gray-500  dark:text-gray-400 pb-1`}>Saldo da semana</dt>
-                      <dd className={`leading-none text-3xl font-bold ${ _get_stat('this_week_transations').balance < 0 ? 'text-red-600' :'text-gray-900'} dark:text-white`}>{_cn(_get_stat('this_week_transations').balance)}</dd>
-                    </dl>
+                <div className="max-w-sm w-full bg-white rounded-[0.3rem] shadow-sm  p-4 md:p-6">
+                  <div className="flex justify-between border-gray-200 border-b  pb-3">
+                    <div>
+                      <div className={`text-base font-medium  text-gray-500  pb-1`}>Saldo da semana</div>
+                      <div className={`leading-none text-3xl font-bold ${ _get_stat('this_week_transations').balance < 0 ? 'text-red-600' :'text-gray-900'} dark:text-white`}>{_cn(_get_stat('this_week_transations').balance)}</div>
+                    </div>
                     <div className="hidden">
-                      <span className="bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-green-900 dark:text-green-300">
+                      <span className="bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md">
                         <svg className="w-2.5 h-2.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 14">
                           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13V1m0 0L1 5m4-4 4 4"/>
                         </svg>
@@ -234,7 +239,7 @@ useEffect(()=>{
                 
                   <div className="grid grid-cols-2 py-3">
                     <dl>
-                      <dt className="text-base font-normal text-gray-500 dark:text-gray-400 pb-1">Entradas ({_get_stat('this_week_transations').inflows_total})</dt>
+                      <dt className="text-base font-normal text-gray-500 pb-1">Entradas ({_get_stat('this_week_transations').inflows_total})</dt>
                       <dd className="leading-none text-xl font-bold text-green-500 dark:text-green-400">{_cn(_get_stat('this_week_transations').inflows)}</dd>
                     </dl>
                     <dl>
@@ -267,20 +272,20 @@ useEffect(()=>{
                   ]} labels={['Domingo','Sabado','Segunda','Terça','Quarta','Quinta','Sexta']}/>
                 
                   </div>
-                    <div className="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
+                    <div className="grid grid-cols-1 items-center border-gray-200 border-t  justify-between">
                       <div className="flex justify-between items-center pt-5">
                         <button
                           id="dropdownDefaultButton"
                           data-dropdown-toggle="lastDaysdropdown"
                           data-dropdown-placement="bottom"
-                          className="inline-flex hidden text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center  items-center dark:hover:text-white"
+                          className="inline-flex hidden text-sm font-medium text-gray-500 hover:text-gray-900 text-center  items-center"
                           type="button">
                           Last 6 months
                           <svg className="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
                           </svg>
                         </button>
-                        <div id="lastDaysdropdown" className="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                        <div id="lastDaysdropdown" className="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg  w-44 dark:bg-gray-700">
                             <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
                               <li>
                                 <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Yesterday</a>
@@ -308,7 +313,7 @@ useEffect(()=>{
                         <a
                          
                           onClick={()=>navigate('/reports/cash-management/monthly')}
-                          className="uppercase cursor-pointer  text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+                          className="uppercase cursor-pointer  text-sm font-semibold inline-flex items-center rounded-lg text-orange-500   hover:bg-gray-100 px-3 py-2">
                           Ver detalhes
                           <svg className="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
@@ -322,7 +327,7 @@ useEffect(()=>{
                 
                 <div className="relative flex-1 bg-white shadow-sm rounded-[0.3rem] ml-3">
                 
-                                <div className="p-3 flex justify-between items-center">
+                                <div className="px-3 py-2 flex justify-between items-center border-b">
                                   <span className="font-semibold">Fluxo de caixa mensal {filterOptions.filter(i=>i.id=="monthy_cm")[0].groups[0].items[filterOptions.filter(i=>i.id=="monthy_cm")[0].groups[0].selected_ids[0] - 1].name}</span>
                 
                                   <select value={filterOptions.filter(i=>i.id=="monthy_cm")[0].groups[0].selected_ids[0]} onChange={(e)=>setFilterOPtions(filterOptions.map(i=>{
@@ -333,7 +338,7 @@ useEffect(()=>{
                                       }else{
                                         return i
                                       }
-                                  }))} id="category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded focus:ring-primary-500 focus:border-primary-500 block p-1 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                  }))} id="category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded focus:ring-primary-500 focus:border-primary-500 block p-1">
                                           {filterOptions.filter(i=>i.id=="monthy_cm")[0].groups[0].items.map((i,_i)=>(
                                               <option value={_i + 1} key={_i} selected={i.selected}>{i.name}</option>
                                           ))}
@@ -372,12 +377,11 @@ useEffect(()=>{
 
   <div className="flex w-full  mb-2">
            
-<div class="w-[48.8%] dark:bg-gray-800 min-w-[560px] p-4  mb-3 rounded-[0.3rem] shadow-sm bg-white mr-2 ">
+<div class="w-[48.8%] min-w-[560px] mb-3 rounded-[0.3rem] shadow-sm bg-white mr-2 ">
   
-  <div class="flex justify-between mb-3">
-      <div class="flex justify-center items-center">
-          <h5 class="text-xl font-semibold leading-none text-gray-900 dark:text-white pe-1">Desempenho do mês por categorias</h5>
-          
+  <div class="flex justify-between border-b">
+      <div class="flex justify-center items-center p-3">
+          <h5 class="font-semibold  leading-none text-gray-900 ">Desempenho do mês por categorias</h5>
       </div>
       <div>
            
@@ -393,20 +397,20 @@ useEffect(()=>{
       <Doughnut {..._get_stat('monthly_cat_performace',{period:'m'}).doughnut}/>
   </div>
 
-  <div class="grid grid-cols-1 items-center border-gray-200 shadow-sm dark:border-gray-700 justify-between">
+  <div class="grid grid-cols-1 items-center border-gray-200   justify-between">
     <div class="flex justify-between items-center pt-5">
        <button
         id="dropdownDefaultButton"
         data-dropdown-toggle="lastDaysdropdown"
         data-dropdown-placement="bottom"
-        class="hidden text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
+        class="hidden text-sm font-medium text-gray-500  hover:text-gray-900 text-center inline-flex items-center"
         type="button">
         Last 7 days
         <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
         </svg>
       </button>
-      <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+      <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg w-44">
           <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
             <li>
               <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Yesterday</a>
@@ -427,7 +431,7 @@ useEffect(()=>{
       </div>
       <a
         onClick={()=>navigate('/reports/cash-management/monthly')}
-        class="uppercase cursor-pointer text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+        class="uppercase cursor-pointer text-sm font-semibold inline-flex items-center rounded-lg text-orange-500   hover:bg-gray-100  px-3 py-2">
          Mais detalhes 
         <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
@@ -439,8 +443,8 @@ useEffect(()=>{
 
 
   <div class="mb-3 p-2 flex flex-col rounded-[0.3rem] shadow-sm bg-white flex-1">
-      <div class="flex p-2 pt-1">
-          <h5 class="text-xl font-medium leading-none text-gray-900 dark:text-white pt-1">Saldo por contas</h5>
+      <div class="flex p-2 pt-1 border-b">
+          <h6 class="text-[17px] font-medium leading-none text-gray-900 pt-1">Saldo por contas</h6>
           
       </div>
       <div>
@@ -472,15 +476,12 @@ useEffect(()=>{
 
 
 
-<div key={_i} class={`${_i==0 ? 'w-[48.8%]':'w-[50%]'}  dark:bg-gray-800 p-4  mb-3 rounded-[0.3rem] shadow-sm bg-white ${_i==0 ? 'mr-2':''}`}>
+<div key={_i} class={`${_i==0 ? 'w-[48.8%]':'w-[50%]'}  dark:bg-gray-800   mb-3 rounded-[0.3rem] shadow-sm bg-white ${_i==0 ? 'mr-2':''}`}>
    
-  <div class="flex justify-between mb-3">
+  <div class="flex justify-between mb-3 border-b">
       <div class="flex justify-center items-center">
-          <h5 class="text-xl font-semibold leading-none text-gray-900 dark:text-white pe-1">{i=="in" ? 'Entradas por plano de contas' :'Saídas por plano de contas'}</h5>
+          <h5 class="p-3 font-semibold text-[17px] leading-none text-gray-900 dark:text-white pe-1">{i=="in" ? 'Entradas por plano de contas' :'Saídas por plano de contas'}</h5>
           
-      </div>
-      <div>
-           
       </div>
   </div>
 
@@ -493,7 +494,7 @@ useEffect(()=>{
       <Doughnut {..._get_stat('accounts_cat_balance')[i]}/>
   </div>
 
-  <div class="grid grid-cols-1 items-center border-gray-200 shadow-sm dark:border-gray-700 justify-between">
+  <div class="grid grid-cols-1 items-center border-gray-200  dark:border-gray-700 justify-between">
     <div class="flex justify-between items-center pt-5">
        <button
         id="dropdownDefaultButton"
@@ -506,7 +507,7 @@ useEffect(()=>{
           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
         </svg>
       </button>
-      <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+      <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg  w-44 dark:bg-gray-700">
           <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
             <li>
               <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Yesterday</a>
@@ -527,7 +528,7 @@ useEffect(()=>{
       </div>
       <a
         onClick={()=>navigate('/reports/cash-management/monthly')}
-        class="uppercase cursor-pointer text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+        class="uppercase cursor-pointer text-sm font-semibold inline-flex items-center rounded-lg text-orange-500 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
          Mais detalhes 
         <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>

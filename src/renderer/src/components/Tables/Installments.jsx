@@ -6,6 +6,8 @@ import TextField from '@mui/material/TextField';
 import InputLabel from '@mui/material/InputLabel';
 import dayjs from 'dayjs';
 import 'dayjs/locale/en-gb';
+import colors from '../../assets/colors.json'
+
 
 export default function CircularIndeterminate({items,setFormData,formData,page,disabled}) {
  
@@ -36,8 +38,6 @@ export default function CircularIndeterminate({items,setFormData,formData,page,d
 
      setRes(_items)
 
-     console.log({})
-
   },[formData])
 
 
@@ -48,8 +48,8 @@ export default function CircularIndeterminate({items,setFormData,formData,page,d
   return (
 <>  
   <div class={`relative bg-white overflow-x-auto mb-4 max-h-[200px] max-w-[800px] px-4 ${disabled ? 'opacity-70 pointer-events-none' :''}`}>
-    <table class="w-full text-sm text-left rtl:text-right  border rounded-[0.2rem] ">
-        <thead class="text-xs text-gray-900 uppercase rounded-[1rem]  dark:text-gray-400 bg-gray-100">
+    <table class="w-full text-sm text-left rtl:text-right shadow-md rounded-[0.2rem] ">
+        <thead class="text-xs text-gray-900 uppercase rounded-[1rem]  dark:text-gray-400 bg-gray-50">
             <tr className="[&>_th]:px-3 [&>_th]:py-2">
                 <th scope="col">
                     Valor a {page == 'pay' ? 'pagar' :'receber'}
@@ -73,7 +73,7 @@ export default function CircularIndeterminate({items,setFormData,formData,page,d
                         {i.amount.toFixed(2)}
                     </th>
                     <td>
-                        {res[_i]?.paid}
+                        {res[_i]?.paid ? res[_i]?.paid.toFixed(2) :'-'}
                     </td>
                     <td>
                         <div>
@@ -86,7 +86,7 @@ export default function CircularIndeterminate({items,setFormData,formData,page,d
                         </div>
                     </td>
                     <td>
-                        <span style={{backgroundColor:res[_i]?.status=='paid' ? '#C9E8E8':res[_i]?.status=='pending' ? 'rgb(255 244 198)': '#F3D4D1', color: '#111' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {res[_i]?.status=='paid' || !res[_i]?.status ? 'Pago' : i.status=='pending' ? 'Pendente' : 'Vencido'}</span>
+                        <span style={{backgroundColor:res[_i]?.status=='paid' ? colors.common.paid :res[_i]?.status=='pending' ? colors.common.pending: colors.common.delayed, color: '#fff' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {res[_i]?.status=='paid' || !res[_i]?.status ? 'Pago' : i.status=='pending' ? 'Pendente' : 'Vencido'}</span>
                     </td>
                 </tr>
             ))}

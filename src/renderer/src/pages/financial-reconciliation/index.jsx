@@ -5,6 +5,7 @@ import MonetizationOn from '@mui/icons-material/MonetizationOn';
 import DeleteDialog from '../../components/Dialogs/deleteItem'
 import { useData  } from '../../contexts/DataContext';
 import BasicTable from '../../components/Tables/basic';
+import TotalCard from '../../components/Cards/default_totals';
 
 function App() {
   const {_delete,_loaded,_transations,_cn} = useData();
@@ -97,58 +98,27 @@ React.useEffect(()=>{
        <DeleteDialog res={confirmDelete} show={itemsToDelete.length} loading={deleteLoading}/>
        
        <DefaultLayout details={{name:'Conciliação financeira'}}>
-          <div className="flex items-center pr-[1rem] [&>_div]:shadow-sm [&>_div]:rounded-[0.4rem] mb-5 [&>_div]:min-h-[80px] [&>_div]:min-w-[170px] [&>_div]:mr-[10px] justify-start">
-                        <div className="flex border items-center bg-white  px-2 py-2">
-                                <div className="mr-3 opacity-70  flex items-center justify-center size-14 rounded-full bg-slate-200"><MonetizationOn style={{color:'rgb(59,130,246)',width:30,height:30}}/></div> 
-                                <div className="flex justify-center flex-col">
-                                    <span className="text-[15px] text-[#A3AED0] ">Total de saldo</span>
-                                    <span className="text-[19px] text-[#2B3674]">{_loaded.includes('transations') ? statResponses.global.total :'-'}</span>
-                                </div>
-                                <span className="absolute hidden bottom-1 right-2 opacity-80 text-[15px]">{stats.total_items}</span>
-                       
-                        </div>
-
-
-                        <div className="flex border items-center bg-white  px-2 py-2">
-                                <div className="mr-3 opacity-70  flex items-center justify-center size-14 rounded-full bg-slate-200"><MonetizationOn style={{color:'rgb(59,130,246)',width:30,height:30}}/></div> 
-                                <div className="flex justify-center flex-col">
-                                    <span className="text-[15px] text-[#A3AED0] ">Total consiliado</span>
-                                    <span className="text-[19px] text-[#2B3674]">{_loaded.includes('transations') ? statResponses.global.confirmed :'-'}</span>
-                                </div>
-                                <span className="absolute hidden bottom-1 right-2 opacity-80 text-[15px]">{statResponses.global.total_items}</span>
-                        </div>
-
-
-                        <div className="flex border items-center bg-white  px-2 py-2">
-                                <div className="mr-3 opacity-70  flex items-center justify-center size-14 rounded-full bg-slate-200"><MonetizationOn style={{color:'rgb(59,130,246)',width:30,height:30}}/></div> 
-                                <div className="flex justify-center flex-col">
-                                    <span className="text-[15px] text-[#A3AED0] ">Total não consiliado</span>
-                                    <span className="text-[19px] text-[#2B3674]">{_loaded.includes('transations') ? statResponses.global.not_confirmed :'-'}</span>
-                                </div>
-                                <span className="absolute hidden bottom-1 right-2 opacity-80 text-[15px]">{statResponses.global.total_items}</span>
-                        </div>
-
-
-
-                        <div className="flex border items-center bg-white relative  px-2 py-2">
-                                <div className="mr-3 opacity-70 flex items-center justify-center size-14 rounded-full bg-slate-200"><MonetizationOn style={{color:'rgb(59,130,246)',width:30,height:30}}/></div> 
-                                <div className="flex justify-center flex-col">
-                                    <span className="text-[15px] text-[#A3AED0] ">Total entradas</span>
-                                    <span className="text-[19px] text-[#2B3674]">{_loaded.includes('transations') ? statResponses.global.inflows :'-'}</span>
-                                </div>
-                                <span className="absolute hidden bottom-1 right-2 opacity-80 text-[15px]">{_loaded.includes('transations') ? statResponses.global.inflows :'-'}</span>
-                        </div>
-
-
-                        <div className="flex border items-center bg-white  px-2 py-2">
-                                <div className="mr-3 opacity-70 flex items-center justify-center size-14 rounded-full bg-slate-200"><MonetizationOn style={{color:'rgb(59,130,246)',width:30,height:30}}/></div> 
-                                <div className="flex justify-center flex-col">
-                                    <span className="text-[15px] text-[#A3AED0] ">Total saidas</span>
-                                    <span className="text-[19px] text-[#2B3674]">{_loaded.includes('transations') ? statResponses.global.outflows :'-'}</span>
-                                    <span className="absolute hidden bottom-1 right-2 opacity-80 text-[15px]">{_loaded.includes('transations') ? statResponses.global.outflows :'-'}</span>
-                                </div>
-                        </div>
-          </div>
+        
+          <TotalCard page={`transations`} items={
+              [
+                {
+                  name:'Total de saldo',value:statResponses.global.total,
+                },
+                {
+                  name:'Total de consiliado',value:statResponses.global.confirmed,
+                },
+                {
+                  name:'Total não consiliado',value:statResponses.global.not_confirmed,
+                },
+                {
+                  name:'Total entradas',value:statResponses.global.inflows,
+                },
+                {
+                  name:'Total saidas',value:statResponses.global.outflows,
+                },
+                
+              ]
+          }/>
 
          <BasicTable res={[
             {name:'Saldo',value:statResponses.result.total},

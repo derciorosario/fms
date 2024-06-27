@@ -283,7 +283,7 @@ import {useLocation,useNavigate } from 'react-router-dom';
                </div>
 
 
-                <div className="[&>_div]:border  [&>_div]:border-[#D9D9D9] flex items-center px-[1rem] [&>_div]:rounded-[0.4rem] [&>_div]:min-w-[110px] [&>_div]:mr-[10px]  justify-start">
+                <div className="[&>_div]:border  [&>_div]:border-[#D9D9D9] flex items-center px-[1rem] [&>_div]:rounded-[0.3rem] [&>_div]:min-w-[110px] [&>_div]:mr-[10px]  justify-start">
                             <div className="items-center justify-center px-3 py-2">
                                 <span className="text-[15px] text-[#A3AED0] mr-2">Saldo da conta {formData.transation_account.name ? `(${formData.transation_account.name})` :'(Não selecionada)'}</span>
                                 <span className={`text-[19px]   ${availableCredit <=0 && type=='out' ? 'text-red-500' :'text-[#2B3674]'}

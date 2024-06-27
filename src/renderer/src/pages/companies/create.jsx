@@ -11,12 +11,13 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Autocomplete from '@mui/material/Autocomplete'
 import toast from 'react-hot-toast';
+import { useAuth  } from '../../contexts/AuthContext';
 import { useData  } from '../../contexts/DataContext';
-import {useParams, useNavigate,useLocation} from 'react-router-dom';
+import {useParams, useNavigate} from 'react-router-dom';
 import PouchDB from 'pouchdb';
 import FormLayout from '../../layout/DefaultFormLayout';
-
-       
+import MultipleSelectChip from '../../components/TextField/chipInput';
+  
        
        function App() {
 
@@ -24,66 +25,85 @@ import FormLayout from '../../layout/DefaultFormLayout';
 
           const { id } = useParams()
 
-          const {pathname} = useLocation()
-
-          console.log({pathname})
-
           const db={
-            clients:new PouchDB('clients'),
-            suppliers:new PouchDB('suppliers'),
-            investors:new PouchDB('investors')
-          } 
-
-          const [items,setItems]=React.useState([])
-          
-          
-          let page=pathname.includes('/client') ? 'clients' : pathname.includes('/supplier') ? 'suppliers' :'investors';
+            companies:new PouchDB('companies')
+          }  
 
           
+          const {makeRequest,_add,_update,_loaded,_get} = useData();
+          const data=useData()
 
           useEffect(()=>{
-            if(!id || id==formData.id) return
+
+            
+            if(!id) return
 
             (async()=>{
               try {
-                let item=await db[page].get(id)
+                let item=await db.companies.get(id)
                 setFormData(item)
+                handleLoaded('form','add')
+                
               } catch (error) {
                 console.log(error)
               }
             })()
 
-          },[pathname])
+          },[])
 
 
        
           const [showPassword, setShowPassword] = React.useState(false);
           const [loading, setLoading] = React.useState(false);
           const [valid, setValid] = React.useState(false);
-          const {makeRequest,_add,_update,_loaded} = useData();
+          const [chipOptions, setChipOptions] = React.useState([]);
+          const [chipNames, setChipNames] = React.useState([]);
+
+
+          const {user}=useAuth()
           
             let initial_form={
                name:'',
                last_name:'',
-               contacts:[],
+               contacts:[''],
                nuit:'',
                notes:'',
                email:'',
-               address:'',
-               deleted:false
+               address:''
          }
 
           const [formData, setFormData] = React.useState(initial_form);
 
-          useEffect(()=>{
-            (async()=>{
-                let docs=await db[page].allDocs({ include_docs: true })
-                setItems(docs.rows.map(i=>i.doc).filter(i=>!i.deleted))
-            })()
-          },[formData])
-        
+          const [loaded, setLoaded] = React.useState([]);
+          const [initialized, seTinitialized] = React.useState(false);
+
+
+          function handleLoaded(item,action){
+              if(action=='add'){
+                setLoaded((prev)=>[...prev.filter(i=>i!=item),item])
+              }else{
+                setLoaded((prev)=>prev.filter(i=>i!=item))
+              }
+          }
+
+          React.useEffect(()=>{
+
+            if((loaded.includes('form') || !id)){
+               seTinitialized(true)
+            }
+                  
+          },[loaded])
+
+          React.useEffect(()=>{
+            if(!initialized) return
+
+            
+            setChipOptions(data._managers.filter(i=>i.created_by==user.id))
+            
+               
+          },[initialized])
        
-          let required_fields=['name']
+          let required_fields=['email','name']
        
           const [verifiedInputs, setVerifiedInputs] = React.useState([]);
        
@@ -100,25 +120,49 @@ import FormLayout from '../../layout/DefaultFormLayout';
        
        
          async function SubmitForm(){
-              
               if(valid){
-                  if(items.some(i=>i.email==formData.email && i._id!=id && i.email) || items.some(i=>i.name?.toLowerCase()==formData.name?.toLowerCase() && i._id!=id && i.last_name?.toLowerCase()==formData.last_name?.toLowerCase())){
-                     toast.error('Usuário ou email já existe')
-                     return
-                  }
-                   try{
+                  setLoading(true)
+                  toast.loading(`${id ? 'A actualizar...' :'A enviar...'}`)
+                  try{
+                     let response = await makeRequest({method:'post',url:`api/company/`+(id ? "update" : "create"),data:formData, error: ``},0);
+                     toast.remove()
+                     toast.success('Filial '+(id ? "actualizada" : "criada"))
+
                      if(id){
-                        _update(page,[{...formData}])
-                        toast.success('Actualizado com sucesso')
+                        _update('companies',[response])
                      }else{
-                        _add(page,[{...formData,id:Math.random(),_id:Math.random().toString()}])
+                        _add('companies',[response])
                         setVerifiedInputs([])
-                        toast.success('Adicionado com sucesso')
                         setFormData(initial_form)
                      }
+                     
+                     setLoading(false)
+                     
+                     
                  }catch(e){
+                  toast.remove()
+                   if(e.response){
+                         if(e.response.status==409){
+                             toast.error('Email ou nome já existe')
+                         }
+                         if(e.response.status==400){
+                             toast.error('Dados invalidos')
+                         }
+                         if(e.response.status==404){
+                           toast.error('Item não encontrado')
+                         }
+                         if(e.response.status==500){
+                           toast.error('Erro interno do servidor, contacte seu administrador')
+                         }
+                       
+                         
+                   }else if(e.code=='ERR_NETWORK'){
+                        toast.error('Verifique sua internet e tente novamente')
+                   }else{
                         console.log(e)
                         toast.error('Erro inesperado!')
+                   }
+                   setLoading(false)
                  }
                  
               }else{
@@ -126,33 +170,34 @@ import FormLayout from '../../layout/DefaultFormLayout';
               }
           }
 
-          console.log({id})
 
           useEffect(()=>{
             let v=true
             Object.keys(formData).forEach(f=>{
-               if((!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email) || (!formData[f].length && required_fields.includes(f))){
+               if((!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) || (!formData[f].length && required_fields.includes(f))){
                   v=false
                }
            })
+           if(user.id!=formData.admin_id && id) v=false
+          
            setValid(v)
-          },[formData])
+          },[formData,chipOptions,loaded])
        
           
         
         
          return (
            <>
-              <FormLayout name={ `${id!="create" ? 'Actualizar ' : 'Novo '} ${page=="clients" ? "Cliente" : page=="supplier" ? "Fornecedor" : "Investidor"}`} formTitle={id!="create" ? 'Actualizar' : 'Adicionar'}>
-                  
-                  <FormLayout.Section>
-
-                       <div>
+              <FormLayout name={ `${id ? 'Actualizar filial' : 'Nova filial'}`} formTitle={id ? 'Actualizar' : 'Adicionar'}>
+              
+              <FormLayout.Section>
+              <div>
                         <TextField
                            id="outlined-textarea"
                            label="Nome *"
                            placeholder="Digite o nome"
                            multiline
+                           disabled={user.id!=formData.admin_id && id ? true : false}
                            value={formData.name}
                            onBlur={()=>validate_feild('name')}
                            onChange={(e)=>setFormData({...formData,name:e.target.value})}
@@ -163,31 +208,20 @@ import FormLayout from '../../layout/DefaultFormLayout';
                            />
                         </div>
        
-                       <div>
-                        <TextField
-                           id="outlined-textarea"
-                           label="Apelido"
-                           placeholder="Digite o apelido"
-                           value={formData.last_name}
-                           onBlur={()=>validate_feild('last_name')}
-                           onChange={(e)=>setFormData({...formData,last_name:e.target.value})}
-                           multiline
-                           sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
-                           '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
-                           />
-                       </div>
+                     
        
                        <div>
                         <TextField
                            id="outlined-textarea"
-                           label="Email"
+                           label="Email *"
                            placeholder="Digite o email"
                            multiline
                            value={formData.email}
+                           disabled={user.id!=formData.admin_id && id ? true : false}
                            onBlur={()=>validate_feild('email')}
                            onChange={(e)=>setFormData({...formData,email:e.target.value})}
                            error={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') ? true : false}
-                           helperText={verifiedInputs.includes('email') && formData.email ? "Email inválido":''}
+                           helperText={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') ? "Email inválido":''}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -200,6 +234,7 @@ import FormLayout from '../../layout/DefaultFormLayout';
                                multiple
                                id="size-small-outlined-multi"
                                size="small"
+                               disabled={user.id!=formData.admin_id && id ? true : false}
                                options={formData.contacts}
                                getOptionLabel={(option) => option}
                                renderInput={(params) => (
@@ -214,24 +249,30 @@ import FormLayout from '../../layout/DefaultFormLayout';
                             </div>
                            
                          </div>
-                       <div>
-                        <TextField
-                           id="outlined-textarea"
-                           label="Contacto"
-                           placeholder="Digite o Contacto"
-                           multiline
-                           value={formData.contacts[0]}
-                           onChange={(e)=>setFormData({...formData,contacts:[e.target.value]})}
-                           sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
-                           '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
-                           />
-                       </div>
+
+
+                         {formData.contacts.map((i,_i)=>(
+                           <div key={_i}>
+                              <TextField
+                                 id="outlined-textarea"
+                                 label="Contacto"
+                                 disabled={user.id!=formData.admin_id && id ? true : false}
+                                 placeholder="Digite o Contacto"
+                                 multiline
+                                 value={i}
+                                 onChange={(e)=>setFormData({...formData,contacts:[e.target.value]})}
+                                 sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
+                                 '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
+                                 />
+                          </div>
+                         ))}
        
        
                        <div>
                         <TextField
                            id="outlined-textarea"
                            label="Endereço"
+                           disabled={user.id!=formData.admin_id && id ? true : false}
                            placeholder="Digite o endereço"
                            multiline
                            value={formData.address}
@@ -247,6 +288,7 @@ import FormLayout from '../../layout/DefaultFormLayout';
                            label="Nuit"
                            placeholder="Digite o nuit"
                            multiline
+                           disabled={user.id!=formData.admin_id && id ? true : false}
                            value={formData.nuit}
                            onChange={(e)=>setFormData({...formData,nuit:e.target.value})}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
@@ -264,6 +306,7 @@ import FormLayout from '../../layout/DefaultFormLayout';
                                value={formData.password}
                                onChange={(e)=>setFormData({...formData,password:e.target.value})}
                                error={true}
+                               disabled={user.id!=formData.admin_id && id ? true : false}
                                helperText={(formData.length <= 5 && verifiedInputs.includes('password')) ? 'Senha deve ter no minimo 6 caracteres' : verifiedInputs.includes('password') && !formData.password ? "Senha obrigatória" :''}
                                endAdornment={
                                <InputAdornment position="end">
@@ -287,25 +330,31 @@ import FormLayout from '../../layout/DefaultFormLayout';
                                id="outlined-multiline-static"
                                label="Observações"
                                multiline
+                               disabled={user.id!=formData.admin_id && id ? true : false}
                                rows={4}
-                               value={formData.motes}
+                               value={formData.notes}
                                onChange={(e)=>setFormData({...formData,notes:e.target.value})}
                                defaultValue=""
                                sx={{width:'100%'}}
                                />
                        </div>
+
+                       <div className=" relative">
+                          <MultipleSelectChip disabled={user.id!=formData.admin_id && id ? true : false} label={'Gestores'} setItems={setChipOptions} names={chipNames} items={chipOptions}/>
+                        <div className="text-[13px] absolute right-[0px] top-0 translate-y-[-100%] flex items-center">
+                              {(verifiedInputs.includes('company') && chipOptions.length==0) && <span className='text-[11px] text-red-500'>Campo obrigatório</span>}
+                        </div>
+
+                       </div>
+              </FormLayout.Section>
        
        
-                           
-                       
-                   
-
-
-                  </FormLayout.Section>
-
-                  <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={id}/>
-
-                  
+              <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={id}/>
+        
+                      
+       
+                     
+       
                </FormLayout>
            </>
          )

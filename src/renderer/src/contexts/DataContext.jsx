@@ -2,23 +2,93 @@ import { createContext, useContext, useState ,useEffect} from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import PouchDB from 'pouchdb';
+
+
 import io from 'socket.io-client';
 //const socket = io('http://localhost:3001');
 import { useTranslation } from 'react-i18next';
+
+
 
 
 const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
 
-  
-  const { t } = useTranslation();
+    const { t } = useTranslation();
+    let process={env:{REACT_APP_BASE_URL:'http://localhost:4000'}}
+
+    let initial_filters={
+      search: '',
+      status: [],
+      end_date:'',
+      start_date:'',
+      bill:'',
+      bill_to_pay:'',
+      accounts:[],
+      bill_to_receive:'',
+      payment_type:[]
+    }
+    
+    const [_filters, setFilters] = useState(initial_filters);
+
+    function _sendFilter(searchParams){
 
 
-  let process={env:{REACT_APP_BASE_URL:'https://server-fms.onrender.com'}}
-  
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([]);
+        let params_names=Object.keys(_filters)
+
+        let options={}
+
+        params_names.forEach(p=>{
+
+          if(typeof _filters[p]=="object"){
+             options[p]=searchParams.get(p) ? searchParams.get(p).split(',') : []
+          }else{
+             options[p]=searchParams.get(p) || ''
+          }
+
+        })
+
+        setFilters(options);
+        return options
+        
+       
+    }
+
+
+
+    const _updateFilters = (newFilters,setSearchParams) => {
+
+      let params_names=Object.keys(_filters)
+     
+      const updatedFilters = { ..._filters, ...newFilters };
+
+      const queryParams = {};
+
+      params_names.forEach(p=>{
+          if(p=="end_date" || p=="start_date"){
+            if(updatedFilters[p]){
+               queryParams[p] = updatedFilters[p].toISOString().split('T')[0]
+            }
+          }else if(typeof _filters[p]=="object"){
+              if(updatedFilters[p].length > 0) {
+                 queryParams[p] = updatedFilters[p].join(',');
+              }
+          }else{
+              if(updatedFilters[p])  {
+                queryParams[p] = updatedFilters[p];
+              }
+              
+          }
+      })
+
+      setSearchParams(queryParams);
+    };
+
+
+
+    const [message, setMessage] = useState('');
+    const [messages, setMessages] = useState([]);
 
   /*useEffect(() => {
     // Listen for messages from the server
@@ -51,7 +121,8 @@ export const DataProvider = ({ children }) => {
     transations:new PouchDB('transations'),
     categories:new PouchDB('categories'),
     payment_methods:new PouchDB('payment_methods'),
-    budget:new PouchDB('budget')
+    budget:new PouchDB('budget'),
+    companies:new PouchDB('companies')
   }
 
   const [_managers,setManagers]=useState([])
@@ -66,7 +137,10 @@ export const DataProvider = ({ children }) => {
   const [_investments,setInvestments]=useState([])
   const [_categories,setACategories]=useState([])
   const [_payment_methods,setPaymentMethods]=useState([])
+  const [_companies,setCompanies]=useState([])
   const [_budget,setBudget]=useState([])
+
+
   const [_loaded,setLoaded]=useState([])
   const [_firstUpdate,setFirstUpdate]=useState(false)
   const [_filtered_content,_setFilteredContent]=useState([])
@@ -84,7 +158,8 @@ export const DataProvider = ({ children }) => {
     {name:'categories',update:setACategories,db:db.categories,get:_categories},
     {name:'payment_methods',edit_name:'payment_methods',update:setPaymentMethods,db:db.payment_methods,get:_payment_methods,n:t('common.dbItems.paymentMethods')},
     {name:'transations',edit_name:'transations',update:setTransations,db:db.transations,get:_transations,n:t('common.dbItems.transations')},
-    {name:'budget',update:setBudget,db:db.budget,get:_budget}
+    {name:'budget',update:setBudget,db:db.budget,get:_budget},
+    {name:'companies',edit_name:'companies',update:setCompanies,db:db.companies,get:_companies,n:t('common.dbItems.companies')},
   ]
 
 
@@ -111,12 +186,23 @@ export const DataProvider = ({ children }) => {
   },[_firstUpdate])
 
 
+  function _clearData(){
+
+    dbs.filter(i=>i!="categories").forEach(i=>{
+        dbs.filter(f=>f.name==i.name)[0].update([])
+    })
+
+
+
+     
+  }
+
+
   const _scrollToSection = (to) => {
     const Section = document.getElementById(to);
-
+  
     
 
-    console.log({Section,to})
     if (Section) {
       Section.scrollIntoView({ behavior: 'smooth' });
     }
@@ -191,13 +277,16 @@ export const DataProvider = ({ children }) => {
 
         }catch(e){
              return {ok:false,error:e}
-        }
-
-   
-        
+        } 
 
  }
 
+ const [_openCreatePopUp,_setOpenCreatePopUp]=useState(null)
+
+
+function _showCreatePopUp(page){
+    _setOpenCreatePopUp(page)
+}
 
  let _initial_form={
     transations:{
@@ -213,6 +302,7 @@ export const DataProvider = ({ children }) => {
       payments:[{account_id:null,amount:'',name:''}],
       account_origin:'',
       has_fees:false,
+      files:[],
       fine:'',
       link_payment:false
   }
@@ -221,7 +311,8 @@ export const DataProvider = ({ children }) => {
 
  const [_menu, _setMenu] = useState({
      open:Boolean(localStorage.getItem('menu_open')),
-     float:false
+     float:false,
+     openDropDown:[]
  });
 
  
@@ -231,9 +322,20 @@ export const DataProvider = ({ children }) => {
         delete i.__v
         return i
       })
+
+      try{
+
       let docs=await selected.db.get(array[0]._id)
       await selected.db.put({...array[0],_rev:docs._rev})
       _get(from)
+
+      return {ok:true}
+
+      }catch(e){
+             return {ok:false,error:e}
+      }
+
+
  }
 
  function _sort_by_date(data,field,type){
@@ -253,8 +355,7 @@ export const DataProvider = ({ children }) => {
   async function _get(from){
     let selected=dbs.filter(i=>i.name==from)[0]
 
-    console.log({e:window.electron})
-
+   
    let response
    if(selected.remote){
       response = await makeRequest({method:'get',url:`api/users`, error: ``});
@@ -273,7 +374,6 @@ export const DataProvider = ({ children }) => {
 
       if(from=="categories" && !docs.length){
            setTimeout(()=>_get('categories'),2000)
-           console.log('--------------------------------')
       }
    }
       handleLoaded('add',from)
@@ -1152,15 +1252,27 @@ function _get_dre_stats(filterOptions,period){
  async function _delete(selectedItems,from){
        
        let selected=dbs.filter(i=>i.name==from)[0]
-       console.log(from,selectedItems)
 
-       let docs=await selected.db.allDocs({ include_docs: true })
-       docs=docs.rows.map(i=>i.doc).filter(i=>selectedItems.includes(i._id)).map(i=>{
-         return {...i,deleted:true}
-       })
-       await selected.db.bulkDocs(docs)
+       try{
 
-       _get(from)
+
+        let docs=await selected.db.allDocs({ include_docs: true })
+        docs=docs.rows.map(i=>i.doc).filter(i=>selectedItems.includes(i._id)).map(i=>{
+          return {...i,deleted:true}
+        })
+
+        await selected.db.bulkDocs(docs)
+
+        _get(from)
+
+       
+        return {ok:true}
+  
+        }catch(e){
+         return {ok:false,error:e}
+        }
+
+      
        
   }
 
@@ -1215,27 +1327,26 @@ function generate_color() {
 
           let labels=period=="m" ? ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'] : Array.from({ length: 31 }, (_,i) => i+1)
 
-    
 
         if(name=="upcomming_payments"){
-         let outflows=_bills_to_pay.filter(i=>daysBetween(new Date(_today()),new Date(i.payday.split('T')[0])) >=0 && daysBetween(new Date(_today()),new Date(i.payday.split('T')[0])) <= 7)
-         let inflows=_bills_to_receive.filter(i=>daysBetween(new Date(_today()),new Date(i.payday.split('T')[0])) >=0 && daysBetween(new Date(_today()),new Date(i.payday.split('T')[0]))  <= 7)
+         let outflows=_bills_to_pay.filter(i=>daysBetween(new Date(_today()),new Date(i.payday.split('T')[0])) >=0 && daysBetween(new Date(_today()),new Date(i.payday.split('T')[0])) <= 7).filter(i=>i.status!="paid")
+         let inflows=_bills_to_receive.filter(i=>daysBetween(new Date(_today()),new Date(i.payday.split('T')[0])) >=0 && daysBetween(new Date(_today()),new Date(i.payday.split('T')[0]))  <= 7).filter(i=>i.status!="paid")
           
         
          return {inflows,outflows}
 
         }
 
-        if(name=="cash_account_balance"){
+        /*if(name=="cash_account_balance"){
              let main_id=_accounts.filter(i=>i.main)[0]?.id
              if(!main_id) return 0
              return  _transations.filter(i=>i.transation_account.id==main_id).map(item => (item.type=="out" ? - (item.amount) : item.amount)).reduce((acc, curr) => acc + curr, 0)
    
-        }
+        }*/
 
         if(name=="bills_to_pay"){
-           let today=_bills_to_pay.filter(i=>i.payday.split('T')[0]==new Date().toISOString().split('T')[0] && i.status!="paid").map(item => (item.type=="out" ? - (item.amount) : item.amount)).reduce((acc, curr) => acc + curr, 0)
-           let delayed=_bills_to_pay.filter(i=>daysBetween(new Date(_today()),new Date(i.payday.split('T')[0])) < 0 && i.status!="paid").map(item => (item.type=="out" ? - (item.amount) : item.amount)).reduce((acc, curr) => acc + curr, 0)
+           let today=_bills_to_pay.filter(i=>i.payday.split('T')[0]==new Date().toISOString().split('T')[0] && i.status!="paid").map(item => (item.type=="out" ? - (item.amount - parseFloat(item.paid ? item.paid : 0)) : (item.amount - parseFloat(item.paid ? item.paid : 0)))).reduce((acc, curr) => acc + curr, 0)
+           let delayed=_bills_to_pay.filter(i=>daysBetween(new Date(_today()),new Date(i.payday.split('T')[0])) < 0 && i.status!="paid").map(item => (item.type=="out" ? - (item.amount - parseFloat(item.paid ? item.paid : 0)) : (item.amount - parseFloat(item.paid ? item.paid : 0)))).reduce((acc, curr) => acc + curr, 0)
            return {today,
                    delayed,
                    today_total:_bills_to_pay.filter(i=>i.payday.split('T')[0]==new Date().toISOString().split('T')[0] && i.status!="paid").length,
@@ -1244,8 +1355,8 @@ function generate_color() {
         }
 
         if(name=="bills_to_receive"){
-          let today=_bills_to_receive.filter(i=>i.payday.split('T')[0]==new Date().toISOString().split('T')[0] && i.status!="paid").map(item => (item.type=="out" ? - (item.amount) : item.amount)).reduce((acc, curr) => acc + curr, 0)
-          let delayed=_bills_to_receive.filter(i=>daysBetween(new Date(_today()),new Date(i.payday.split('T')[0])) < 0 && i.status!="paid").map(item => (item.type=="out" ? - (item.amount) : item.amount)).reduce((acc, curr) => acc + curr, 0)
+          let today=_bills_to_receive.filter(i=>i.payday.split('T')[0]==new Date().toISOString().split('T')[0] && i.status!="paid").map(item => (item.type=="out" ? - (item.amount - parseFloat(item.paid ? item.paid : 0)) : (item.amount - parseFloat(item.paid ? item.paid : 0)))).reduce((acc, curr) => acc + curr, 0)
+          let delayed=_bills_to_receive.filter(i=>daysBetween(new Date(_today()),new Date(i.payday.split('T')[0])) < 0 && i.status!="paid").map(item => (item.type=="out" ? - (item.amount - parseFloat(item.paid ? item.paid : 0)) : (item.amount - parseFloat(item.paid ? item.paid : 0)))).reduce((acc, curr) => acc + curr, 0)
           return {today,
                   delayed,
                   today_total:_bills_to_receive.filter(i=>i.payday.split('T')[0]==new Date().toISOString().split('T')[0] && i.status!="paid").length,
@@ -1327,6 +1438,7 @@ function generate_color() {
               
 
              let accounts=_payment_methods.map(i=>({...i,total:0}))
+
              
 
              accounts.forEach((a,_i)=>{
@@ -1336,6 +1448,8 @@ function generate_color() {
                         let _available=initial_amount + _in - _out
                         accounts[_i]={...accounts[_i],total:_available}
              })
+
+
             
              return {labels:accounts.map(i=>`${i.name} (${i.total})`),datasets:[{
                 data:accounts.map(i=>i.total),
@@ -1363,7 +1477,6 @@ function generate_color() {
             let a=find_from.filter(i=>i.id==t.account.id)[0]
 
             if(a){
-              console.log({a})
               let account_index=accounts.findIndex(i=>i.id==a.account_id)
               accounts[account_index].total+=amount
             }else{
@@ -1434,7 +1547,19 @@ function generate_color() {
   }
 
   function _cn_op(string){
-     return string.replace(/(?!^)[^0-9]/g, '').replace(/^\-?[^0-9]*$/, '$&')
+   
+    
+    
+     let new_value=string.replaceAll(' ','').replace(/(?!^)[^0-9]/g, '').replace(/^\-?[^0-9]*$/, '$&')
+      
+
+     if(new_value && isNaN(new_value)){
+        return new_value.slice(1,new_value.length)
+     }
+    
+    return new_value
+    
+    
   }
 
   function _cn_n(string){
@@ -1466,17 +1591,18 @@ function generate_color() {
 
 function _search(search,array,filterOptions,periodFilters){
 
+ 
+
   function search_from_object(object,text){
          text=search
          let add=false
          Object.keys(object).forEach(k=>{
-           if(typeof object[k]=="string" || typeof object[k]=="number"){
-              if(typeof object[k]=="number") object[k]=`${object[k]}`
-              if(object[k].toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(text.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))){
-                add=true
-             }
-           }
+            object[k] = JSON.stringify(object[k])
+            if(object[k].toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(text.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))){
+                  add=true
+            }
          })
+
          return add
       }
 
@@ -1485,25 +1611,35 @@ function _search(search,array,filterOptions,periodFilters){
     let d=JSON.parse(JSON.stringify(array))
 
 
-
+  
 
    if(periodFilters){
+
     if(periodFilters.startDate){
+
+         let date_by=filterOptions.filter(i=>i.groups.filter(f=>f.field=="date_by")[0])?.[0]?.groups?.[0]?.selected_ids?.[0]
+
         if(periodFilters.igual){
-          d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() >= periodFilters.startDate.getTime())
+          d=d.filter(i=>new Date(i[date_by && i[date_by] ? date_by :'createdAt'].split('T')[0]).getTime() >= periodFilters.startDate.getTime())
         }else{
-          d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() <= periodFilters.startDate.getTime())
+          d=d.filter(i=>new Date(i[date_by && i[date_by] ? date_by :'createdAt'].split('T')[0]).getTime() <= periodFilters.startDate.getTime())
         }
+
+
     }
 
     if(periodFilters.endDate){
+
+         let date_by=filterOptions.filter(i=>i.groups.filter(f=>f.field=="date_by")[0])?.[0]?.groups?.[0]?.selected_ids?.[0]
+       
         if(periodFilters.igual){
-          d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() <= periodFilters.endDate.getTime())
+          d=d.filter(i=>new Date(i[date_by && i[date_by] ? date_by :'createdAt'].split('T')[0]).getTime() <= periodFilters.endDate.getTime())
         }else{
-          d=d.filter(i=>new Date(i.createdAt.split('T')[0]).getTime() >= periodFilters.endDate.getTime())
+          d=d.filter(i=>new Date(i[date_by && i[date_by] ? date_by :'createdAt'].split('T')[0]).getTime() >= periodFilters.endDate.getTime())
         }
     }
    }
+
 
 
 if(filterOptions){
@@ -1525,20 +1661,19 @@ if(filterOptions){
                 }
 
                 if(g.field=='payment_status' && g.selected_ids.length){
-                  d=d.filter(i=>(igual ?  g.selected_ids.includes(i.status) : !g.selected_ids.includes(i.status)))
+                  d=d.filter(i=>(igual ?  g.selected_ids.includes(new Date() > new Date(i.payday) && i.status!="paid" ? 'delayed' : i.status) : !g.selected_ids.includes(new Date() > new Date(i.payday) && i.status!="paid" ? 'delayed' : i.status)))
                 }
 
 
-                if(g.field=='transation_methods' && g.selected_ids.length){
-
-                   d=d.filter(i=>(igual ?  g.selected_ids.includes(i.payment_origin) : !g.selected_ids.includes(i.payment_origin)))
+                if(g.field=='_payment_methods' && g.selected_ids.length){
+                   d=d.filter(i=>(igual ?  i.payments.some(f=>g.selected_ids.includes(f.account_id)) : !i.payments.some(f=>g.selected_ids.includes(f.account_id))))
                 } 
                 
                 if((g.field=='categories_in' || g.field=='categories_out' ) && g.selected_ids.length){
                     d=d.filter(i=>(igual ?  g.selected_ids.includes(i.account_origin) : !g.selected_ids.includes(i.account_origin)))
                 } 
 
-                if(g.field=='_accounts' && g.selected_ids.length){
+                if(g.field=='_account_categories' && g.selected_ids.length){
                   d=d.filter(i=>(igual ?  g.selected_ids.includes(i.transation_account.id) : !g.selected_ids.includes(i.transation_account.id)))
                 }    
 
@@ -1548,30 +1683,81 @@ if(filterOptions){
     })
 
   }
+  
 
 
     let res=[]
     d.forEach((t,_)=>{
       if(search_from_object(t)) {
-          res.push(array.filter(j=>j.id==t.id)[0])
+
+        console.log({t})
+          res.push(array.filter(j=>t.id.toString().includes(j.id))[0])
       }
     })
 
+    
+  
+
 
  
-    return res
+    return res.filter(i=>i)
 
  }
 
 
+  let initial_popups={
+   nots:false,
+   search:false,
+   menu_companies:false,
+ }
+
+  const [_openPopUps, _setOpenPopUps] = useState(initial_popups);
+
+  function _closeAllPopUps(){
+        _setOpenPopUps(initial_popups)
+        _setOpenCreatePopUp(null)
+  }
+
+
+  const handleOutsideClick = (event) => {
+    
+    let close=true
+    Object.keys(initial_popups).forEach(f=>{
+        if(event?.target?.closest(`._${f}`))  {
+          close=false
+        }
+    })
+
+
+    if(close){
+      document.removeEventListener('click', handleOutsideClick); 
+      _closeAllPopUps()
+    }
+
+   
+  };
+
+  const  _showPopUp = (option) => {
+      setTimeout(()=>document.addEventListener('click', handleOutsideClick),100)
+      _setOpenPopUps({...initial_popups,[option]:true})
+  }
+
+
   const value = {
     makeRequest,
+    _openPopUps,
+    _today,
+    _showPopUp,
+    _closeAllPopUps,
+    _openCreatePopUp,
+    _setOpenCreatePopUp,
     _add,
     _get,
     _update,
     _delete,
     _search,
     _clients,
+    _companies,
     _investors,
     _loaded,
     _managers,
@@ -1593,13 +1779,18 @@ if(filterOptions){
     _categories,
     _payment_methods,
     _investments,
+    _filters,
+    _updateFilters,
     _cn,
     _cn_n,
     _cn_op,
     _budget,
+    _showCreatePopUp,
     _convertDateToWords,
     _scrollToSection,
     _divideDatesInPeriods,
+    _sendFilter,
+    _clearData,
     _initial_form,
     dbs
   };

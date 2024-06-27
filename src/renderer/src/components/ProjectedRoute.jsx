@@ -2,38 +2,27 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Navigate, useNavigate, Outlet , useLocation} from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
-
-const ProtectedRoute = ({ children, redirectTo = '/',path}) => {
-
-
-  const {pathname}=useLocation()
-
-  const { isAuthenticated, user, login, loading, token,logout,reset} = useAuth();
-
+import PageLoader from './progress/pageLoader';
+ const ProtectedRoute =  ({ children, redirectTo = '/',path}) => {
+  
+  const { isAuthenticated, user, loading, token,logout,destroying} = useAuth();
 
   if(redirectTo=="reset"){
-       alert(0)
-       return <Outlet/>;
+    return <pageLoader/>;
   }
-
   
   if(redirectTo=="/logout" && token && user){
     logout() 
     toast.remove()
-    toast.success('Logout successfuly!')
-    return <Navigate to={'/login'} replace />
+    return <PageLoader/>;
   }
 
- 
 
-
-  if (loading) {
-      return <Outlet/>;
-  }else if(!user && !loading){
-      
+  if (loading || destroying) {
+      return <PageLoader/>;
+  }else if(!user && !loading && !destroying){
       return <Navigate to={'/login'} replace />
   }else{
-    
     return isAuthenticated ? children : <Navigate to={redirectTo} replace />;
   }
 

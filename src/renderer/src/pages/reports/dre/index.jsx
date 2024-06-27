@@ -12,6 +12,7 @@ import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import { Button } from '@mui/material';
 import { useNavigate,useLocation } from 'react-router-dom';
 import StatsTable from '../components/table'
+import DefaultButton from '../../../components/Buttons/default';
 function App() {
 
   const {_get_dre_stats,_transations,_bills_to_pay,_bills_to_receive,_loaded,_get} = useData();
@@ -157,7 +158,9 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
     
         <div className="flex flex-wrap bg-white p-3 mb-2 shadow z-10">
                
-                <Button>Actualizar</Button>
+                <div className="mr-4">
+                   <DefaultButton text={'Actualizar'} no_bg={true} disabled={false}/>
+                </div>
             
                 {/**<DatePickerRange open={datePickerPeriodOptions.open} options={datePickerPeriodOptions} setFilterOPtions={setDatePickerPeriodOptions}/>**/ }   
 

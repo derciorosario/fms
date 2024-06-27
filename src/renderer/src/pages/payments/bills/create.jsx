@@ -25,6 +25,9 @@ import AttachmentIcon from '@mui/icons-material/Attachment';
 import FilePresentIcon from '@mui/icons-material/FilePresent';
 import RestorePageOutlinedIcon from '@mui/icons-material/RestorePageOutlined';
 import FormLayout from '../../../layout/DefaultFormLayout';
+import LinearWithValueLabel from '../../../components/progress/uploadFile';
+import { RefreshOutlined } from '@mui/icons-material';
+import ConfirmDialog from '../../../components/Dialogs/confirm';
 
 
        function App() {
@@ -33,14 +36,15 @@ import FormLayout from '../../../layout/DefaultFormLayout';
 
          const navigate = useNavigate()
 
-       
-          const {_cn_op,_divideDatesInPeriods,_account_categories,_get,_suppliers,_categories,_scrollToSection,_investors,_cn,_clients}=useData()
+          const data = useData()
 
           const { id } = useParams()
 
           const db={
             bills_to_pay:new PouchDB('bills_to_pay'),
-            bills_to_receive:new PouchDB('bills_to_receive')
+            bills_to_receive:new PouchDB('bills_to_receive'),
+            transations:new PouchDB('transations'),
+
           } 
 
           let {pathname} = useLocation()
@@ -50,7 +54,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
 
 
           const [countFormUpdates,setCountFormUpdates]=React.useState(0)
-
+         
 
           function devideDate(startDate, endDate, numberOfParts, total_to_pay) {
 
@@ -103,6 +107,9 @@ import FormLayout from '../../../layout/DefaultFormLayout';
      
          }
 
+
+       
+
          const calculateDaysLeft = (futureDateString) => {
           const futureDate = moment(futureDateString); 
           const currentDate = moment(); 
@@ -113,24 +120,32 @@ import FormLayout from '../../../layout/DefaultFormLayout';
 
           useEffect(()=>{
 
+                data._get('account_categories')
+                data._get('bills_to_pay')
+                data._get('bills_to_receive')
+
+
                 if(!id) return 
 
                 (async()=>{
                 try {
                     let item=await db['bills_to_'+type].get(id)
                     setFormData({...item,
-                       paid:item.paid ? item.paid : ''
+                       paid:item.paid ? item.paid : '',
+                       files:item.files[0] ? [{...item.files[0],checked:false}] : []
                     })
                 } catch (error) {
                     console.log(error)
                 }
                 })()
 
-                _get('account_categories')
-
                 
 
+              
+
           },[])
+
+
 
 
          
@@ -145,14 +160,20 @@ import FormLayout from '../../../layout/DefaultFormLayout';
           const [accountCategories,setAccountCategories]=React.useState([])
           const [referenceOptions,setReferenceOptions]=React.useState([])
           const [showMoreOptions,setShowMoreOptions]=React.useState(false)
+          const [upload,setUpload]=React.useState({
+            uploading:false,
+            file:{},
+            progress:0
+          })
+          const fileInputRef_1 = React.useRef(null);
+          const fileInputRef_2 = React.useRef(null);
+          const [deletePayments,setDeletePayments]=React.useState({
+            showDialog:false,
+            loading:false,
+            message:''
+          })
 
-          
-
-          useEffect(()=>{
-            setAccountCategories(_account_categories.filter(i=>i.transation_type==(type=="receive" ? "in" :"out")))
-          },[_account_categories])
-
-        
+         
          
 
             let initial_form={
@@ -183,13 +204,13 @@ import FormLayout from '../../../layout/DefaultFormLayout';
 
            useEffect(()=>{
             if(formData.account_origin=="loans_out" || formData.account_origin=="loans_in"){
-              setReferenceOptions(_investors)
+              setReferenceOptions(data._investors)
             }else if(type=="receive"){
-                setReferenceOptions(_clients)
+                setReferenceOptions(data._clients)
             }else{
-                setReferenceOptions(_suppliers)
+                setReferenceOptions(data._suppliers)
             }
-           },[formData.reference,_suppliers,_investors,_clients])
+           },[formData.reference,data._suppliers,data._investors,data._clients])
 
            useEffect(()=>{
             (async()=>{
@@ -199,9 +220,26 @@ import FormLayout from '../../../layout/DefaultFormLayout';
 
             setCountFormUpdates(prev=>prev + 1)
 
-            console.log(formData)
+           // console.log(formData)
           },[formData])
 
+
+
+          
+          useEffect(()=>{
+            if(formData.account_origin){
+                setAccountCategories(data._account_categories.filter(i=>i.account_origin==formData.account_origin && i.transation_type==(type=="receive" ? "in" :"out")))
+            }else{
+                setAccountCategories(data._account_categories.filter(i=>i.transation_type==(type=="receive" ? "in" :"out")))
+            }
+
+            
+
+          },[data._account_categories,formData.account_origin])
+
+
+
+        console.log(accountCategorieOptions)
 
 
 
@@ -279,16 +317,10 @@ import FormLayout from '../../../layout/DefaultFormLayout';
           },[formData.account_name,accountCategories])
 
           useEffect(()=>{
-           // if(!id){
-             let items=accountCategories.map(i=>{
-                if(id){
-                  return i.name
-                }else{
-                  return i.name
-                }
-             }).filter(i=>!i.deleted && !accountCategorieOptions.join(',').toLowerCase().split(',').includes(i.toLowerCase())) 
-             setAccountCategorieOptions([...accountCategorieOptions,...items])
-          // }
+           
+             let items=accountCategories.map(i=>i.name)
+             setAccountCategorieOptions(items)
+         
          },[accountCategories])
 
           useEffect(()=>{
@@ -320,20 +352,54 @@ import FormLayout from '../../../layout/DefaultFormLayout';
           }
 
 
-          function saveAndPay(){
-            alert('still working on it')
-            return
+         async  function saveAndPay(){
                if(!valid) return
-               navigate(`/cash-management/${type!='pay' ? 'in' :'out'}flow/create?bill=${formData.id}`)
+
+               await SubmitForm()
+
+               navigate(`/cash-management/${type!='pay' ? 'in' :'out'}flow/create?bill_to_${type}=${formData._id}`)
+          }
+
+
+          async function confirmDeletePayments(res){
+
+
+                 if(!res) {
+                  setDeletePayments({showDialog:false})
+                 }else{
+                    setDeletePayments({...deletePayments,loading:true})
+                 }
+
+                 let docs=await db.transations.allDocs({ include_docs: true })
+                 docs=docs.rows.map(i=>i.doc).filter(i=>!i.deleted)
+                 
+                 let transations=docs.filter(i=>i.account.id==formData.id)
+
+                 for (let i = 0; i < transations.length; i++) {
+                    await db.transations.put({...transations[i],deleted:true})
+                 }
+
+                 let item=await db['bills_to_'+type].get(id)
+                  item={
+                    ...item,
+                    paid:'',
+                    fees:0,
+                    status:'pending'
+                  }
+
+                 await db['bills_to_'+type].put(item)
+                 setFormData(item)
+                 setDeletePayments(prev=>({...prev,showDialog:false}))
+                 toast.success('Pagamentos anulados')
           }
        
-      
+
          async function SubmitForm(){
               
               if(valid){
                    try{
                      if(id){
-                        _update('bills_to_'+type,[{...formData}])
+                        await _update('bills_to_'+type,[{...formData}])
                         toast.success('Conta actualizada')
                      }else{
 
@@ -342,7 +408,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                         if(formData.reference.name && !formData.reference.id){
                            reference_id=Math.random().toString()
 
-                          _add(type=="receive" ? 'clients' : (formData.account_origin=="loans_out" || formData.account_origin=="loans_in" ? 'investors' : 'suppliers'),[{
+                         await _add(type=="receive" ? 'clients' : (formData.account_origin=="loans_out" || formData.account_origin=="loans_in" ? 'investors' : 'suppliers'),[{
                             id:reference_id,
                             _id:Math.random().toString(),
                             name:formData.reference.name,
@@ -359,11 +425,11 @@ import FormLayout from '../../../layout/DefaultFormLayout';
 
                         //add category if it does not exist!
                         if(!accountCategories.some(a=>a.id==formData.account_id)){
-                          _add('account_categories',[{
+                          await  _add('account_categories',[{
                               id:formData.account_id,
                               _id:Math.random().toString(),
                               name:formData.account_name,
-                              transation_type:_categories.filter(i=>i.field==formData.account_origin)[0].type,
+                              transation_type:data._categories.filter(i=>i.field==formData.account_origin)[0].type,
                               type:formData.type,
                               reference:{...formData.reference,id:reference_id},
                               description:'',
@@ -377,7 +443,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
 
                         let linked_id=Math.random()
 
-                        let date_intervals=_divideDatesInPeriods(formData.payday, formData.repeat_details.times,formData.repeat_details.period)
+                        let date_intervals=data._divideDatesInPeriods(formData.payday, formData.repeat_details.times,formData.repeat_details.period)
 
                         let data_to_add=Array.from({ length:parseInt(formData.repeat_details.times) }, () => []).map((i,_i)=>{
                      
@@ -400,7 +466,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                         })
                        
                             
-                        _add('bills_to_'+type,data_to_add)
+                        await  _add('bills_to_'+type,data_to_add)
 
                         
                         setVerifiedInputs([])
@@ -408,18 +474,87 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                         setFormData(initial_form)
                         setPaydayHelper('custom')
 
-                       
-
-
                     }
+
+                    return {ok:true}
                  }catch(e){
                         console.log(e)
                         toast.error('Erro inesperado!')
+                        return {error:e}
                  }
               }else{
                toast.error('Preencha todos os campos obrigatórios')
               }
           }
+
+
+
+          const handleFileChange = (event) => {
+
+             //fileInputRef_1.current.value=""
+             //fileInputRef_2.current.value=""
+           
+            if(!window.electron) return
+            let {name,size,path} = event.target.files[0]
+            let orginal_name=name
+            let generated_name=new Date().toISOString().split('T')[0] +`-${Math.random().toString().slice(1,8)}-`+ name
+            let file={name:orginal_name,path,size,generated_name}
+            setUpload(prev=>({...prev,uploading:true,progress:0,file}))
+            window.electron.ipcRenderer.send('file-upload',{...file,exists:true})
+          
+            
+          }
+
+
+          useEffect(()=>{
+
+                if(!window.electron) return
+
+                 window.electron.ipcRenderer.on('file-progress',(event,progress)=>{
+                     setUpload(prev=>({...prev,progress}))
+                 })
+
+                 window.electron.ipcRenderer.on('upload-complete',(event,file)=>{
+                    setUpload(prev=>({...prev,uploading:false}))
+                    setFormData({...formData,files:[file]})
+                 })
+                 
+                 window.electron.ipcRenderer.on('file-exists-result',(event,exists)=>{
+                      if(formData.files[0]?.path && !formData.files[0]?.checked){
+                          console.log({exists})
+                          if(formData.files[0]?.exists!=exists) setFormData({...formData,files:[{...formData.files[0],exists,checked:true}]})
+                      }    
+                 })
+
+
+          },[])
+
+
+          useEffect(()=>{
+
+            if(formData.files[0]?.checked){
+               window.electron.ipcRenderer.send('check-file-exists',formData.files[0].path)
+            }
+          
+          },[formData])
+
+          function openFileInFolder(){
+
+            window.electron.ipcRenderer.send('open-file-in-folder',formData.files[0].path)
+           
+          }
+
+          function openFile(){
+            if(formData.files[0]?.exists)  window.electron.ipcRenderer.send('open-file',formData.files[0].path) 
+          }
+
+
+
+          console.log({formData})
+
+
+
+
 
           useEffect(()=>{
                 let v=true
@@ -427,63 +562,54 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                   if(((!formData[f]?.toString()?.length && f != 'paid') && required_fields.includes(f))){
                       v=false
                   }
-               })
-
-               if(!formData.reference.name && formData.account_origin) {
-                v=false
-               }
-               setValid(v)
-          },[formData])
-
-
-
-          const handleFileChange = (event) => {
-            console.log(event.target.files[0])
-            const {name,size,path} = event.target.files[0]
-            window.electron.ipcRenderer.send('file-upload',{name,path,size})
-            
-          }
-
-
-          useEffect(()=>{
-
-              if(!window.electron) return
-
-              window.electron.ipcRenderer.on('file-progress',(a,b)=>{
-                console.log({a,b})
               })
-              
-          },[])
 
-
+              if(!formData.reference.name && formData.account_origin) {
+                v=false
+              }
+              setValid(v)
+         },[formData])
 
 
           return  (
              <>
+
+              <ConfirmDialog show={deletePayments.showDialog} message={deletePayments.message} res={confirmDeletePayments} loading={deletePayments.loading}/>
+               
                <FormLayout name={ `${id ? 'Actualizar' : 'Nova'} conta a `+ (type=="receive" ? 'receber' : 'pagar')} formTitle={id ? 'Actualizar' : 'Adicionar nova'} topLeftContent={(
                    <>
 
-                     {formData.paid ?  (
+                    
                         <div className="flex justify-center items-center">
+                            
+                              {id && <span className="mr-3 opacity-80">Pagamentos: </span>}
+                            
+                           {(formData.paid) ? <>
+
                             <div>
-                                <button onClick={()=>alert('still working on it')} type="button" className="text-gray-900 bg-white flex hover:bg-gray-100 border border-red-400 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-[0.3rem] text-sm px-5 py-[5px] text-center items-center">
-                                <span className="ml-1  text-red-600">Anular {type=="receive" ? 'recebimentos' : 'pagamentos'}</span>
+                                <button onClick={()=>setDeletePayments({showDialog:true,loading:false})} type="button" className="text-gray-900 bg-white flex hover:bg-gray-100 border border-red-400 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-[0.3rem] text-sm px-5 py-[5px] text-center items-center">
+                                <span className="ml-1  text-red-600">Anular</span>
                                 </button>
                             </div>
 
                             <div className="ml-2">
-                                <button onClick={()=>alert('still working on it')} type="button" className={`text-gray-900 flex hover:opacity-90 border  bg-blue-600 border-blue-500   focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-[0.3rem] text-sm px-5 py-[5px] text-center items-center`}>
-                                <span className="ml-1 text-white">Ver {type=="receive" ? 'recebimentos' : 'pagamentos'}</span>
+                                <button onClick={()=>navigate(`/cash-management/${type=="pay" ? 'outflow':'inflow'}?search=${formData.id}`)} type="button" className={`text-gray-900 flex hover:opacity-90 border  border-blue-500   focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-[0.3rem] text-sm px-5 py-[5px] text-center items-center`}>
+                                <span className="ml-1 text-blue-600">Ver</span>
                                 </button>
                            </div>
-                        </div>
-                     ) : ''}
+                           </>:''}
 
-                     {id && !formData.paid && formData.id && <div>
-                        <button onClick={saveAndPay} type="button" className={`text-gray-900 flex hover:opacity-90 border ${valid ? 'bg-blue-600 border-blue-500':'bg-gray-400 cursor-not-allowed'}   focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-[0.3rem] text-sm px-5 py-[5px] text-center items-center`}>
-                           <span className="ml-1 text-white">Salvar e efetuar {type=="receive" ? 'pagamento' : 'pagamento'}</span>
-                        </button>
-                     </div>}
+                          {id && formData.status!="paid" && formData.id && <div className="ml-2">
+                              <button onClick={saveAndPay} type="button" className={`text-gray-900 flex hover:opacity-90 border ${valid ? 'bg-app_orange-500':'bg-gray-400 cursor-not-allowed'}   focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-[0.3rem] text-sm px-5 py-[5px] text-center items-center`}>
+                                <span className="ml-1 text-white">Salvar e pagar</span>
+                              </button>
+                          </div>}
+
+
+                        </div>
+                    
+
+                     
 
 
 
@@ -491,13 +617,16 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                   
                )}>
 
+
+
                      <FormLayout.Cards topInfo={[
                           //{name:'Saldo da conta',value:_cn(formData.amount && formData.paid ? parseFloat(formData.amount) - parseFloat(formData.paid) : formData.amount ? parseFloat(formData.amount) : 0)},
-                          {name:type=="pay" ? "Pago" : "Recebido",value:_cn(formData.paid ? parseFloat(formData.paid) : 0)},
-                          {name:'Estado',value:formData.paid >= formData.amount && formData.amount ? 'Pago' : 'Pedente',color:formData.paid >= formData.amount && formData.paid ? 'green' :null},
-                          {id:'fees',name:'Multa',value:_cn(formData.fees)},
+                          {name:type=="pay" ? "Pago" : "Recebido",value:data._cn(formData.paid ? parseFloat(formData.paid) : 0)},
+                          {name:'Estado',value:formData.paid >= formData.amount && parseFloat(formData.amount) && id ? 'pago' : formData.status!="paid" &&  new Date(data._today()) > new Date(formData.payday) && id ? 'atrasado' : 'pedente',color:formData.status!="paid" && id && new Date(data._today()) > new Date(formData.payday) ? 'crimson' :formData.paid >= formData.amount && formData.paid && id ? 'green' :null},
+                          {id:'left',name:'Em falta',value:parseFloat(formData.paid) > parseFloat(formData.amount) ? 0 :data._cn(parseFloat(formData.amount ? formData.amount : 0) - parseFloat(formData.paid ? formData.paid : 0))},
+                          {id:'fees',name:'Multa',value:data._cn(formData.fees)},
                           
-                     ].filter(i=>i.id!='fees' || formData.fees)}/>
+                     ].filter(i=>(i.id!='fees' || formData.fees) && (i.id!="left" || id))}/>
 
                      <FormLayout.Section>
 
@@ -539,7 +668,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                                 disabled={formData.paid ? true : false}
                                 renderInput={(params) => <TextField {...params}
                                 helperText={!accountCategories.some(a=>a.id==formData.account_id) && formData.account_name ? "(Nova conta será adicionada)" :''}
-                                sx={{'& .MuiFormHelperText-root': {color: !formData.reference.id && formData.reference.name ? 'green' : 'crimson'}}}
+                                sx={{'& .MuiFormHelperText-root': {color:!accountCategories.some(a=>a.id==formData.account_id) && formData.account_name ? 'green' : 'crimson'}}}
                                 value={formData.account_name} label="Nome da conta *" />}
                         />   
                             </div>
@@ -548,7 +677,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
 
                                             <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Categoria *</InputLabel>
                                             <Select
-                                            disabled={formData.paid ? true : false}
+                                            disabled={formData.paid || accountCategories.some(a=>a.id==formData.account_id) ? true : false}
                                             labelId="demo-simple-select-error-label_"
                                             id="demo-simple-select-error_"
                                             value={formData.account_origin}
@@ -566,7 +695,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                                             </MenuItem> 
 
 
-                                            {_categories.filter(i=>!i.disabled && (type=='pay' ? (i.type=="out") : (i.type=="in"))).map(i=>(
+                                            {data._categories.filter(i=>!i.disabled && (type=='pay' ? (i.type=="out") : (i.type=="in"))).map(i=>(
                                                 <MenuItem value={i.field} key={i.field}><span className={`w-[7px] rounded-full h-[7px] ${type=='pay' ? 'bg-red-500' :' bg-green-600'}  inline-block mr-2`}></span> <span>{i.name}</span></MenuItem>
                                             ))}
 
@@ -645,7 +774,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                                             disabled={formData.paid ? true : false}
                                             value={formData.amount}
                                             onBlur={()=>validate_feild('amount')}
-                                            onChange={(e)=>setFormData({...formData,amount:_cn_op(e.target.value)})}
+                                            onChange={(e)=>setFormData({...formData,amount:data._cn_op(e.target.value)})}
                                             error={(!formData.amount) && verifiedInputs.includes('amount') ? true : false}
                                             sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                             '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
@@ -663,7 +792,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                                     error={parseFloat(formData.amount) < parseFloat(formData.paid)  ? true : false}
                                     helperText={parseFloat(formData.amount) < parseFloat(formData.paid) ? "Não deve ser maior que o valor a pagar" :''}
                                     value={formData.paid}
-                                    onChange={(e)=>setFormData({...formData,paid:_cn_op(e.target.value)})}
+                                    onChange={(e)=>setFormData({...formData,paid:data._cn_op(e.target.value)})}
                                     sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                     '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                                     />
@@ -673,7 +802,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                             <div className="flex items-center justify-center">
                             <div className="w-full">
                             <LocalizationProvider adapterLocale={'en-gb'} dateAdapter={AdapterDayjs} style={{paddingTop:0}} size="small">
-                                <DatePicker value={dayjs(formData.payday).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.payday)) : null}  inputFormat="DD-MM-YYYY" onChange={(e)=>setFormData({...formData,payday:e.$d})} error={true} size="small" label="Data de pagamento*"  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, 
+                                <DatePicker value={dayjs(formData.payday).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.payday)) : null}  inputFormat="DD-MM-YYYY" onChange={(e)=>setFormData({...formData,payday:e.$d})} error={true} size="small" label="Data de vencimento*"  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, 
                                     '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                     '& .MuiStack-root': { paddingTop:0},'& .MuiInputLabel-root':{ top:-8}}}
                                     />
@@ -758,7 +887,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                             inputProps={{ 'aria-label': 'controlled' }}
                             onChange={(e)=>{
                                 setFormData({...formData,repeat_details:{...formData.repeat_details,repeat:!formData.repeat_details.repeat}})
-                                if(!formData.repeat_details.repeat) setTimeout(()=>_scrollToSection('repeat-payment'),100)
+                                if(!formData.repeat_details.repeat) setTimeout(()=>data._scrollToSection('repeat-payment'),100)
                             }}/>
                             <span>Repetir lançamento</span>
                         </label>
@@ -780,7 +909,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                                                 disabled={Boolean(id)}
                                                 value={formData.repeat_details.times}
                                                 onBlur={()=>validate_feild('repeat-payment-quantity')}
-                                                onChange={(e)=>setFormData({...formData,repeat_details:{...formData.repeat_details,times:_cn_op(e.target.value)}})}
+                                                onChange={(e)=>setFormData({...formData,repeat_details:{...formData.repeat_details,times:data._cn_op(e.target.value)}})}
                                                 error={(!formData.repeat_details.times) && verifiedInputs.includes('repeat-payment-quantity') ? true : false}
                                                 helperText={!formData.repeat_details.times && verifiedInputs.includes('repeat-payment-quantity') && formData.repeat_details.repeat==true ? "Campo obrigatório" :''}
                                                 sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
@@ -828,7 +957,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                             disabled={formData.paid ? true : false}
                             inputProps={{ 'aria-label': 'controlled' }}
                             onChange={(e)=>{
-                                if(!formData.pay_in_installments) setTimeout(()=>_scrollToSection('pay_in_installments'),100)
+                                if(!formData.pay_in_installments) setTimeout(()=>data._scrollToSection('pay_in_installments'),100)
                                 setFormData({...formData,pay_in_installments:!formData.pay_in_installments})
                             }}/>
                             <span>Pagar em prestações</span>
@@ -850,7 +979,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                                         disabled={formData.pay_in_installments && !formData.paid ? false : true}
                                         value={formData.total_installments}
                                         onBlur={()=>validate_feild('total_installents')}
-                                        onChange={(e)=>setFormData({...formData,total_installments:_cn_op(e.target.value)})}
+                                        onChange={(e)=>setFormData({...formData,total_installments:data._cn_op(e.target.value)})}
                                         error={(!formData.total_installments) && verifiedInputs.includes('total_installments') ? true : false}
                                         helperText={!formData.total_installments && verifiedInputs.includes('total_installments') && formData.pay_in_installments==true ? "Campo obrigatório" :''}
                                         sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
@@ -871,19 +1000,20 @@ import FormLayout from '../../../layout/DefaultFormLayout';
 
                      <span className="flex border-b"></span>
 
-
                      <div className="flex px-[6px] items-center mt-3 pb-2 pl-3">
-                        <label className="flex items-center cursor-pointer hover:opacity-90" onClick={()=>{
-                            if(!showMoreOptions) setTimeout(()=>_scrollToSection('_show_more_option'),100)
+                        {!id ? <label className="flex items-center cursor-pointer hover:opacity-90" onClick={()=>{
+                            if(!showMoreOptions) setTimeout(()=>data._scrollToSection('_show_more_option'),100)
                             setShowMoreOptions(!showMoreOptions)
                         }}>
                             <span className={`${showMoreOptions ? ' rotate-180' :' '}`}><ExpandMoreOutlinedIcon sx={{color:'gray'}}/></span>
                             <span>Mostar mais opções</span>
-                        </label>
+                        </label> :  ''}
+
+                      
                      </div>
 
 
-                     <div id={'_show_more_options'} className={`${showMoreOptions ? '' :'hidden'}`}>
+                     <div id={'_show_more_options'} className={`${showMoreOptions || id ? '' :'hidden'}`}>
 
                             <FormLayout.Section>
                                 
@@ -916,12 +1046,29 @@ import FormLayout from '../../../layout/DefaultFormLayout';
                             </FormLayout.Section>
 
                             <div className="block w-full px-4">
-                                <div className="border h-16 flex items-center justify-center rounded-[2px] relative cursor-pointer border-dashed">
-                                        <label>
-                                            <Button sx={{width:'100%'}} endIcon={<FilePresentIcon/>}>Anexar documento ou imagem</Button>
-                                            <input onChange={handleFileChange} className="w-full h-full absolute top-0 left-0 opacity-0" type="file"/>
-                                        </label>
-                            </div>
+                                <div className={`border min-h-[80px] p-3 flex-col justify-center items-center rounded-[2px] border-dashed relative ${!formData.files[0] ?'cursor-pointer' :''}`}>
+                                        <div className="flex items-center justify-center ">
+                                          {!upload.uploading && !formData.files[0] && <label>
+                                              <Button sx={{width:'100%'}} endIcon={<FilePresentIcon/>}>Anexar documento ou imagem</Button>
+                                              <input ref={fileInputRef_1} onChange={handleFileChange} className="w-full h-full absolute top-0 left-0 opacity-0" type="file"/>
+                                          </label>}
+                                        </div>
+
+                                        {upload.uploading &&  <>
+                                           <div className="flex items-center justify-center h-full">
+                                             <LinearWithValueLabel progress={upload.progress}/>
+                                           </div>
+                                        </>}
+
+                                        {formData.files[0] && !upload.uploading &&  <>
+                                            <div className="flex flex-col">
+                                              <span className={`text-center block mb-4`} onClick={openFile}><span className={`${formData.files[0]?.exists ? 'text-blue-500':''} ${formData.files[0]?.exists ? 'underline cursor-pointer':' opacity-50'} `}>{formData.files[0]?.name}</span> {!formData.files[0]?.exists && <label className="text-red-600 ml-2">(Removido)</label>}</span>
+                                              <div className="text-center">{formData.files[0]?.exists && <Button onClick={openFileInFolder}>Abrir pasta</Button>}<label className="ml-4 relative"><Button endIcon={<RefreshOutlined/>} variant="contained">Alertar</Button><input ref={fileInputRef_2} onChange={handleFileChange} className="w-full h-full absolute top-0 left-0 opacity-0" type="file"/></label></div>
+                                            </div>
+                                        </> }
+
+
+                              </div>
                             </div>
 
                      </div>

@@ -17,22 +17,23 @@ import TuneIcon from '@mui/icons-material/Tune';
 import PriceChangeOutlinedIcon from '@mui/icons-material/PriceChangeOutlined';
 import CurrencyExchangeOutlinedIcon from '@mui/icons-material/CurrencyExchangeOutlined';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
-
+import colors from '../../assets/colors.json'
 import { useTranslation } from 'react-i18next';
 
 function App({float}) {
     const { t } = useTranslation();
     const {user}=useAuth()
-    const {_setMenu,_menu}=useData()
+    const {_setMenu,_menu,_openPopUps,_closeAllPopUps,_showPopUp}=useData()
 
     let {pathname} = useLocation()
     //const [open,setOpen]=React.useState(() => localStorage.getItem('menu_open'))
 
-    const [openDropDown, setOpenDropDown] = React.useState([]); 
     const navigate = useNavigate();
 
     function openCloseMenu(){
         _setMenu({..._menu,open:float ? true : !_menu.open})
+
+        _closeAllPopUps()
 
         if(_menu.open){
             localStorage.removeItem('menu_open');
@@ -45,20 +46,23 @@ function App({float}) {
 
     function changeOpenDropdown(link,path){
        
-       if(openDropDown.includes(link)){
-            setOpenDropDown(openDropDown.filter(i=>i!=link))
+       if(_menu.openDropDown.includes(link)){
+            _setMenu({..._menu,openDropDown:_menu.openDropDown.filter(i=>i!=link)})
         }else{
-            if(!_menu.open && !float) _setMenu({..._menu,float:true})
-            setOpenDropDown([...openDropDown,link])
+            //if(!_menu.open && !float) _setMenu({..._menu,float:true})
+            if(!path && !_menu.open){
+                _setMenu({..._menu,openDropDown:[..._menu.openDropDown,link],float:true})
+           
+            }else{
+                _setMenu({..._menu,openDropDown:[..._menu.openDropDown,link]})
+           
+            } 
        } 
-
-       
 
        if(path) to(path)
    }
 
    function to(path){
-     // setActivePath(path)
       navigate(path)
    }
 
@@ -66,12 +70,10 @@ function App({float}) {
    React.useEffect(()=>{
 
        menuItems.forEach(item=>{
-          if(checkActive(item) && !openDropDown.includes(pathname))  {
-             setOpenDropDown([...openDropDown,item.field])
+          if(checkActive(item) && !_menu.openDropDown.includes(pathname))  {
+             _setMenu({..._menu,openDropDown:[..._menu.openDropDown,item.field]})
           }
        })
-
-      // if(pathname) setActivePath(pathname)
 
    },[pathname])
 
@@ -151,14 +153,14 @@ function App({float}) {
             {name:t('sidebar.reports.dre'),path:'/reports/dre',field:'/reports/dre',paths:['/reports/dre','/reports/dre/daily','/reports/dre/monthly'],icon:'PaymentsOutlinedIcon'},
         ]},
 
-        {name:t('sidebar.main.settings'),field:'settings',icon:'SettingsIcon',sub_menus:[
+        {divide:true, name:t('sidebar.main.settings'),field:'settings',icon:'SettingsIcon',sub_menus:[
             {name:t('sidebar.settings.accountsPlan'),path:'/account-categories',field:'account-categories',paths:['/account-categories','/account-categories/create','/account-categories/:id'],icon:'PaymentsOutlinedIcon'},
             {name:t('sidebar.settings.accounts'),path:'/accounts',field:'accounts',paths:['/accounts','/accounts/create','/account/:id'],icon:'PaymentsOutlinedIcon'},
             {name:t('sidebar.settings.paymentMethods'),path:'/payment-methods',field:'payment-methods',paths:['/payment-methods','/payment-methods/create','/payment-methods/:id'],icon:'PaymentsOutlinedIcon'},
             {name:t('sidebar.settings.managers'),path:'/managers',field:'managers',paths:['/managers','/managers/create','/manager/:id'],icon:'PaymentsOutlinedIcon'},
         ]},
 
-        {name:t('sidebar.main.companies'),path:'/companies',paths:['/companies','/companies/create'],icon:'CorporateFareIcon',field:'companies'},
+        {name:t('sidebar.main.companies'),path:'/companies',paths:['/companies','/companies/create','/company/:id'],icon:'CorporateFareIcon',field:'companies'},
         
         {name:t('sidebar.main.userPreferences'),path:'/user-preferences',paths:['/user-preferences'],field:'user-preferences',icon:'TuneIcon'},
        
@@ -170,9 +172,9 @@ function App({float}) {
 
            
           return {
-            color: checkActive(item) ? '#fff' : '#737791',
-            width: '25px',
-            height: '25px',
+            color: checkActive(item) ? colors.app_orange[500] : 'rgb(156 163 175)',
+            width: '20px',
+            height: '20px',
           }
     }
     
@@ -193,43 +195,83 @@ function App({float}) {
   
     return (
     <>
-      <div onMouseEnter={()=>{
-       if(!float && !_menu.open)  _setMenu({..._menu,float:true})
+      <div
+
+      style={{boxShadow:'rgba(0, 0, 0, 0.1) 0px 10px 30px'}}
+      
+      onMouseEnter={()=>{
+        // if(!float && !_menu.open)  _setMenu({..._menu,float:true})
       }}
      onMouseLeave={()=>{
-       if(float)  _setMenu({..._menu,float:false})
-     }} className={`bg-[#fff] h-lvh pl-2 pr-4 py-4 ${_menu.open ? 'min-w-[100px]':''} ${float && !_menu.float ? '-translate-x-[100%]':''} transition duration-75 ease-in-out shadow overflow-y-auto ${float && _menu.open? 'hidden':''} ${float ? 'absolute z-10':'relative'} overflow-x-hidden`}>
-         <div className="mb-3 flex items-center">
-              <div  className="cursor-pointer translate-x-1" onClick={openCloseMenu}><BurgerIcon style={{width:30,height:30}}/></div>
-              <div className={`${!_menu.open && !float ? 'hidden' :''}  ml-4 text-[19px] font-bold`}>{user?.company?.name}</div>
+       if(float)  _setMenu({..._menu,float:false,openDropDown:[]})
+     }} className={` bg-app_black-900 h-lvh pl-2 py-4 ${_menu.open ? ' min-w-[150px]':'min-w-[48px]'} ${float && !_menu.float ? '-translate-x-[100%]':''} transition duration-75 ease-in-out  overflow-y-auto ${float && _menu.open? 'hidden':''} ${float ? 'absolute z-10':'relative'} overflow-x-hidden`}>
+           <div className="mb-8 flex items-center">
+              <div  className="cursor-pointer translate-x-1" onClick={openCloseMenu}><BurgerIcon sx={{color:'#ddd'}} style={{width:30,height:30}}/></div>
+              
+               <div className={`relative ${!_menu.open && !float ? 'hidden' :''}`}>
+                    <button onClick={()=>{
+                        if(user?.companies?.length >=2){
+                            if(_openPopUps.menu_companies){
+                                _closeAllPopUps()
+                            }else{
+                                _showPopUp('menu_companies')
+    
+                            }
+                        }
+                    }} id="dropdownDefaultButton"  className={`text-white truncate bg-transparent  font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center`}
+                     type="button">
+                       {user?.company?.name?.slice(0,50)}{user?.company?.name?.length > 50 && '...'} 
+                       {user?.companies?.length >= 2 && <svg className={`w-2.5 h-2.5 ms-3 ${_openPopUps.menu_companies ? 'rotate-180':''} transition duration-150 ease-in-out`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+                        </svg>}
+                    </button>
+                   
+                      <div id="dropdown" className={`${_openPopUps.menu_companies ? 'z-10 opacity-1' :'opacity-0 translate-y-2 pointer-events-none'} absolute transition duration-150 ease-in-out max-w-[180px]  bg-white divide-y divide-gray-200 rounded-lg shadow w-44`}>
+                       {user.companies?.filter(i=>i.id!=user?.company.id).map((i,_i)=>(
+                            <ul className="py-2 text-sm text-gray-700" aria-labelledby="dropdownDefaultButton">
+                                    <li>
+                                        <a href="#" className="block px-4 py-2 hover:text-app_orange-400">{i.name}</a>
+                                    </li>
+                                </ul>
+                            ))}
+                        </div>
+                    
+               </div>
+
+
           </div>
          
-          <div className={`relative ${_menu.open || float ? 'min-w-[180px]' : ''}  `}>
+          <div className={`relative ${_menu.open || float ? 'min-w-[220px]' : ''}  `}>
             
-            <div className={`${_menu.open && !float ? 'min-w-[150px]':''} absolute flex items-center justify-center flex-col`}>
+            <div className={`${_menu.open && !float ? 'min-w-[220px]':''} absolute flex items-center justify-center flex-col`}>
 
             {menuItems.map(item=>(
-                <div key={item.field} className={`w-full ${!_menu.open ? 'mb-2':''}`}>
-                <div onClick={()=>changeOpenDropdown(item.field,item.path)} className={`${checkActive(item) && 'bg-blue-500'} rounded-lg flex p-1 items-center justify-between w-full cursor-pointer`}>
+                <>
+
+<div key={item.field} className={`w-full ${!_menu.open && !float ? 'mb-2':''}`}>
+                <div onClick={()=>changeOpenDropdown(item.field,item.path)} className={`${checkActive(item) && 'bg-app_orange-transparent'} relative  flex py-1 px-2 items-center justify-between w-full cursor-pointer`}>
                     <div className="flex items-center">
-                        <div className={`rounded-lg flex justify-center ${checkActive(item) && 'bg-blue-500'} p-0.5`}>
+                        <div className={`rounded-lg flex justify-center  p-0.5`}>
                         {iconMapping[item.icon]}
                         </div>
-                        <span className={`${!_menu.open && !float ? 'hidden' :''} max-w-[150px] ${checkActive(item) ? 'text-white' : 'text-[#737791]'}  p-1 text-[16px]`}>
+                        <span className={`${!_menu.open && !float ? 'hidden' :''} max-w-[150px] ${checkActive(item) ? ' text-app_white-700' : ' text-gray-400'} hover:text-app_white-700  p-1 text-[15px]`}>
                             {item.name}
                         </span>
+                        <span className={`flex h-full absolute right-0 top-0 w-1 ${checkActive(item) ?'bg-app_orange-500':''}`}></span>
                     </div>
-                    <div className={`${openDropDown.includes(item.field) && 'rotate-180 translate-y-1'}`}>
-                        {(item.sub_menus?.length && (_menu.open || float)) && <ExpandMoreOutlinedIcon style={{color:checkActive(item) ? '#fff' :'#000'}}/>}
+                    <div className={`${_menu.openDropDown.includes(item.field) && 'rotate-180 translate-y-1'}`}>
+                        {(item.sub_menus?.length && (_menu.open || float)) && <ExpandMoreOutlinedIcon style={{color:checkActive(item) ? '#ddd' :'#737791'}}/>}
                     </div>
                 </div>
                 {item.sub_menus?.length && item.sub_menus.map(i=>(
-                    <div key={i.name} className={`items-center p-1 ${_menu.open || float ? 'ml-[35px]' :''}  ${openDropDown.includes(item.field) && (_menu.open || float)  ? 'flex' : 'hidden'}`}>
-                    <span onClick={()=>to(i.path)} className={` max-w-[150px] text-[16px] text-[#737791] cursor-pointer hover:opacity-90 ${checkActive(i,true) ? 'text-blue-500' :''}`}>{i.name}</span>
+                    <div key={i.name} className={`items-center p-1 ${_menu.open || float ? 'ml-[35px]' :''}  ${_menu.openDropDown.includes(item.field) && (_menu.open || float)  ? 'flex' : 'hidden'}`}>
+                    <span onClick={()=>to(i.path)} className={`hover:text-app_white-700 max-w-[150px] text-[14px] text-[#737791] cursor-pointer hover:opacity-90 ${checkActive(i,true) ? ' text-app_white-700' :''}`}>{i.name}</span>
                     </div>
                 ))}
 
                 </div>
+                  {item.divide && <div className="w-full bg-gray-500 my-3 h-[1px]"></div>}
+                </>
             ))}
 
 

@@ -26,8 +26,8 @@ function App() {
 
       Object.keys(statResponses).forEach(o=>{
                 let from=o=="global" ? data['_bills_to_'+type] : _filtered_content 
-                let total=from.map(item => (item.type=="out" ? - (item.amount) : item.amount)).reduce((acc, curr) => acc + curr, 0);
-                let paid=from.map(item => item.paid).reduce((acc, curr) => acc + curr, 0);
+                let total=from.map(item => (item.type=="out" ? - (parseFloat(item.amount) + parseFloat(item.fees ? item.fees : 0)) : parseFloat(item.amount) + parseFloat(item.fees ? item.fees : 0))).reduce((acc, curr) => acc + curr, 0);
+                let paid=from.map(item => item.paid ? parseFloat(item.paid) : 0).reduce((acc, curr) => acc + curr, 0);
                 res[o]={
                 ...res[o],
                 total:data._cn(total),
@@ -45,7 +45,7 @@ function App() {
   return (
     <>
       
-       <DefaultLayout details={{name:'Contas a pagar'}}>
+       <DefaultLayout details={{name:type=="pay" ? 'Contas a pagar' : 'Contas a receber'}}>
 
        <TotalCard page={`bills_to_${type}`} items={
              [

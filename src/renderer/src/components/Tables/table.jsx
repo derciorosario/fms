@@ -5,17 +5,21 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import TableLoader from '../../components/progress/TableProgress'
 import { useData } from '../../contexts/DataContext';
-import { useSearch } from '../../contexts/SearchContext';
 import {useParams, useNavigate} from 'react-router-dom';
 import PouchDB from 'pouchdb';
 import { Button } from '@mui/material';
 import TextField from '@mui/material/TextField';
 import toast from 'react-hot-toast';
 import CheckIcon from '@mui/icons-material/Check';
+import { useSearchParams, useLocation } from 'react-router-dom';
+import colors from '../../assets/colors.json'
+import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
+import { useAuth } from '../../contexts/AuthContext';
 
-export default function Table({setItemsToDelete,search,filterOptions,page,periodFilters,_setFilteredContent}) {
+export default function Table({setSearch,setItemsToDelete,search,filterOptions,page,periodFilters,_setFilteredContent,setFilterOptions,setDatePickerPeriodOptions,clearAllFilters}) {
   const {_get,_loaded,_update,_payment_methods,_categories,_cn}= useData()
   const data=useData()
+  const {user} = useAuth()
   const navigate=useNavigate()
   const [selectedItems,setSelectedItems]=React.useState([])
   const [rows,setRows]=React.useState([])
@@ -24,8 +28,60 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
      selected:'',
      required_data:[]
   })
+  const {pathname}= useLocation()
+  const [searchParams, setSearchParams] = useSearchParams();
 
- 
+
+  React.useEffect(()=>{
+      
+   //clearAllFilters()
+   data._sendFilter(searchParams)
+
+  },[])
+
+  React.useEffect(()=>{
+      _get('managers')
+      _get('companies')
+   },[pathname])
+
+  settings.selected
+
+  
+  React.useEffect(()=>{
+
+  
+      let params_names=Object.keys(data._filters).filter(i=>(typeof data._filters[i] == 'string' && data._filters[i]) || (typeof data._filters[i] == 'object' && data._filters[i].length))
+
+      setFilterOptions(filterOptions.map(f=>{
+          return {...f,groups:f.groups.map(g=>{
+              if(!params_names.includes(g.param)){
+                  return g
+              }else{
+                 return {...g,selected_ids:g.items.filter(i=>data._filters[g.param].includes(i.id)).map(i=>i.id),items:g.items.map(i=>{
+                      return data._filters[g.param].includes(i.id) ? {...i,selected:true} : {...i,selected:false}
+                 })}
+
+              }
+          })}
+      }))
+
+      
+      setDatePickerPeriodOptions({...periodFilters,
+         endDate:new Date(data._filters.end_date).toString()!="Invalid Date" ? new Date(data._filters.end_date) : filterOptions.endDate ? filterOptions.endDate : new Date(),
+         startDate:new Date(data._filters.start_date).toString()!="Invalid Date" ? new Date(data._filters.start_date)  : filterOptions.startDate ? filterOptions.startDate : new Date(),
+      })
+
+
+      setSearch(data._filters.search)
+
+
+   },[data._filters])
+
+
+
+  
+
+
 
   
 
@@ -42,11 +98,14 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
   
   function search_f(array){
 
-
       let res=data._search(search,array,filterOptions,periodFilters)
 
       if(page=="inflows" || page=="outflows"){
           res=res.filter(v=>v.type==(page=="inflows" ? 'in' :'out'))
+      }
+
+      if(page=="managers"){
+        res=res.filter(v=>v.id!=user.id)
       }
 
       _setFilteredContent(res)
@@ -58,9 +117,18 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
 
   function update_data(){
 
+    console.log({ddddddddd:data[settings.selected]})
+
+
+    console.log(search_f(data[settings.selected]))
+
       setRows(search_f(data[settings.selected]))
 
   }
+
+
+
+
 
 
 
@@ -108,14 +176,18 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
   }else if(page=="managers"){
       _settings.selected='_managers'
       _settings.required_data=['managers']
+  }else if(page=="companies"){
+    _settings.selected='_companies'
+    _settings.required_data=['companies']
   }
-
-  
-
-  
      setSettings(_settings)
+
+     _settings.required_data.forEach(i=>{
+      data._get(i)
+    })
    
  },[])
+
 
 
  function change_row_value(id,field,value){
@@ -128,6 +200,8 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
 
  
 
+ 
+
  let columns=[]
 
    if(page=='financial-reconciliation'){
@@ -135,7 +209,7 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
                    {
                      field: 'edit',
                      headerName: '',
-                     width: 110,
+                     width: 70,
                      renderCell: (params) => (
                        <div style={{opacity:.6,marginLeft:'2rem'}}>
                              <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/cash-management/'+params.row._id)}>
@@ -215,7 +289,7 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
             {
               field: 'edit',
               headerName: '',
-              width: 90,
+              width: 70,
               renderCell: (params) => (
                 <div style={{opacity:.6}}>
                       <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/'+page+'/'+params.row._id)}>
@@ -237,7 +311,7 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
         },
         {
           field: 'pay_day',
-          headerName: 'Data de pagamento',
+          headerName: 'Data de vencimento',
           width: 170,
           renderCell: (params) => (
             <span>{params.row.payday ? params.row.payday.split('T')[0] : '-'}</span>
@@ -251,10 +325,18 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
               <span>{params.row.description ? params.row.description : '-'}</span>
             ),editable: true,
           },
+          {
+            field: 'left',
+            headerName: 'Valor em falta',
+            width: 150,
+            renderCell: (params) => (
+              <span>{params.row.amount ? new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(parseFloat(params.row.amount) + parseFloat(params.row.fees ? params.row.fees : 0) - parseFloat(params.row.paid ? params.row.paid : 0))  : '-'}</span>
+            ),
+          },
           
           {
             field: 'amount',
-            headerName: 'Valor a '+(page=="bills-to-pay" ? 'pagar' :'receber'),
+            headerName: 'Total a '+(page=="bills-to-pay" ? 'pagar' :'receber'),
             width: 150,
             renderCell: (params) => (
               <span>{params.row.amount ? new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(parseFloat(params.row.amount))  : '-'}</span>
@@ -268,7 +350,7 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
             renderCell: (params) => (
               <div>
                 
-                      <span style={{backgroundColor:!params.row.status || params.row.status=='paid' ? '#C9E8E8':params.row.status=='pending' ? 'rgb(255 244 198)': '#F3D4D1', color: '#111' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='paid' || !params.row.status ? 'Pago' : params.row.status=='pending' ? 'Pendente' : 'Vencido'}</span>
+                      <span style={{backgroundColor:!params.row.status || params.row.status=='paid' ? colors.common.paid :  new Date(params.row.payday) >= new Date(data._today()) ? colors.common.pending: colors.common.delayed , color: '#fff' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='paid' || !params.row.status ? 'Pago' : new Date(params.row.payday) >= new Date(data._today())  ? 'Pendente' : 'Atrasado'}</span>
                 
               </div>
             )
@@ -312,7 +394,7 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
             headerName: 'Tipo de pagamento',
             width: 150,
             renderCell: (params) => (
-              <span>{params.row.payment_type=="single" ? 'Único' : 'Em prestações'}</span>
+              <span>{params.row.payment_type=="single" || params.row.total_installments==1  ? 'Único' : 'Em prestações'}</span>
             ),
           },
           {
@@ -351,7 +433,7 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
       {
         field: 'edit',
         headerName: '',
-        width: 90,
+        width: 70,
         renderCell: (params) => (
           <div style={{opacity:.6}}>
                 <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/investments/'+params.row._id)}>
@@ -406,7 +488,7 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
         {
           field: 'edit',
           headerName: '',
-          width: 90,
+          width: 70,
           renderCell: (params) => (
             <div style={{opacity:.6}}>
                   <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/budget-management/'+params.row._id)}>
@@ -477,7 +559,7 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
     {
       field: 'edit',
       headerName: '',
-      width: 170,
+      width: 70,
       renderCell: (params) => (
          <div style={{opacity:.8}}>
               <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/account/'+params.row._id)}>
@@ -523,7 +605,7 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
     {
       field: 'edit',
       headerName: '',
-      width: 170,
+      width: 70,
       renderCell: (params) => (
          <div style={{opacity:.8}}>
               <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/payment-methods/'+params.row._id)}>
@@ -586,6 +668,22 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
    columns = [
 
     {
+      field: 'edit',
+      headerName: '',
+      width: 70,
+      renderCell: (params) => (
+         <div style={{opacity:.7}}>
+              <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate(`/cash-management/${params.row.type=="in" ? 'inflow' : 'outflow'}/`+params.row._id)}>
+                  <EditOutlinedIcon/>
+              </span>
+              <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
+                  <DeleteOutlineOutlinedIcon/>
+              </span>
+         </div>
+      )
+  },
+
+    {
       field: 'description',
       headerName: 'Descrição',
       width: 170,
@@ -643,21 +741,7 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
     )
   },
   
-  {
-      field: 'edit',
-      headerName: '',
-      width: 170,
-      renderCell: (params) => (
-         <div style={{opacity:.3,pointerEvents:'none'}}>
-              <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/cash-management/'+params.row._id)}>
-                  <EditOutlinedIcon/>
-              </span>
-              <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
-                  <DeleteOutlineOutlinedIcon/>
-              </span>
-         </div>
-      )
-  }
+  
 
 ];
 }else if(page=="clients" || page=="suppliers" || page=="investors"){
@@ -666,7 +750,7 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
     {
       field: 'edit',
       headerName: '',
-      width: 170,
+      width: 70,
       renderCell: (params) => (
          <div style={{opacity:.8}}>
               <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate(`/${page.slice(0,page.length - 1)}/`+params.row._id)}>
@@ -759,13 +843,42 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
 ];
 
 }else if(page=="managers"){
+
+  
+
   columns = [
     {
+        field: 'edit',
+        headerName: '',
+        width: 70,
+        renderCell: (params) => (
+          <div style={{opacity:.8}}>
+          {user.companies.filter(i=>i.admin_id==user.id).some(i=>params.row.companies.includes(i.id)) ? <>
+
+            <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/manager/'+params.row._id)}>
+              <EditOutlinedIcon/>
+          </span>
+          <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
+              <DeleteOutlineOutlinedIcon/>
+          </span>
+          
+          </>:<>
+         
+          <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/manager/'+params.row._id)}>
+               <RemoveRedEyeOutlinedIcon/>
+          </span>
+          </>}
+        </div>
+        )
+      },
+     
+      {
         field: 'name',
         headerName: 'Nome',
         width: 150,
         renderCell: (params) => (
-          <span>{params.row.name ? params.row.name : '-'}</span>
+          <span className={`${params.row.id==user.id ? 'text-app_orange-400':''}`}>{params.row.name ? params.row.name : '-'} {params.row.id==user.id && '(Você)'}</span>
+        
         ),
       },
       {
@@ -779,9 +892,122 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
       {
         field: 'email',
         headerName: 'Email',
-        width: 150,
+        width: 190,
         renderCell: (params) => (
           <span>{params.row.email ? params.row.email : '-'}</span>
+        ),
+      },
+      {
+        field: 'companies',
+        headerName: 'Empresas',
+        width: 300,
+        renderCell: (params) => (
+          <span>{data._companies.filter(i=>params.row.companies.includes(i.id)).map(i=>i.name).join(', ')}</span>
+        ),
+      }
+     ,
+      {
+        field: 'contacts',
+        headerName: 'Contactos',
+        width: 170,
+        renderCell: (params) => (
+          <div>
+              {params.row.contacts.map((i,_i)=>(
+                      <span key={_i}>{i}{_i!=params.row.contacts.length - 1 && ', '}</span>
+              ))}
+               <span>{!params.row.contacts.length && '-'}</span>
+          </div>
+        ),editable: true,
+      },
+
+       {
+        field: 'address',
+        headerName: 'Endereço',
+        width: 150,
+        renderCell: (params) => (
+          <span>{params.row.address ? params.row.address : '-'}</span>
+        ),
+        editable: true,
+      },
+      {
+        field: 'status',
+        headerName: 'Estado',
+        width: 120,
+        renderCell: (params) => (
+          <div>
+            
+                  <span style={{backgroundColor:!params.row.status || params.row.status=='active' ? '#C9E8E8': '#F3D4D1', color: '#111' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='active' || !params.row.status ? 'Activo' : 'Inactivo'}</span>
+            
+          </div>
+        )
+      },
+      {
+          field: 'notes',
+          headerName: 'Observações',
+          width: 170,
+          renderCell: (params) => (
+          <span>-</span>
+          )
+      },
+      {
+        field: '-',
+        headerName: 'Data de  criação',
+        width: 170,
+        renderCell: (params) => (
+        <span>-</span>
+        )
+      },
+      
+    
+];
+}else if(page=="companies"){
+  columns = [
+    {
+      field: 'edit',
+      headerName: '',
+      width: 70,
+      renderCell: (params) => (
+         <div style={{opacity:.8}}>
+              {params.row.admin_id==user.id ? <>
+
+                <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/company/'+params.row._id)}>
+                  <EditOutlinedIcon/>
+              </span>
+              <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
+                  <DeleteOutlineOutlinedIcon/>
+              </span>
+              
+              </>:<>
+             
+              <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/company/'+params.row._id)}>
+                   <RemoveRedEyeOutlinedIcon/>
+              </span>
+              </>}
+         </div>
+      )
+    },
+    {
+        field: 'name',
+        headerName: 'Nome',
+        width: 150,
+        renderCell: (params) => (
+          <span className={`${params.row.id==user.company.id ? 'text-app_orange-400':''}`}>{params.row.name ? params.row.name : '-'}</span>
+        ),
+      },
+      {
+        field: 'm',
+        headerName: 'Gestores',
+        width: 150,
+        renderCell: (params) => (
+          <span>{data._managers.filter(i=>i.companies.includes(params.row.id)).length ? data._managers.filter(i=>i.companies.includes(params.row.id)).map(i=>i.name).join(', ') : '-'}</span>
+        ),
+      },
+      {
+        field: 'c',
+        headerName: 'Total clientes',
+        width: 150,
+        renderCell: (params) => (
+          <span>{data._clients.filter(i=>i.company_id==params.row.id).length ? data._clients.filter(i=>i.company_id==params.row.id).length : '-'}</span>
         ),
       },
       {
@@ -820,14 +1046,6 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
       )
     },
     {
-        field: 'notes',
-        headerName: 'Observações',
-        width: 170,
-        renderCell: (params) => (
-        <span>-</span>
-        )
-    },
-    {
       field: '-',
       headerName: 'Data de  criação',
       width: 170,
@@ -836,24 +1054,13 @@ export default function Table({setItemsToDelete,search,filterOptions,page,period
       )
     },
     
-    {
-        field: 'edit',
-        headerName: '',
-        width: 170,
-        renderCell: (params) => (
-           <div style={{opacity:.8}}>
-                <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/manager/'+params.row._id)}>
-                    <EditOutlinedIcon/>
-                </span>
-                <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
-                    <DeleteOutlineOutlinedIcon/>
-                </span>
-           </div>
-        )
-    }
+    
 
 ];
 }
+
+
+
 
 
   useEffect(()=>{

@@ -18,9 +18,10 @@ import Select from '@mui/material/Select';
 import Checkbox from '@mui/material/Checkbox';
 import 'dayjs/locale/en-gb';
 import PouchDB from 'pouchdb';
+import FormLayout from '../../layout/DefaultFormLayout';
        
        function App() {
-          const {_account_categories,_get,_accounts}= useData()
+          const {_cn_op}= useData()
 
           const { id } = useParams()
 
@@ -130,99 +131,107 @@ import PouchDB from 'pouchdb';
      
   return (
     <>
-       <DefaultLayout details={{name:'Novo investimento'}}>
-               <div className="bg-white py-1 pb-5 max-w-[675px]">
-
-               <div className="p-[15px] border-b border-zinc-300 mb-4 opacity-75">
-                  <span className="font-medium text-[18px]">Adicionar investimento</span>
-               </div>
 
 
+<FormLayout maxWidth={'700px'} name={id ? 'Actualizar' : 'Nova conta'} formTitle={id ? 'Actualizar' : 'Adicionar nova'}>
 
-               <div className="flex flex-wrap p-4 w-[100%] [&>_div]:mb-[20px] [&>_div]:mr-[20px] [&>_div]:w-[300px]">   
-     
-               <div className="w-[100%]">
-
-                    <TextField
-                            id="outlined-multiline-static"
-                            label="Descrição *"
-                            multiline
-                            value={formData.description}
-                            onChange={(e)=>setFormData({...formData,description:e.target.value})}
-                            defaultValue=""
-                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
-                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
-                            onBlur={()=>validate_feild('description')}
-                            error={(!formData.description) && verifiedInputs.includes('description')}
-                            helperText={(!formData.description) && verifiedInputs.includes('description') ? "Insira a descrição" :''}
-                        
-                    />
-
-             </div>
-
-
-
-            <div>
-
-                    <TextField
-                        id="outlined-textarea"
-                        label="Custo *"
-                        placeholder="Digite o valor"
-                        multiline
-                        value={formData.amount}
-                        helperText={(!formData.amount) && verifiedInputs.includes('amount') ? 'Campo obrigatório':''}
-                        onBlur={()=>validate_feild('amount')}
-                        error={(!formData.amount) && verifiedInputs.includes('amount') ? true : false}
-                        onChange={(e)=>setFormData({...formData,amount:_cn_op(e.target.value)})}
-                        sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
-                        '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
-                        />
-
-            </div>
-
+             
 
             
-            <div className="flex items-center justify-center -translate-y-1">
-                <div className="w-full">
-                <TextField
-                        id="outlined-textarea"
-                        label={`Número de ${formData.period=="year" ? 'anos' :'meses'}`}
-                        placeholder={`Número de ${formData.period=="year" ? 'anos' :'meses'}`}
-                        multiline
-                        value={formData.time}
-                        onBlur={()=>validate_feild('time')}
-                        error={(!formData.time) && verifiedInputs.includes('time') ? true : false}
-                        onChange={(e)=>setFormData({...formData,time:_cn_op(e.target.value)})}
-                        sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
-                        '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
-                        />
-               
-                </div>
 
-                <FormControl sx={{ m: 1, width: 'calc(40% + 3px)',margin:0,height:40,marginLeft:'3px',display:id ? 'none' :'flex'}} size="small">
-                      <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Periodo</InputLabel>
-                      <Select
-                      labelId="demo-simple-select-error-label"
-                      id="demo-simple-select-error"
-                      defaultValue="year"
-                      value={formData.period}
-                      label="Periodo"
-                      onChange={(e)=>setFormData({...formData,period:e.target.value})}
-                      sx={{width:'100%','& .MuiInputBase-root':{height:40},'& .css-1869usk-MuiFormControl-root':{margin:0},'& .Mui-focused.MuiInputLabel-root': { top:0 },
-                      '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
-                      >
-                      <MenuItem value={'year'}>Anos</MenuItem>
-                      <MenuItem value={'month'}>Meses</MenuItem>
-                      </Select>
-                    </FormControl>
-                </div>
+              <FormLayout.Section>
+                   
+              
+                    <div className="w-[100%]">
+
+                          <TextField
+                                  id="outlined-multiline-static"
+                                  label="Descrição *"
+                                  multiline
+                                  value={formData.description}
+                                  onChange={(e)=>setFormData({...formData,description:e.target.value})}
+                                  defaultValue=""
+                                  sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
+                                  '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
+                                  onBlur={()=>validate_feild('description')}
+                                  error={(!formData.description) && verifiedInputs.includes('description')}
+                                  helperText={(!formData.description) && verifiedInputs.includes('description') ? "Insira a descrição" :''}
+                              
+                          />
+
+                  </div>
 
 
 
-                     
+                  <div>
 
-        </div>
+                          <TextField
+                              id="outlined-textarea"
+                              label="Custo *"
+                              placeholder="Digite o valor"
+                              multiline
+                              value={formData.amount}
+                              helperText={(!formData.amount) && verifiedInputs.includes('amount') ? 'Campo obrigatório':''}
+                              onBlur={()=>validate_feild('amount')}
+                              error={(!formData.amount) && verifiedInputs.includes('amount') ? true : false}
+                              onChange={(e)=>setFormData({...formData,amount:_cn_op(e.target.value)})}
+                              sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
+                              '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
+                              />
 
+                  </div>
+
+
+                  
+                  <div className="items-center justify-center -translate-y-1">
+                      <div className="w-full">
+                      <TextField
+                              id="outlined-textarea"
+                              label={`Número de ${formData.period=="year" ? 'anos' :'meses'}`}
+                              placeholder={`Número de ${formData.period=="year" ? 'anos' :'meses'}`}
+                              multiline
+                              value={formData.time}
+                              onBlur={()=>validate_feild('time')}
+                              error={(!formData.time) && verifiedInputs.includes('time') ? true : false}
+                              onChange={(e)=>setFormData({...formData,time:_cn_op(e.target.value)})}
+                              sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
+                              '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
+                              />
+                    
+                      </div>
+
+                      <div className="hidden">
+
+
+                      <FormControl sx={{ m: 1, width: 'calc(40% + 3px)',margin:0,height:40,marginLeft:'3px',display:id ? 'none' :'flex'}} size="small">
+                            <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Periodo</InputLabel>
+                            <Select
+                            labelId="demo-simple-select-error-label"
+                            id="demo-simple-select-error"
+                            defaultValue="year"
+                            value={formData.period}
+                            label="Periodo"
+                            onChange={(e)=>setFormData({...formData,period:e.target.value})}
+                            sx={{width:'100%','& .MuiInputBase-root':{height:40},'& .css-1869usk-MuiFormControl-root':{margin:0},'& .Mui-focused.MuiInputLabel-root': { top:0 },
+                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
+                            >
+                            <MenuItem value={'year'}>Anos</MenuItem>
+                            <MenuItem value={'month'}>Meses</MenuItem>
+                            </Select>
+                          </FormControl>
+
+
+
+
+                      </div>
+
+                    
+
+
+                      </div>
+
+
+              </FormLayout.Section>
                 
 
                <div className="px-3 mb-2">
@@ -240,8 +249,8 @@ import PouchDB from 'pouchdb';
               
              
 
-            </div>
-        </DefaultLayout>
+           
+        </FormLayout>
     </>
   )
 }

@@ -78,6 +78,7 @@ export default function MultipleSelectChip({names,items,setItems,label,validate_
               {name}
             </MenuItem>
           ))}
+          {names.length==0 && <MenuItem disabled={true}><em>Sem opções</em></MenuItem>}
         </Select>
       </FormControl>
     </div>

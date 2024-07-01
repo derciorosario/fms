@@ -41,11 +41,7 @@ React.useEffect(()=>{
     <>
      <DefaultLayout details={{name:'Meios de pagamento'}}>
           
-          <TotalCard page={'payment_methods'} items={
-             [
-              {name:'Total',value:statResponses.global.total}
-             ]
-          }/>
+        
 
          <BasicTable res={[
             {name:'Total',value:statResponses.result.total},

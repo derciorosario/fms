@@ -47,7 +47,7 @@ function UserPreferencesLayout({children,page,setPage}) {
 
    
 
-    <div className="col-span-8 overflow-hidden rounded-xl bg-gray-50 px-8 shadow">
+    <div className="col-span-8 rounded-xl bg-gray-50 px-8 shadow">
 
 
       

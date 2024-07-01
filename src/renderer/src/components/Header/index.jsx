@@ -128,7 +128,7 @@ function App({details}) {
 
 
                 <span className="border-r flex b-1 h-full"></span>
-                     <div className="flex items-center h-full">
+                     <div className="flex items-center h-full hidden">
                        
                        <DropDownLangs/>
                        

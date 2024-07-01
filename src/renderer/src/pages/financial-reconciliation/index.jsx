@@ -105,10 +105,10 @@ React.useEffect(()=>{
                   name:'Total de saldo',value:statResponses.global.total,
                 },
                 {
-                  name:'Total de consiliado',value:statResponses.global.confirmed,
+                  name:'Total de conciliado',value:statResponses.global.confirmed,
                 },
                 {
-                  name:'Total não consiliado',value:statResponses.global.not_confirmed,
+                  name:'Total não conciliado',value:statResponses.global.not_confirmed,
                 },
                 {
                   name:'Total entradas',value:statResponses.global.inflows,
@@ -122,8 +122,8 @@ React.useEffect(()=>{
 
          <BasicTable res={[
             {name:'Saldo',value:statResponses.result.total},
-            {name:'Consiliado',value:statResponses.result.confirmed},
-            {name:'Não consiliado',value:statResponses.result.not_confirmed}
+            {name:'Conciliado',value:statResponses.result.confirmed},
+            {name:'Não conciliado',value:statResponses.result.not_confirmed}
          ]} _setFilteredContent={_setFilteredContent} _filtered_content={_filtered_content}  page={'financial-reconciliation'}/>
            
         </DefaultLayout>

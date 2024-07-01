@@ -1,12 +1,20 @@
 import * as React from 'react';
 import { useData  } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate ,useSearchParams} from 'react-router-dom';
 import colors from '../../assets/colors.json'
 export default function filter({open,options,filterOptions,setFilterOPtions}) {
 
   const navigate = useNavigate();
 
+  const mapFunction = function (doc) {
+    if (doc.company_id) {
+      emit(doc.company_id, null);
+    }
+  };
+
   const [searchParams,setSearchParams]= useSearchParams()
+  const {user} = useAuth()
 
 
   const handleOutsideClick = (event) => {
@@ -29,8 +37,9 @@ const  handleClickFilter = () => {
      setFilterOPtions(filterOptions.map(f=>{return f.field==options.field ? {...f,igual:value} : f}))
   }
 
-  function check_and_uncheck(group_field,item){
-    if(item.to) navigate(item.to)
+ async function check_and_uncheck(group_field,item){
+   
+    
       let new_filters=filterOptions.map(f=>{
         return f.field==options.field ? {...f,groups:f.groups.map(g=>{
               if(g.field==group_field){
@@ -41,14 +50,15 @@ const  handleClickFilter = () => {
         })} : f
     })
     setFilterOPtions(new_filters)
-    sendFilters(new_filters)
+    await sendFilters(new_filters)
+    if(item.to) navigate(item.to)
   }
 
 
   const data=useData()
 
 
-  function sendFilters(new_filters){
+  async function sendFilters(new_filters){
 
     
     let params_names=Object.keys(data._filters)
@@ -63,35 +73,36 @@ const  handleClickFilter = () => {
           })
     })
 
-    console.log('sdfsfd')
+    
 
-    data._updateFilters(new_params,setSearchParams)
+   await  data._updateFilters(new_params,setSearchParams)
+
+   return
         
   }
  
 
   React.useEffect(()=>{
     if(options.not_fetchable) return
-
     
       (async()=>{
         let groups=[]
 
-
-        for (let i = 0; i < options.groups.length; i++) {
-            if(options.get_deleted){
-                let docs=await data.dbs.filter(d=>d.name==options.groups[i].db_name)[0].db.allDocs({ include_docs: true })
-                docs=options.field=="_account_categories" ? docs.rows.map(i=>i.doc).filter(d=>data._transations.some(t=>t.transation_account.id==d.id)) : docs   
-                groups[i]={...options.groups[i],items:docs.map(item=>{return {...item,selected:options.groups[i].selected_ids.includes(item.id)}})}
-            }else{
-                groups[i]={...options.groups[i],items:data[options.groups[i].field].map(item=>{return {...item,selected:options.groups[i].selected_ids.includes(item.id)}})}
-            }
-        }
+         for (let i = 0; i < options.groups.length; i++) {
+              if(options.get_deleted){
+                  let docs=await await data.dbs.filter(d=>d.name==options.groups[i].db_name)[0].db.query(mapFunction,{ include_docs: true, key: user.company.id })
+                  docs=options.field=="_account_categories" && !options.show_all ? docs.rows.map(i=>i.doc).filter(d=>data._transations.some(t=>t.transation_account.id==d.id)) : docs.rows.map(i=>i.doc)
+                  let updated_selected_ids=options.groups[i].selected_ids.filter(f=>docs.some(j=>j.id==f))
+                  groups[i]={...options.groups[i],selected_ids:updated_selected_ids,items:docs.map(item=>{return {...item,selected:updated_selected_ids.includes(item.id)}})}
+               }else{
+                  groups[i]={...options.groups[i],items:data[options.groups[i].field].map(item=>{return {...item,selected:options.groups[i].selected_ids.includes(item.id)}})}
+              }
+          }
 
         setFilterOPtions(prev=>([...prev.map(f=>{return f.field==options.field ? {...f,groups:groups} : f})]))
     })()
+
     
-     
 
   },[options.open,data])
 
@@ -123,7 +134,7 @@ const  handleClickFilter = () => {
   return (
        <>
 
- <div className={`__${options.field} _filter flex items-center justify-center p-1 relative`}>
+ <div className={`__${options.field} _filter ${options.hide ? 'hidden':'flex'}  items-center justify-center p-1 relative`}>
    
     <button  onClick={()=>handleClickFilter()}
     id="dropdownDefault" data-dropdown-toggle="dropdown"
@@ -140,15 +151,15 @@ const  handleClickFilter = () => {
 
   {/***Dropdown menu */}
 
-  <div id="dropdown" className={`${!open ? 'hidden' :''} z-10 absolute top-1 translate-y-[40px] right-0 w-56 p-3 bg-white rounded-lg shadow dark:bg-gray-700`}>
+  <div id="dropdown" className={`${!open ? 'hidden' :''} z-10 absolute top-1 translate-y-[40px]  ${filterOptions.findIndex(i=>i.field==options.field)==0 ?'left-0':'right-0'} w-56 p-3 bg-white rounded-lg shadow dark:bg-gray-700`}>
      <div className="w-full">
 
-     <div className="flex justify-between items-center mb-1">
+    {!options.hide_clear && <div className="flex justify-between items-center mb-1">
       <span onClick={()=>clear(options.field)} className="text-app_orange-500 text-[15px] hover:underline cursor-pointer">Limpar</span>
-    </div>
+    </div>}
 
      <div className={`mb-2 ${options.hide_igual ? 'hidden':''}`}>
-             <button onClick={()=>setOpenIgualOptions(!openIgualOpions)} id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className={`bg-gray-200 border-[2px] text-zinc-500 w-full hover:bg-white focus:outline-none  font-medium rounded-[5px] text-sm  p-[5px] text-center  dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 flex justify-between items-center`} type="button">
+             <button onClick={()=>setOpenIgualOptions(!openIgualOpions)} id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className={`bg-gray-200 border-[2px] text-zinc-500 w-full hover:bg-white focus:outline-none  font-medium rounded-[5px] text-sm  p-[5px] text-center  flex justify-between items-center`} type="button">
               <span>{options.name} {options.igual ? '= (igual a)' :'!= (diferente de)'}</span>
                  <svg className={`w-2.5 h-2.5 ms-3 ${openIgualOpions ? 'rotate-180' :'' }`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>

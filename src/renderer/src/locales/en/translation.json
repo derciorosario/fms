@@ -31,14 +31,14 @@
 
     },
     "settings": {
-      "accountsPlan":"Accounts plan",
-      "accounts":"accounts",
+      "accountsPlan":"General categories",
+      "accounts":"Accounts plan",
       "paymentMethods":"Payment Methods",
       "managers":"Managers"
     },
     "reports": {
       "monthlyCashManagement":"Monthly cash management",
-      "weeklyCashManagement":"Weekly cash management",
+      "dailyCashManagement":"Daily cash management",
       "dre":"Results demostration"
     }
     

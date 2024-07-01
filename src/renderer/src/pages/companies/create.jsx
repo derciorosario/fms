@@ -26,7 +26,8 @@ import MultipleSelectChip from '../../components/TextField/chipInput';
           const { id } = useParams()
 
           const db={
-            companies:new PouchDB('companies')
+            companies:new PouchDB('companies'),
+            user:new PouchDB('user')
           }  
 
           
@@ -41,6 +42,7 @@ import MultipleSelectChip from '../../components/TextField/chipInput';
             (async()=>{
               try {
                 let item=await db.companies.get(id)
+
                 setFormData(item)
                 handleLoaded('form','add')
                 
@@ -60,17 +62,15 @@ import MultipleSelectChip from '../../components/TextField/chipInput';
           const [chipNames, setChipNames] = React.useState([]);
 
 
-          const {user}=useAuth()
+          const {user,setUser}=useAuth()
           
             let initial_form={
-               name:'',
-               last_name:'',
-               contacts:[''],
-               nuit:'',
-               notes:'',
-               email:'',
-               address:''
-         }
+              name:'',
+              nuit:'',
+              address:'',
+              contacts:[],
+              email:''
+            }
 
           const [formData, setFormData] = React.useState(initial_form);
 
@@ -95,15 +95,21 @@ import MultipleSelectChip from '../../components/TextField/chipInput';
           },[loaded])
 
           React.useEffect(()=>{
-            if(!initialized) return
+            if(!initialized && formData) return
 
-            
-            setChipOptions(data._managers.filter(i=>i.created_by==user.id))
+             if(id){
+
+              setChipOptions(data._managers.filter(i=>i.companies.includes(formData.id)).map(i=>i.name+" "+i.last_name))
+
+             }
+
+             setChipNames(data._managers.filter(i=>i.created_by==user.id).map(i=>i.name+" "+i.last_name))
+           
             
                
           },[initialized])
        
-          let required_fields=['email','name']
+          let required_fields=['name']
        
           const [verifiedInputs, setVerifiedInputs] = React.useState([]);
        
@@ -124,16 +130,31 @@ import MultipleSelectChip from '../../components/TextField/chipInput';
                   setLoading(true)
                   toast.loading(`${id ? 'A actualizar...' :'A enviar...'}`)
                   try{
-                     let response = await makeRequest({method:'post',url:`api/company/`+(id ? "update" : "create"),data:formData, error: ``},0);
+                     let response = await makeRequest({method:'post',url:`api/company/`+(id ? "update" : "create"),data:{c:formData,managers:data._managers.filter(i=>chipOptions.includes(i.name+" "+i.last_name)).map(i=>i.id)}, error: ``},0);
                      toast.remove()
-                     toast.success('Filial '+(id ? "actualizada" : "criada"))
+                     toast.success('Empresa '+(id ? "actualizada" : "criada"))
+
+                     if(!response) return
+                      
+                     delete response.__v
+                     let user=await db.user.get('user')
+                    
 
                      if(id){
                         _update('companies',[response])
+                        let new_user_data={...user,companies:[...user.companies.filter(i=>i.id!=formData.id),response],_rev:user._rev}
+                        await db.user.put(new_user_data)
+                        setUser(new_user_data)
                      }else{
                         _add('companies',[response])
+                        let new_user_data={...user,companies:[...user.companies,response],_rev:user._rev}
+                        await db.user.put(new_user_data)
+                        setUser(new_user_data)
                         setVerifiedInputs([])
                         setFormData(initial_form)
+                        setChipOptions([])
+
+
                      }
                      
                      setLoading(false)
@@ -171,10 +192,12 @@ import MultipleSelectChip from '../../components/TextField/chipInput';
           }
 
 
+          console.log({chipNames})
+
           useEffect(()=>{
             let v=true
             Object.keys(formData).forEach(f=>{
-               if((!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) || (!formData[f].length && required_fields.includes(f))){
+               if((!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email) || (!formData[f].length && required_fields.includes(f))){
                   v=false
                }
            })

@@ -1,0 +1,37 @@
+@media print{
+
+    .reports-table{
+      display: block;
+      opacity: 1 !important;
+    }
+    body {
+        width: 8.5in; 
+        padding: 0px;
+        margin: 0;
+        background: #fff;
+    }
+   
+  
+    body *{
+        visibility: hidden;
+        padding: 0;
+        border: 0 !important;
+        margin: 0;
+    }
+  
+    .reports-table{
+      visibility: visible;
+      opacity: 1 !important;
+      padding: 0;
+      border:0;
+      margin: 0;
+      border: 0 !important;
+    }
+   
+    .reports-table *
+    {
+      visibility: visible;
+    }
+  
+   
+  }

@@ -31,14 +31,14 @@
   
       },
       "settings": {
-        "accountsPlan":"Plano de contas",
-        "accounts":"Contas",
+        "accountsPlan":"Categoriais gerais",
+        "accounts":"Plano de contas",
         "paymentMethods":"Metódos de pagamento",
         "managers":"Gestores"
       },
       "reports": {
         "monthlyCashManagement":"Relatório mensal de fluxo de caixa",
-        "weeklyCashManagement":"Relatório semanal de fluxo de caixa",
+        "dailyCashManagement":"Relatório diário de fluxo de caixa",
         "dre":"Demostração de resultados"
       }
       

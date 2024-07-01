@@ -6,6 +6,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
+const https = require('https');
 
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
@@ -105,6 +106,56 @@ app.whenReady().then(() => {
       mainWindow.webContents.send('file-exists-result', !err);
     });
   });
+
+
+  const uploadsDir = path.join(__dirname, 'uploads');
+  ipcMain.on('download-file', async (event, url) => {
+    const dest = path.join(uploadsDir, path.basename(url));
+
+    const file = fs.createWriteStream(dest);
+    const protocol = url.startsWith('https') ? https : http;
+  
+    console.log('download-file', url);
+  
+    protocol.get(url, (response) => {
+      const totalBytes = parseInt(response.headers['content-length'], 10);
+      let receivedBytes = 0;
+  
+      response.pipe(file);
+  
+      response.on('data', (chunk) => {
+        receivedBytes += chunk.length;
+        const progress = (receivedBytes / totalBytes) * 100;
+        mainWindow.webContents.send('file-progress', progress);
+      });
+  
+      file.on('finish', () => {
+        file.close(() => {
+          mainWindow.webContents.send('download-complete', dest);
+        });
+      });
+  
+      file.on('error', (err) => {
+        fs.unlink(dest, () => {
+          console.error(err.message);
+         // event.sender.send('download-error', err.message);
+        });
+      });
+  
+      response.on('error', (err) => {
+        fs.unlink(dest, () => {
+          console.error(err.message);
+         // event.sender.send('download-error', err.message);
+        });
+      });
+    }).on('error', (err) => {
+      fs.unlink(dest, () => {
+        console.error(err.message);
+        //event.sender.send('download-error', err.message);
+      });
+    });
+  });
+
 
   ipcMain.on('file-upload', (event, file) => {
     const fileStream = fs.createReadStream(join(file.path));

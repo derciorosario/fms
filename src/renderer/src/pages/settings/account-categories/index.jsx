@@ -43,13 +43,13 @@ function App() {
   return (
   <>
 
-  <FormLayout maxWidth={'700px'} name={'Plano de contas'} formTitle={'Categorias'}>
+  <FormLayout maxWidth={'700px'} name={'Categorias gerais'} formTitle={'Categorias'}>
 
         <div>
 
         <div className="w-[97%] m-auto">
           
-        <Alert severity="info">Selecione as categorias que deseja usar no seu negócio.</Alert>
+       {/*** <Alert severity="info">Selecione as categorias que deseja usar no seu negócio.</Alert> */}
            
           </div>    
                    
@@ -62,12 +62,13 @@ function App() {
                    
 
                  {formData.filter(i=>i.type==j).map((i,_i)=>(
-                    <div className="ml-5" key={_i} id={`category-list-`+_i+_j}>
+                    <div className="ml-10" key={_i} id={`category-list-`+_i+_j}>
                         <div className="flex px-[6px] items-center mt-3 pb-2 pl-3">
                               <Checkbox
                               disabled={0===1 ? true : false}
                               checked={!Boolean(i.disabled)}
                               inputProps={{ 'aria-label': 'controlled' }}
+                              sx={{display:'none'}}
                               onChange={()=>{
 
                                 SubmitForm(formData.map(f=>{
@@ -82,9 +83,9 @@ function App() {
                                 
                                 if(_account_categories.filter(f=>f.account_origin==i.field).length)   setOpenItems(openItems.includes(i.field) ? openItems.filter(f=>f!=i.field) : [...openItems,i.field])
                               
-                              }} className="flex items-center cursor-pointer hover:opacity-90">
-                                  {_account_categories.filter(f=>f.account_origin==i.field).length!=0 && <span className={`${openItems.includes(i.field) ? ' rotate-180' :' '}`} ><ExpandMoreOutlinedIcon sx={{color:'gray'}}/></span>}
-                                  <span>{i.name} {_account_categories.filter(f=>f.account_origin==i.field).length!=0 && <label className="mr-4 ml-3 text-[15px]"> ({_account_categories.filter(f=>f.account_origin==i.field).length})</label>}</span>
+                              }} className={`flex items-center ${_account_categories.filter(f=>f.account_origin==i.field).length!=0 ? 'cursor-pointer':''} hover:opacity-90`}>
+                                  {_account_categories.filter(f=>f.account_origin==i.field).length!=0 && <span className={`${openItems.includes(i.field) ? ' rotate-180' :' '} -ml-2`} ><ExpandMoreOutlinedIcon sx={{color:'gray'}}/></span>}
+                                  <span className="text-gray-600">{i.name} {_account_categories.filter(f=>f.account_origin==i.field).length!=0 && <label className="mr-4 ml-3 text-[15px]"> ({_account_categories.filter(f=>f.account_origin==i.field).length})</label>}</span>
                               </label>
                              </div>
 

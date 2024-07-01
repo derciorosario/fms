@@ -34,6 +34,8 @@ import FormLayout from '../../layout/DefaultFormLayout';
 
           useEffect(()=>{
 
+                 alert('In development')
+
                 if(!id) return 
 
                 (async()=>{
@@ -133,9 +135,12 @@ import FormLayout from '../../layout/DefaultFormLayout';
     <>
 
 
-<FormLayout maxWidth={'700px'} name={id ? 'Actualizar' : 'Nova conta'} formTitle={id ? 'Actualizar' : 'Adicionar nova'}>
+<FormLayout maxWidth={'700px'} name={id ? 'Actualizar' : 'Novo investimento'} formTitle={id ? 'Actualizar' : 'Adicionar'}>
 
              
+<FormLayout.Cards topInfo={[
+                          {name:"Valor final",value:0},
+                     ]}/>
 
             
 
@@ -234,19 +239,8 @@ import FormLayout from '../../layout/DefaultFormLayout';
               </FormLayout.Section>
                 
 
-               <div className="px-3 mb-2">
-                      <LoadingButton
-                         onClick={SubmitForm}
-                         endIcon={<SendIcon />}
-                         loading={loading}
-                         loadingPosition="end"
-                         variant="contained"
-                         disabled={!valid}
-                      >
-                         <span>{loading ? `${id ? 'A actualizar...' :'A enviar...'}`:`${id ? 'Actualizar' :'Enviar'}`}</span>
-                       </LoadingButton>
-               </div>
-              
+              <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={id}/>
+
              
 
            

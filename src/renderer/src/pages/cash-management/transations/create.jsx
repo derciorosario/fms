@@ -9,6 +9,8 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import Switch from '@mui/material/Switch';
+import dayjs from 'dayjs';
+import 'dayjs/locale/en-gb';
 import { Autocomplete, Button, Radio} from '@mui/material';
 import 'dayjs/locale/en-gb';
 import PouchDB from 'pouchdb';
@@ -23,14 +25,19 @@ import RefreshOutlined from '@mui/icons-material/RefreshOutlined'
 import { useSearchParams } from 'react-router-dom';
 import { Add } from '@mui/icons-material';
 import colors from '../../../assets/colors.json'
+import { useAuth } from '../../../contexts/AuthContext';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
    
        function App() {
 
           let {pathname} = useLocation()
 
           
-          const {_account_categories,_get,_clients,_suppliers,_investors,_payment_methods,_bills_to_pay,_bills_to_receive,_transations,_categories,_scrollToSection,_initial_form,_cn_n,_cn}= useData()
+          const {_account_categories,_get,_clients,_suppliers,_investors,_payment_methods,_bills_to_pay,_bills_to_receive,_transations,_categories,_scrollToSection,_initial_form,_cn_n,_cn,_openDialogRes,_setOpenDialogRes}= useData()
           const data = useData()
+          const {user} = useAuth()
           const { id } = useParams()
 
           const db={
@@ -44,10 +51,15 @@ import colors from '../../../assets/colors.json'
           const [searchParams, setSearchParams] = useSearchParams();
 
           const [loaded, setLoaded] = React.useState([]);
+          const [loading, setLoading] = React.useState(false);
           const [initialized, seTinitialized] = React.useState(false);
 
 
           function handleLoaded(item,action){
+              if(item==undefined){
+                 setLoaded([])
+                 return
+              }
               if(action=='add'){
                 setLoaded((prev)=>[...prev.filter(i=>i!=item),item])
               }else{
@@ -62,6 +74,8 @@ import colors from '../../../assets/colors.json'
           const [bill,setBill]=React.useState({id:null,from:null})
 
           useEffect(()=>{
+
+               
 
                 
                 let res=data._sendFilter(searchParams)
@@ -81,12 +95,25 @@ import colors from '../../../assets/colors.json'
 
 
                           let item=await db.transations.get(id)
+
+                          if(item.company_id!=user.company.id) {
+                               toast.error(`Troque para ${user.companies.filter(i=>i.id==item.company_id)[0].name} para editar!`)
+                               handleLoaded()
+                               return
+                          }
+
+                         
+
+                          
                           setFormData({...item,
                             paid:item.paid ? item.paid : '',
                             files:item.files[0] ? [{...item.files[0],checked:false}] : []
                           })
 
-                          handleLoaded('form','add')
+                       
+
+                            handleLoaded('form','add')
+                       
 
 
                       }else{
@@ -98,6 +125,8 @@ import colors from '../../../assets/colors.json'
                       }
                         
                     } catch (error) {
+                        toast.error(`Item não encontrado detalhes do erro: ${error}`)
+                        //setTimeout(()=>navigate(`/cash-management/${type}flow`),4000)
                         console.log(error)
                     }
 
@@ -112,7 +141,7 @@ import colors from '../../../assets/colors.json'
                 _get('suppliers')
                 _get('clients')
 
-          },[])
+          },[user,pathname])
 
 
           useEffect(()=>{
@@ -120,14 +149,17 @@ import colors from '../../../assets/colors.json'
                  setType(pathname.includes('inflow') ? 'in' : 'out')
                  setVerifiedInputs([])
 
-          },[pathname])
+             
+          },[pathname,user])
+
+        
 
           
       
 
 
 
-          const [loading, setLoading] = React.useState(false);
+          
           const [valid, setValid] = React.useState(false);
           const {_add,_update} = useData();
           const [referenceOptions,setReferenceOptions]=React.useState([])
@@ -173,16 +205,54 @@ import colors from '../../../assets/colors.json'
 
          useEffect(()=>{
 
+
+          console.log(loaded)
+
             if(loaded.length>=6){
                       console.log({_account_categories,accountOptions,loaded})
                       setTimeout(()=>seTinitialized(true),700)
+            }else{
+              seTinitialized(false)
             }
 
 
         },[loaded])
 
+        useEffect(()=>{
+          
+   
+          if(_openDialogRes.from=="transations" && _openDialogRes.page=="payment_methods" && _payment_methods.some(i=>i.id==_openDialogRes?.item?.id)){
+            setFormData({...formData,payments:formData.payments.map((i,_i)=>{
+                  if(_i==_openDialogRes.details.index){
+                      return {...i,account_id:_openDialogRes.item.id,name:_openDialogRes.item.name}
+                  }else{
+                     return i
+                  }
+            })})
 
+            _setOpenDialogRes({})
+         }
 
+         if(_openDialogRes.from=="transations" && _openDialogRes.page=="accounts" && _account_categories.some(i=>i.id==_openDialogRes?.item?.id)){
+          
+          setFormData({...formData,account_origin:_openDialogRes.item.account_origin,transation_account:{name:_openDialogRes.item.name,id:_openDialogRes.item.id}})
+          setTransationAccountOptions(_account_categories.filter(i=>i.account_origin==_openDialogRes.account_origin))
+        
+
+          _setOpenDialogRes({})
+       }
+
+       if(_openDialogRes.from=="transations" && _openDialogRes.page=="register" && (_clients.some(i=>i.id==_openDialogRes?.item?.id) ||  _suppliers.some(i=>i.id==_openDialogRes?.item?.id) ||  _investors.some(i=>i.id==_openDialogRes?.item?.id))){
+          
+        setFormData({...formData,reference:{name:_openDialogRes.item.name,id:_openDialogRes.item.id}})
+        
+
+        _setOpenDialogRes({})
+     }
+
+      },[_openDialogRes,_payment_methods,_account_categories,_investors,_clients,_suppliers])
+
+       
 
          
 
@@ -243,8 +313,8 @@ import colors from '../../../assets/colors.json'
 
                }))
 
-               if(data._loaded.includes('bills_to_pay') && data._loaded.includes('bills_to_receive')) handleLoaded('account-options','add')
-           },[_bills_to_pay,_bills_to_receive,formData.type,formData.id,pathname])
+               if(data._loaded.includes('bills_to_pay') && data._loaded.includes('bills_to_receive') && !loaded.includes('account-options')) handleLoaded('account-options','add')
+           },[_bills_to_pay,_bills_to_receive,formData.type,formData.id,pathname,loaded])
 
 
            useEffect(()=>{
@@ -260,6 +330,8 @@ import colors from '../../../assets/colors.json'
                      setFormData({...formData,
                      payments:formData.payments.length==1 && !formData.payments[0].amount ? [{...formData.payments[0],amount:parseFloat(account.amount) - parseFloat(account.paid ? account.paid : 0)}] : formData.payments,
                      account_origin:account.account_origin,
+                     invoice_number:formData.invoice_number ? formData.invoice_number : account.invoice_number,
+                     invoice_emission_date:formData.invoice_emission_date ? formData.invoice_emission_date : account.invoice_emission_date,
                      reference:{id:account.reference.id,name:account.reference.name}
                      }) 
                  }else{
@@ -348,8 +420,13 @@ import colors from '../../../assets/colors.json'
                     a[_i]=null
                 }else{
                     let account_id=formData.payments.filter(v=>v.account_id)[_i].account_id
+
+                    if(!account_id){
+                      a[_i]={_in:0,_out:0,_available:0}
+                      return 
+                    } 
                     let initial_amount=_payment_methods.filter(i=>i.id==account_id)[0].initial_amount 
-                    initial_amount=initial_amount != NaN ? initial_amount : 0
+                    initial_amount=!isNaN(initial_amount)  ? initial_amount : 0
                     let _in=_transations.filter(f=>f.type == "in").map(f=>f.payments.filter(j=>j.account_id==formData.payments.filter(v=>v.account_id)[_i].account_id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0)
                     let _out=_transations.filter(f=>f.type == "out").map(f=>f.payments.filter(j=>j.account_id==formData.payments.filter(v=>v.account_id)[_i].account_id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0)
                     let _available=initial_amount + _in - _out
@@ -359,7 +436,7 @@ import colors from '../../../assets/colors.json'
                 
             })
             setAvailableCredit(a)
-          },[formData.payments,initialized])
+          },[formData.payments,initialized,_payment_methods])
 
 
 
@@ -407,11 +484,12 @@ import colors from '../../../assets/colors.json'
                            
                             if(!account.paid) account.paid=""
                             account.fees=parseFloat(account.fees ? account.fees : 0) - fees
-                            if(accountDetails.amount < account.paid) {
+                            if(parseFloat(accountDetails.amount) > account.paid) {
                                 account.status="pending"
                             }else{
                                 account.status="paid"
                             }
+                            console.log({account})
                            const res=await db[`bills_to_${type=="in"?"receive":"pay"}`].put(account)
                            console.log({res})
                           }
@@ -449,7 +527,7 @@ import colors from '../../../assets/colors.json'
                        }
 
                       _add('transations',[{...formData,
-                      reference:{...formData.reference,id:reference_id},
+                      reference:{...formData.reference,id:reference_id,type:formData.account_origin=="loans_out" || formData.account_origin=="loans_in" ? 'investors' : type=="receive" ? 'clients': 'suppliers' },
                       transation_account:{...formData.transation_account,id:transation_account_id},
                       amount:amount + fees,
                       type,
@@ -492,7 +570,7 @@ import colors from '../../../assets/colors.json'
                   }
                })
 
-               if(!formData.reference.name || formData.payments.some(i=>!i.amount || parseFloat(i.amount)==0) || formData.payments.some(i=>!i.account_id)) v=false
+               if(formData.payments.some(i=>!i.amount || parseFloat(i.amount)==0) || formData.payments.some(i=>!i.account_id)) v=false
 
                if(formData.link_payment && !formData.account.id || !formData.transation_account.name) v=false
 
@@ -581,9 +659,22 @@ import colors from '../../../assets/colors.json'
   return (
     <>
        {showNextPaymentDialog &&  <TransationNextDate last_date={accountDetails.payday?.split('T')?.[0]} show={showNextPaymentDialog} setShow={setShowNextPaymentDialog} SubmitForm={SubmitForm} formData={formData} setFormData={setFormData}/>}
-       <FormLayout loading={!initialized} name={'Transação'} formTitle={id ? 'Actualizar' : 'Adicionar nova '+(type == 'in' ? 'entrada' : 'saída')}>
+       <FormLayout loading={!initialized || loading} name={'Transação'} formTitle={id ? 'Actualizar' : 'Adicionar '+(type == 'in' ? '' : '')}>
+
+
+                 <div className="ml-5 flex items-center mb-3">
+                    <span className="border-l-2 pl-1 text-gray-300 mr-3">{!id ?'Nova ':'Actualizar '}{  type=="in" ? 'entrada':'saída'}</span>
+                    <button onClick={(e)=>{
+                                data._updateFilters({bill_to_pay:'',bill_to_receive:''},setSearchParams)
+                                setFormData(_initial_form.transations)
+                                handleLoaded()
+                                navigate(`/cash-management/${type == "in" ? "out" : "in"}flow/create`)
+                              }} className={`flex bg-gray-400 hover:opacity-80 border-b-app_orange-400 focus:outline-none text-white  font-medium  rounded-[0.3rem] text-[13px] px-3 py-[6px] text-center`}>
+                          {type=="out" ? 'Adicionar entrada':'Adicionar saída'}
+                    </button>
+                 </div>
                 
-                {(!id && bill==null) && <div className={`${!initialized ?'opacity-30 pointer-events-none':''} flex ml-2 mb-2`}>
+                {(!id && bill==null) && <div className={`${(!initialized || loading) ?'opacity-30 pointer-events-none':''} hidden flex ml-2 mb-2`}>
                    <label className="cursor-pointer">
                       <Radio
                           checked={type=="in"}
@@ -760,7 +851,10 @@ import colors from '../../../assets/colors.json'
 
                  
 
-                  <div>
+                  <div className="relative">
+                  <div onClick={()=>data._showCreatePopUp('accounts','transations',{type})} className="text-[13px] absolute hover:opacity-55 cursor-pointer right-0 top-[-0.1rem] translate-y-[-100%] flex items-center">
+                              <Add sx={{width:16,height:16,opacity:0.6}}/>
+                  </div>
 
                  <Autocomplete size="small"
                     value={formData.transation_account.name ? formData.transation_account.name : null}
@@ -799,7 +893,11 @@ import colors from '../../../assets/colors.json'
                    </div>
 
 
-                   <div>
+                   <div className="relative" >
+                                 <div onClick={()=>data._showCreatePopUp('register','transations',{[`${type=="in" ? (formData.account_origin=="loans_in" ? "investor" : "client")  : (formData.account_origin == "loans_out" ? 'investor' :'supplier')}`]:true})}
+                                  className={`text-[13px] ${!formData.account_origin ? 'pointer-events-none opacity-25':"hover:opacity-55 cursor-pointer"} absolute   right-0 top-[-0.1rem] translate-y-[-100%] flex items-center`}>
+                                          <Add sx={{width:16,height:16,opacity:0.6}}/>
+                              </div>
                                 <Autocomplete size="small"
                                 value={formData.reference.name && formData.account_origin ? formData.reference.name : null}
                                 onChange={(event, newValue) => {
@@ -822,13 +920,12 @@ import colors from '../../../assets/colors.json'
                                 sx={{width:300,'& .MuiFormHelperText-root': {color: !formData.reference.id && formData.reference.name ? 'green' : 'crimson'}}}
                                 disabled={(!formData.account_origin ? true : false) }
                                 renderInput={(params) => <TextField {...params}
-                               
-                                onBlur={()=>validate_feild('reference')}
-                                error={(!formData.reference.name) && formData.account_origin  && verifiedInputs.includes('reference') ? true : false}
-                                helperText={(!formData.reference.name) && formData.account_origin && verifiedInputs.includes('reference') ? "Insira nome": !formData.reference.id && formData.reference.name ? `(Novo ${type=="in" ? (formData.account_origin=="loans_in" ? "Investidor" : "Cliente")  : (formData.account_origin == "loans_out" ? 'Investidor' :'Fornecedor')} será adicionado) `: ''}
-                                value={formData.reference.name} label={type=="in" ? (!formData.account_origin ? 'Cliente / Investidor' : formData.account_origin=="loans_in" ? "Investidor" : "Cliente")  : (!formData.account_origin ? 'Fornecedor / Investidor' : formData.account_origin == "loans_out" ? 'Investidor' :'Fornecedor')}  />}
+                                helperText={!formData.reference.id && formData.reference.name ? `(Novo ${type=="in" ? (formData.account_origin=="loans_in" ? "Investidor" : "Cliente")  : (formData.account_origin == "loans_out" ? 'Investidor' :'Fornecedor')} será adicionado) `: ''}
+                                value={formData.reference.name}  label={'Beneficiário'}   />}
                                 />   
                             </div>
+
+                            {/**label={type=="in" ? (!formData.account_origin ? 'Cliente / Investidor' : formData.account_origin=="loans_in" ? "Investidor" : "Cliente")  : (!formData.account_origin ? 'Fornecedor / Investidor' : formData.account_origin == "loans_out" ? 'Investidor' :'Fornecedor')} */}
 
 
 
@@ -848,12 +945,12 @@ import colors from '../../../assets/colors.json'
                         } 
 
 
-                         {availableCredit[_i] && <div className="text-[13px] absolute right-[0px] top-0 translate-y-[-100%] flex items-center">
-                              <span className='text-[12px] text-gray-500 mr-1'>Saldo: </span>  <span className={`${availableCredit[_i]._available < 0 ?'text-red-600':''}`}>{_cn(availableCredit[_i]._available)}</span>
+                         {availableCredit[_i] && <div className="text-[13px] absolute right-[30px] top-0 translate-y-[-100%] flex items-center">
+                              <span className='text-[12px] text-gray-500'>Saldo: </span>  <span className={`${availableCredit[_i]._available < 0 ?'text-red-600':''}`}>{_cn(availableCredit[_i]._available)}</span>
                         </div>}  
 
-                        <div onClick={()=>data._showCreatePopUp('payment_methods')} className="text-[13px] hidden   hover:opacity-55 cursor-pointer right-0 top-[-0.1rem] translate-y-[-100%] flex items-center">
-                              <Add sx={{width:16,height:16,opacity:0.8}}/>
+                        <div onClick={()=>data._showCreatePopUp('payment_methods','transations',{index:_i})} className="text-[13px] absolute hover:opacity-55 cursor-pointer right-0 top-[-0.1rem] translate-y-[-100%] flex items-center">
+                              <Add sx={{width:16,height:16,opacity:0.6}}/>
                         </div>
 
                         
@@ -921,7 +1018,7 @@ import colors from '../../../assets/colors.json'
 
                   ))}
 
-                   <div onClick={add_payment_method} className="ml-4 border cursor-pointer hover:opacity-80 hover:ring-1 ring-slate-400 table rounded-[5px] bg-gray-100 px-2 py-1"><AddIcon sx={{color:'#374151',width:20}}/><span className=" text-gray-700">Adicionar meio de pagamento</span></div>
+                   <div onClick={add_payment_method} className="ml-4 border cursor-pointer hover:opacity-80 hover:ring-1 ring-slate-400 table rounded-[5px] bg-gray-100 px-2 py-1"><AddIcon sx={{color:'#374151',width:20}}/><span className=" text-gray-700">Acrescentar meio de pagamento</span></div>
 
 
                 <span className="flex border-b mt-10"></span>
@@ -992,6 +1089,37 @@ import colors from '../../../assets/colors.json'
 
 
                     <div id={'_show_more_options'} className={`${showMoreOptions || id ? '' :'hidden'}`}>
+
+                    <FormLayout.Section>
+                                
+                                <div className="-translate-y-0">
+                                    <LocalizationProvider  adapterLocale={'en-gb'} dateAdapter={AdapterDayjs} style={{paddingTop:0}} size="small">
+                                        <DatePicker  value={dayjs(formData.invoice_emission_date).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.invoice_emission_date)) : null} onChange={(e)=>setFormData({...formData,invoice_emission_date:e.$d})}  label="Data de emissão da fatura"  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
+                                            '& .MuiStack-root': { paddingTop:0},'& .MuiInputLabel-root':{ top:-8}}}
+                                            />
+                                    </LocalizationProvider>
+                                    </div>
+
+                                    
+
+                                    <div>
+                                            <TextField
+                                            id="outlined-textarea"
+                                            label="Número da fatura"
+                                            placeholder="Digite o número da fatura"
+                                            multiline
+                                            value={formData.invoice_number}
+                                            onChange={(e)=>setFormData({...formData,invoice_number:e.target.value})}
+                                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
+                                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
+                                            />
+                                 </div>
+
+
+                               
+                                        
+                            </FormLayout.Section>
+
 
                           <div className="block w-full px-4">
                               <div className={`border min-h-[80px] p-3 flex-col justify-center items-center rounded-[2px] border-dashed relative ${!formData.files[0] ?'cursor-pointer' :''}`}>

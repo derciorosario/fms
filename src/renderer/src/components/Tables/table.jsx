@@ -15,6 +15,8 @@ import { useSearchParams, useLocation } from 'react-router-dom';
 import colors from '../../assets/colors.json'
 import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
 import { useAuth } from '../../contexts/AuthContext';
+import DefaultButton from '../Buttons/default';
+
 
 export default function Table({setSearch,setItemsToDelete,search,filterOptions,page,periodFilters,_setFilteredContent,setFilterOptions,setDatePickerPeriodOptions,clearAllFilters}) {
   const {_get,_loaded,_update,_payment_methods,_categories,_cn}= useData()
@@ -179,6 +181,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
   }else if(page=="companies"){
     _settings.selected='_companies'
     _settings.required_data=['companies']
+    _settings.hide_checkbox=true
   }
      setSettings(_settings)
 
@@ -639,7 +642,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
         headerName: 'Saldo',
         width: 200,
         renderCell: (params) => (
-          <span>[working on it...]</span>
+          <span>{parseFloat((data._transations.filter(f=>f.type == "in").map(f=>f.payments.filter(j=>j.account_id==params.row.id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0))) + parseFloat((params.row.initial_amount ? params.row.initial_amount : 0)) - parseFloat((data._transations.filter(f=>f.type == "out").map(f=>f.payments.filter(j=>j.account_id==params.row.id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0)))} </span>
         ),
       },
      
@@ -722,6 +725,14 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
       renderCell: (params) => (
          <span style={{backgroundColor:params.row.type=='in' ? '#C9E8E8': 'rgb(255 244 198)', color: '#111' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}> {params.row.type=="in" ? 'Entrada' : 'Saída'} </span>
       ),
+    },
+    {
+      field: 'fees',
+      headerName: 'Multa',
+      width: 170,
+      renderCell: (params) => (
+      <span>{params.row.fees ? data._cn(params.row.fees) : '-'}</span>
+      )
     },
     {
       field: 'reference',
@@ -844,6 +855,10 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
 
 }else if(page=="managers"){
 
+  function change_c(){
+
+  }
+
   
 
   columns = [
@@ -871,6 +886,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
         </div>
         )
       },
+      
      
       {
         field: 'name',
@@ -962,6 +978,17 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
 ];
 }else if(page=="companies"){
   columns = [
+    
+    {
+      field: 'login',
+      headerName: '',
+      width: 80,
+      renderCell: (params) => (
+         <div>
+          {params.row.id!=user.company.id && <span onClick={()=>data._change_company(params.row)} className=" flex rounded-sm text-app_orange-400 cursor-pointer underline">Login</span>}
+         </div>
+      )
+    },
     {
       field: 'edit',
       headerName: '',
@@ -1008,6 +1035,22 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
         width: 150,
         renderCell: (params) => (
           <span>{data._clients.filter(i=>i.company_id==params.row.id).length ? data._clients.filter(i=>i.company_id==params.row.id).length : '-'}</span>
+        ),
+      },
+      {
+        field: 'c',
+        headerName: 'Total fornecedores',
+        width: 150,
+        renderCell: (params) => (
+          <span>{data._suppliers.filter(i=>i.company_id==params.row.id).length ? data._suppliers.filter(i=>i.company_id==params.row.id).length : '-'}</span>
+        ),
+      },
+      {
+        field: 'c',
+        headerName: 'Total investidores',
+        width: 150,
+        renderCell: (params) => (
+          <span>{data._investors.filter(i=>i.company_id==params.row.id).length ? data._investors.filter(i=>i.company_id==params.row.id).length : '-'}</span>
         ),
       },
       {

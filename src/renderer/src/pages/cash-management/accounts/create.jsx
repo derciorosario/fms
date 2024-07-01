@@ -42,7 +42,7 @@ import PouchDB from 'pouchdb';
 
           const [loading, setLoading] = React.useState(false);
           const [valid, setValid] = React.useState(false);
-          const {makeRequest,_add,_update,_loaded} = useData();
+          const {makeRequest,_add,_update,_loaded,_get} = useData();
           
             let initial_form={
                name:'',
@@ -59,7 +59,7 @@ import PouchDB from 'pouchdb';
                 let docs=await db.accounts.allDocs({ include_docs: true })
                 setItems(docs.rows.map(i=>i.doc).filter(i=>!i.deleted))
             })()
-          },[formData])
+          },[formData])  
         
        
           let required_fields=['name','description','initial_amount']

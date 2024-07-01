@@ -40,13 +40,9 @@ React.useEffect(()=>{
   
   return (
     <>
-     <DefaultLayout details={{name:'Contas'}}>
+     <DefaultLayout details={{name:'Plano de contas'}}>
           
-          <TotalCard page={'accounts'} items={
-             [
-              {name:'Total',value:statResponses.global.total}
-             ]
-          }/>
+       
 
          <BasicTable res={[
             {name:'Total',value:statResponses.result.total},

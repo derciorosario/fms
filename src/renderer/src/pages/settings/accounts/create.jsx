@@ -15,7 +15,7 @@ import FormLayout from '../../../layout/DefaultFormLayout';
 import PouchDB from 'pouchdb';
        
        
-       function App() {
+       function App({isPopUp}) {
 
           const { id } = useParams()
 
@@ -43,7 +43,7 @@ import PouchDB from 'pouchdb';
 
           const [loading, setLoading] = React.useState(false);
           const [valid, setValid] = React.useState(false);
-          const {makeRequest,_add,_update,_loaded,_categories} = useData();
+          const {makeRequest,_account_categories,_add,_get,_update,_loaded,_categories,_setOpenDialogRes,_setOpenCreatePopUp,_openDialogRes} = useData();
           
             let initial_form={
                name:'',
@@ -59,10 +59,9 @@ import PouchDB from 'pouchdb';
 
           useEffect(()=>{
             (async()=>{
-                let docs=await db.account_categories.allDocs({ include_docs: true })
-                setItems(docs.rows.map(i=>i.doc).filter(i=>!i.deleted))
+                setItems(await _get('account_categories'))
             })()
-          },[formData])
+          },[])
 
           useEffect(()=>{
             setFormData({...formData,transation_type:_categories.filter(i=>i.field==formData.account_origin)?.[0]?.type})
@@ -88,14 +87,24 @@ import PouchDB from 'pouchdb';
                   }
 
                    try{
-                     if(id){
+                     if(id && !isPopUp){
                         _update('account_categories',[{...formData}])
-                        toast.success('Categoria actualizada')
+                        toast.success('Canta actualizada')
                      }else{
-                        _add('account_categories',[{...formData,id:Math.random(),_id:Math.random().toString()}])
+                        
+                        let new_item={...formData,id:Math.random().toString(),_id:Math.random().toString()}
+                        let res=await _add('account_categories',[new_item])
+
+                        if(res.ok){
+                           _setOpenDialogRes({..._openDialogRes,item:new_item,page:'accounts'})
+                         }
+
+                         if(isPopUp) _setOpenCreatePopUp('')
+
                         setVerifiedInputs([])
-                        toast.success('Categoria adicionada')
+                        toast.success('Conta adicionada')
                         setFormData(initial_form)
+                        await setItems(await _get('account_categories'))
                      }
                  }catch(e){
                         console.log(e)
@@ -118,13 +127,14 @@ import PouchDB from 'pouchdb';
              setValid(v)
           },[formData])
 
-          console.log(formData)
+    
+          console.log(_openDialogRes)
         
         
          return (
            <>
 
-         <FormLayout maxWidth={'700px'} name={id ? 'Actualizar' : 'Nova conta'} formTitle={id ? 'Actualizar' : 'Adicionar nova'}>
+         <FormLayout isPopUp={isPopUp} maxWidth={'700px'} name={id ? 'Actualizar' : 'Nova conta'} formTitle={isPopUp ? 'Adicionar nova conta' : (id ? 'Actualizar' : 'Adicionar nova')}>
 
                     <FormLayout.Section maxWidth={'700px'}>
 
@@ -181,7 +191,7 @@ import PouchDB from 'pouchdb';
                                     '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                                     >
 
-                                   {_categories.map(i=>(
+                                   {_categories.filter(i=>i.type == _openDialogRes?.details?.type || !isPopUp).map(i=>(
                                      <MenuItem value={i.field} key={i.field}><span style={{color:i.type=='in' ? '#16a34a' : 'crimson'}}>{i.sub_name ? i.sub_name : i.name}</span></MenuItem>
                                    ))}
 
@@ -206,12 +216,12 @@ import PouchDB from 'pouchdb';
                         <MenuItem value="">
                            <em>Selecione uma opção</em>
                         </MenuItem>
-                        <ListSubheader><span className="font-semibold text-[#16a34a] opacity-70">Entradas</span></ListSubheader>
-                        {_categories.filter(i=>i.type=="in").map(i=>(
+                        {(_openDialogRes?.details?.type=="in"|| !isPopUp) && <ListSubheader><span className="font-semibold text-[#16a34a] opacity-70">Entradas</span></ListSubheader>}
+                        {_categories.filter(i=>i.type == _openDialogRes?.details?.type || !isPopUp).filter(i=>i.type=="in").map(i=>(
                               <MenuItem value={i.field} key={i.field}><span className=" w-[7px] rounded-full h-[7px] bg-[#16a34a] inline-block mr-2"></span> <span>{i.name}</span></MenuItem>
                         ))}
-                        <ListSubheader><span className="font-semibold text-red-600 opacity-70">Saídas</span></ListSubheader>
-                        {_categories.filter(i=>i.type=="out").map(i=>(
+                        {(_openDialogRes?.details?.type=="out"|| !isPopUp) && <ListSubheader><span className="font-semibold text-red-600 opacity-70">Saídas</span></ListSubheader>}
+                        {_categories.filter(i=>i.type == _openDialogRes?.details?.type || !isPopUp).filter(i=>i.type=="out").map(i=>(
                              <MenuItem value={i.field} key={i.field}><span className=" w-[7px] rounded-full h-[7px] bg-red-500 inline-block mr-2"></span> <span>{i.name}</span></MenuItem>
                         ))}
                      </Select>
@@ -243,7 +253,7 @@ import PouchDB from 'pouchdb';
                   
                
              
-                    <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={id}/>
+                    <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={id && !isPopUp}/>
 
                </FormLayout>
            </>

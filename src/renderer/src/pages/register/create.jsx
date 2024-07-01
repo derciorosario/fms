@@ -18,7 +18,7 @@ import FormLayout from '../../layout/DefaultFormLayout';
 
        
        
-       function App() {
+       function App({isPopUp}) {
 
          const {navigate}=useNavigate()
 
@@ -35,10 +35,14 @@ import FormLayout from '../../layout/DefaultFormLayout';
           } 
 
           const [items,setItems]=React.useState([])
-          
-          
-          let page=pathname.includes('/client') ? 'clients' : pathname.includes('/supplier') ? 'suppliers' :'investors';
 
+          const {makeRequest,_add,_update,_loaded,_setOpenDialogRes,_setOpenCreatePopUp,_openDialogRes} = useData();
+          
+          
+          
+          let page=pathname.includes('/client') || (_openDialogRes?.details?.client) ? 'clients' : pathname.includes('/supplier') || _openDialogRes?.details?.supplier ? 'suppliers' :'investors';
+
+          
           
 
           useEffect(()=>{
@@ -60,8 +64,7 @@ import FormLayout from '../../layout/DefaultFormLayout';
           const [showPassword, setShowPassword] = React.useState(false);
           const [loading, setLoading] = React.useState(false);
           const [valid, setValid] = React.useState(false);
-          const {makeRequest,_add,_update,_loaded} = useData();
-          
+         
             let initial_form={
                name:'',
                last_name:'',
@@ -107,11 +110,20 @@ import FormLayout from '../../layout/DefaultFormLayout';
                      return
                   }
                    try{
-                     if(id){
+                     if(id && !isPopUp){
                         _update(page,[{...formData}])
                         toast.success('Actualizado com sucesso')
                      }else{
-                        _add(page,[{...formData,id:Math.random(),_id:Math.random().toString()}])
+                       
+                        let new_item={...formData,id:Math.random().toString(),_id:Math.random().toString()}
+                        let res=await _add(page,[new_item])
+
+                        if(res.ok){
+                           _setOpenDialogRes({..._openDialogRes,item:new_item,page:'register'})
+                         }
+
+                         if(isPopUp) _setOpenCreatePopUp('')
+
                         setVerifiedInputs([])
                         toast.success('Adicionado com sucesso')
                         setFormData(initial_form)
@@ -139,11 +151,12 @@ import FormLayout from '../../layout/DefaultFormLayout';
           },[formData])
        
           
+          console.log({isPopUp,page})
         
         
          return (
            <>
-              <FormLayout name={ `${id!="create" ? 'Actualizar ' : 'Novo '} ${page=="clients" ? "Cliente" : page=="supplier" ? "Fornecedor" : "Investidor"}`} formTitle={id!="create" ? 'Actualizar' : 'Adicionar'}>
+              <FormLayout isPopUp={isPopUp} maxWidth={isPopUp ? '700px' : null} name={ `${id!="create" && !isPopUp ? 'Actualizar ' : 'Novo '} ${page=="clients" ? "Cliente" : page=="suppliers" ? "Fornecedor" : "Investidor"}`} formTitle={id!="create" && !isPopUp ? 'Actualizar' : `Adicionar  ${page=="clients" ? "Cliente" : page=="suppliers" ? "Fornecedor" : "Investidor"}` }>
                   
                   <FormLayout.Section>
 
@@ -163,7 +176,7 @@ import FormLayout from '../../layout/DefaultFormLayout';
                            />
                         </div>
        
-                       <div>
+                       <div className="hidden">
                         <TextField
                            id="outlined-textarea"
                            label="Apelido"
@@ -303,7 +316,7 @@ import FormLayout from '../../layout/DefaultFormLayout';
 
                   </FormLayout.Section>
 
-                  <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={id}/>
+                  <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={id && !isPopUp}/>
 
                   
                </FormLayout>

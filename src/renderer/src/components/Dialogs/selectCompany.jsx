@@ -24,7 +24,7 @@ export default function SelectCompany({items,show,res}) {
             </div>
             <div className="p-4 md:p-5">
                 <p className="text-gray-500 dark:text-gray-400 mb-4">Selecione a empresa para o login:</p>
-                <ul className="space-y-4 mb-4">
+                <ul className="space-y-4 mb-4 max-h-[300px] overflow-auto">
                    
                     
                    {items.map((i,_i)=>(

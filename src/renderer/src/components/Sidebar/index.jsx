@@ -23,7 +23,7 @@ import { useTranslation } from 'react-i18next';
 function App({float}) {
     const { t } = useTranslation();
     const {user}=useAuth()
-    const {_setMenu,_menu,_openPopUps,_closeAllPopUps,_showPopUp}=useData()
+    const {_setMenu,_menu,_openPopUps,_closeAllPopUps,_showPopUp,_change_company}=useData()
 
     let {pathname} = useLocation()
     //const [open,setOpen]=React.useState(() => localStorage.getItem('menu_open'))
@@ -149,7 +149,7 @@ function App({float}) {
        
         {name:t('sidebar.main.reports'),field:'reports',icon:'ChartIcon',sub_menus:[
             {name:t('sidebar.reports.monthlyCashManagement'),path:'/reports/cash-management/monthly',field:'cash-management/monthly',paths:['/reports/cash-management/monthly'],icon:'PaymentsOutlinedIcon'},
-            {name:t('sidebar.reports.weeklyCashManagement'),path:'/reports/cash-management/daily',field:'cash-management/daily',paths:['/reports/cash-management/daily'],icon:'PaymentsOutlinedIcon'},
+            {name:t('sidebar.reports.dailyCashManagement'),path:'/reports/cash-management/daily',field:'cash-management/daily',paths:['/reports/cash-management/daily'],icon:'PaymentsOutlinedIcon'},
             {name:t('sidebar.reports.dre'),path:'/reports/dre',field:'/reports/dre',paths:['/reports/dre','/reports/dre/daily','/reports/dre/monthly'],icon:'PaymentsOutlinedIcon'},
         ]},
 
@@ -193,6 +193,7 @@ function App({float}) {
        
     }
   
+
     return (
     <>
       <div
@@ -218,19 +219,19 @@ function App({float}) {
     
                             }
                         }
-                    }} id="dropdownDefaultButton"  className={`text-white truncate bg-transparent  font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center`}
+                    }} id="dropdownDefaultButton"  className={`text-white ${user?.companies?.length == 1 ? 'cursor-default':''} truncate bg-transparent  font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center`}
                      type="button">
                        {user?.company?.name?.slice(0,50)}{user?.company?.name?.length > 50 && '...'} 
-                       {user?.companies?.length >= 2 && <svg className={`w-2.5 h-2.5 ms-3 ${_openPopUps.menu_companies ? 'rotate-180':''} transition duration-150 ease-in-out`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                       {user?.companies?.length >= 2 && <svg  className={`w-2.5 h-2.5 ms-3 ${_openPopUps.menu_companies ? 'rotate-180':''} transition duration-150 ease-in-out`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
                         </svg>}
                     </button>
                    
-                      <div id="dropdown" className={`${_openPopUps.menu_companies ? 'z-10 opacity-1' :'opacity-0 translate-y-2 pointer-events-none'} absolute transition duration-150 ease-in-out max-w-[180px]  bg-white divide-y divide-gray-200 rounded-lg shadow w-44`}>
+                      <div id="dropdown" className={`max-h-[350px] overflow-y-auto ${_openPopUps.menu_companies ? 'z-10 opacity-1' :'opacity-0 translate-y-2 pointer-events-none'} left-[-20px] absolute transition duration-150 ease-in-out max-w-[180px]  bg-white divide-y divide-gray-200 rounded-lg shadow w-44`}>
                        {user.companies?.filter(i=>i.id!=user?.company.id).map((i,_i)=>(
                             <ul className="py-2 text-sm text-gray-700" aria-labelledby="dropdownDefaultButton">
-                                    <li>
-                                        <a href="#" className="block px-4 py-2 hover:text-app_orange-400">{i.name}</a>
+                                    <li onClick={()=>_change_company(i)}>
+                                        <a className="block px-4 py-2 cursor-pointer hover:text-app_orange-400">{i.name}</a>
                                     </li>
                                 </ul>
                             ))}
@@ -241,9 +242,9 @@ function App({float}) {
 
           </div>
          
-          <div className={`relative ${_menu.open || float ? 'min-w-[220px]' : ''}  `}>
+          <div className={`relative ${_menu.open || float ? 'min-w-[200px]' : ''}  `}>
             
-            <div className={`${_menu.open && !float ? 'min-w-[220px]':''} absolute flex items-center justify-center flex-col`}>
+            <div className={`${_menu.open && !float ? 'min-w-[200px]':''} absolute flex items-center justify-center flex-col`}>
 
             {menuItems.map(item=>(
                 <>

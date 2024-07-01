@@ -21,6 +21,7 @@ import Autocomplete from '@mui/material/Autocomplete'
 import ExpandMoreOutlined from '@mui/icons-material/ExpandMoreOutlined';
 import DefaultButton from '../../components/Buttons/default';
 import colors from '../../assets/colors.json'
+import FilterOptions from './components/options-filters';
 
 function App() {
  const { t } = useTranslation();
@@ -28,10 +29,11 @@ function App() {
  const [editMode,setEditMode]=React.useState(false)
  const {user} = useAuth()
 
-
+ const [showAccounts,setAccounts]=useState(false)
 
  const db={
-   user:new PouchDB('user')
+   user:new PouchDB('user'),
+
  }  
 
  useEffect(()=>{
@@ -52,8 +54,8 @@ function App() {
  const [showPassword, setShowPassword] = React.useState(false);
  const [loading, setLoading] = React.useState(false);
  const [valid, setValid] = React.useState(false);
- const {makeRequest,_add,_update,_loaded,_scrollToSection} = useData();
- 
+ const {makeRequest,_add,_update,_loaded,_scrollToSection,_showPopUp} = useData();
+  
    let initial_form={
       name:'',
       last_name:'',
@@ -439,6 +441,26 @@ async function SubmitForm(){
                                     <div className="">
                                     <h2 className="text-lg font-semibold leading-4 text-slate-700">{t('userPreferences.notifications.reminders')}</h2>
                                     <p className="font- text-slate-600">{t('userPreferences.notifications.remindersText')}</p>
+
+                                    <div className=" mt-8 w-full">
+                                         <span className="mr-3 font-light">Periodo de notificações</span>
+                                         <select id="category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 p-2.5">
+                                              <option>1 dia antes</option>
+                                              <option>Dentro de 7 dias</option>
+                                              <option>Dentro de 15 dias</option>
+                                         </select>
+                                    </div>
+                                    <div className="mt-3 w-full flex items-center">
+                                     <span className="mr-3 font-light">Periodo de notificações</span>
+                                    
+                                      <div className="_not_bill_accounts">
+                                        <button onClick={()=>_showPopUp('not_bill_accounts')}  className={`flex relative items-center bg-gray-50 border border-gray-300 text-gray-900 text-sm  focus:outline-none font-medium  rounded-lg text-[13px] px-3 py-[3px] text-center`}>
+                                            <FilterOptions show={showAccounts}/>
+                                        <span className="text-gray-900 ml-1 rounded-[0.3rem] flex p-1 items-center font-light">Todas <ExpandMoreOutlined style={{width:16}}/></span>
+                                        </button>
+                                      </div>
+                                    </div>
+
                                     </div>
                                     <NotificationToggles/>
                                 </div>
@@ -454,6 +476,10 @@ async function SubmitForm(){
             
                      </div>
            </>}
+
+           <div className="py-4">
+             <DefaultButton text={'Actualizar'} disabled={false}/>
+           </div>
 
          </UserPreferencesLayout>
     </>

@@ -46,7 +46,9 @@ import { Switch } from '@mui/material';
 
           const [loading, setLoading] = React.useState(false);
           const [valid, setValid] = React.useState(false);
-          const {_add,_update,_initial_form,_cn_op,_scrollToSection} = useData();
+          const {_add,_update,_initial_form,_cn_op,_scrollToSection,_openDialogRes,_setOpenDialogRes,_setOpenCreatePopUp} = useData();
+          
+          
           
             let initial_form={
                name:'',
@@ -90,12 +92,20 @@ import { Switch } from '@mui/material';
                   }
 
                    try{
-                     if(id){
+                     if(id && !isPopUp){
                         _update('payment_methods',[{...formData}])
                         toast.success('Conta actualizada')
                      }else{
                           let new_id=Math.random()
-                          _add('payment_methods',[{...formData,id:new_id,_id:Math.random().toString()}])
+                          let new_item={...formData,id:new_id,_id:Math.random().toString()}
+                          let res=await _add('payment_methods',[new_item])
+
+                        
+
+
+                          if(res.ok){
+                            _setOpenDialogRes({..._openDialogRes,item:new_item,page:'payment_methods'})
+                          }
 
                         /*if(formData.has_initial_amount && parseFloat(formData.initial_amount)){
                            _add('transations',[{..._initial_form.transations,
@@ -110,6 +120,11 @@ import { Switch } from '@mui/material';
                         setVerifiedInputs([])
                         toast.success('Conta adicionada')
                         setFormData(initial_form)
+
+                        if(isPopUp) _setOpenCreatePopUp('')
+
+
+
                      }
                  }catch(e){
                         console.log(e)
@@ -141,13 +156,11 @@ import { Switch } from '@mui/material';
           },[formData.has_initial_amount])
 
 
-          console.log(formData)
-
         
          return (
            <>
 
-         <FormLayout isPopUp={isPopUp} maxWidth={'700px'} name={id ? 'Actualizar' : 'Nova conta'} formTitle={id ? 'Actualizar' : 'Adicionar nova'}>
+         <FormLayout isPopUp={isPopUp} maxWidth={'700px'} name={id ? 'Actualizar' : 'Nova conta'} formTitle={isPopUp ? 'Adicionar novo meio de pagamento' : (id ? 'Actualizar' : 'Adicionar nova')}>
 
                     <FormLayout.Section maxWidth={'700px'}>
 
@@ -275,7 +288,7 @@ import { Switch } from '@mui/material';
                     <div className="mb-10"></div>
                                   
              
-                    <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={id}/>
+                    <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={id && !isPopUp}/>
 
                </FormLayout>
            </>

@@ -2,21 +2,24 @@ import { createContext, useContext, useState ,useEffect} from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import PouchDB from 'pouchdb';
-
-
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 import io from 'socket.io-client';
 //const socket = io('http://localhost:3001');
 import { useTranslation } from 'react-i18next';
 
-
+import PouchDBFind from 'pouchdb-find';
+import toast from 'react-hot-toast';
+PouchDB.plugin(PouchDBFind);
 
 
 const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
 
+    const {user,APP_BASE_URL}=useAuth()
+
     const { t } = useTranslation();
-    let process={env:{REACT_APP_BASE_URL:'https://server-fms.onrender.com'}}
 
     let initial_filters={
       search: '',
@@ -57,7 +60,7 @@ export const DataProvider = ({ children }) => {
 
 
 
-    const _updateFilters = (newFilters,setSearchParams) => {
+    const _updateFilters = async (newFilters,setSearchParams) => {
 
       let params_names=Object.keys(_filters)
      
@@ -67,7 +70,7 @@ export const DataProvider = ({ children }) => {
 
       params_names.forEach(p=>{
           if(p=="end_date" || p=="start_date"){
-            if(updatedFilters[p]){
+            if(typeof updatedFilters[p] == "object"){
                queryParams[p] = updatedFilters[p].toISOString().split('T')[0]
             }
           }else if(typeof _filters[p]=="object"){
@@ -83,6 +86,8 @@ export const DataProvider = ({ children }) => {
       })
 
       setSearchParams(queryParams);
+
+      return
     };
 
 
@@ -107,9 +112,12 @@ export const DataProvider = ({ children }) => {
     setMessage('');
   };
 */
-  const {token} = useAuth();
+  const {token,setUser} = useAuth();
+
+  const db_user=new PouchDB('user')
   const db={
     managers:new PouchDB('managers'),
+    settings:new PouchDB('settings'),
     clients:new PouchDB('clients'),
     investors:new PouchDB('investors'),
     suppliers:new PouchDB('suppliers'),
@@ -139,7 +147,8 @@ export const DataProvider = ({ children }) => {
   const [_payment_methods,setPaymentMethods]=useState([])
   const [_companies,setCompanies]=useState([])
   const [_budget,setBudget]=useState([])
-
+  const [_settings,setSettings]=useState([])
+  const [_loading,setLoading]=useState(true)
 
   const [_loaded,setLoaded]=useState([])
   const [_firstUpdate,setFirstUpdate]=useState(false)
@@ -159,31 +168,85 @@ export const DataProvider = ({ children }) => {
     {name:'payment_methods',edit_name:'payment_methods',update:setPaymentMethods,db:db.payment_methods,get:_payment_methods,n:t('common.dbItems.paymentMethods')},
     {name:'transations',edit_name:'transations',update:setTransations,db:db.transations,get:_transations,n:t('common.dbItems.transations')},
     {name:'budget',update:setBudget,db:db.budget,get:_budget},
+    {name:'settings',update:setSettings,db:db.settings,get:_settings},
     {name:'companies',edit_name:'companies',update:setCompanies,db:db.companies,get:_companies,n:t('common.dbItems.companies')},
   ]
 
 
+
   useEffect(()=>{
+    if(_loaded.length || !user) return
     (async()=>{
-      for (let i = 0; i < dbs.length; i++) {
-        let docs=await  dbs[i].db.allDocs({ include_docs: true })
-        docs=docs.rows.map(i=>i.doc).filter(i=>!i.deleted)
-        docs.sort((a, b) => a.index_position - b.index_position)
-        dbs[i].update(docs)
-        handleLoaded('add',dbs[i].name)
-
-        if(i==dbs.length - 1) setFirstUpdate(true)
-      }
-      
+      _update_all()
     })()
+  },[user])
 
+
+ async function  _change_company(company){
+      setLoading(true)
+
+      let user=await db_user.get('user')
+      await db_user.put({...user,company,_rev:user._rev})
+      setUser({...user,company})
+      _update_all(company)
+
+   
+ }
+
+ const mapFunction = function (doc) {
+  if (doc.company_id) {
+    emit(doc.company_id, null);
+  }
+};
+
+
+ async function _update_all(company){
+
+    setLoading(true)
+
+    try{
+      
+        for (let i = 0; i < dbs.length; i++) {
+            let docs
+          if(dbs[i].name=="managers" || dbs[i].name=="companies" || dbs[i].name=="categories"){
+            docs=await  dbs[i].db.allDocs({ include_docs: true })
+          }else{
+            docs=await  dbs[i].db.query(mapFunction,{ include_docs: true, key:company ? company.id : user.company.id })
+           }
+
+            docs=docs.rows.map(i=>i.doc).filter(i=>!i.deleted)
+            docs.sort((a, b) => a.index_position - b.index_position)
+             dbs[i].update(docs)
+            handleLoaded('add',dbs[i].name)
+
+            if(i==dbs.length - 1){
+              setFirstUpdate(true)
+            }
+      }
+
+        await init()
+
+        setLoading(false)
+
+        return {ok:true}
+
+    }catch(e){
+            toast.error(`Erro inesperado, detalhes do erro:${e}`)
+            setLoading(false)
+            
+            return {e}
+   
+    }
+
+  
     
-  },[])
+ }
 
 
-  useEffect(()=>{
-     if(_firstUpdate) init()
-  },[_firstUpdate])
+ /* useEffect(()=>{
+     if(_firstUpdate && _loaded.includes('categories')) init()
+  },[_firstUpdate,_loaded])*/
+
 
 
   function _clearData(){
@@ -192,37 +255,76 @@ export const DataProvider = ({ children }) => {
         dbs.filter(f=>f.name==i.name)[0].update([])
     })
 
-
-
-     
   }
 
 
   const _scrollToSection = (to) => {
     const Section = document.getElementById(to);
-  
-    
-
     if (Section) {
       Section.scrollIntoView({ behavior: 'smooth' });
     }
  }
 
 
+ 
+ async function deleteAllDocuments(db) {
+  try {
+    const allDocs = await db.allDocs({ include_docs: true });
+    const docsToDelete = allDocs.rows.map(row => ({
+      ...row.doc,
+      _deleted: true
+    }));
+    const result = await db.bulkDocs(docsToDelete);
+    console.log('All documents deleted successfully', result);
+    return {ok:true}
+  } catch (err) {
+    console.error('Error deleting all documents', err);
+    return {error:err}
+  }
+}
+
+
+console.log(_settings)
+
+
+
   async function init() {
 
-    /*let default_categories = [
-      { name: 'Produtos', field: 'products_in', dre: 'inflows', type: 'in', sub_name: 'Produtos (entradas)', color: 'rgb(0, 128, 0)', total: 0 },  // green
-      { name: 'Serviços', field: 'services_in', dre: 'inflows', type: 'in', sub_name: 'Serviços (entradas)', color: 'rgb(0, 255, 127)', total: 0 },  // spring green
-      { name: 'Outras receitas', field: 'other-sales-revenue', dre: 'capital', type: 'in', color: 'rgb(0, 255, 127)', total: 0 },  // spring green
+    let default_settings={
+      alerts:{
+        pushNotifications: false,
+        email: true,
+        sms: false,
+        whashapp:false,
+      },
+      updates:{
+        pushNotifications: false,
+        email: true,
+        sms: false,
+        whashapp:false,
+      },
+      reminder:{
+        pushNotifications: false,
+        email: true,
+        sms: false,
+        whashapp:false,
+      },
+      bills_not:{
+        on:true,
+        days:7,
+        accounts:['all']
+      }
+    }
+
+
+    try{
+       let res=await db.settings.get('settings')
+       
+    }catch(e){
+      await db.settings.put({_id:'settings',...default_settings,createdAt:new Date()})
       
-      { name: 'Despesas operacionais', field: 'expenses_out', dre: 'expenses', type: 'out', color: 'rgb(255, 0, 0)', total: 0 },  // red
-      { name: 'Custo de mercadorias vendidas ', field: 'products_out', dre: 'direct-costs', type: 'out', sub_name: 'Produtos (saídas)', color: 'rgb(220, 20, 60)', total: 0 },  // crimson
-      { name: 'Custo de serviços prestados', field: 'services_out', dre: 'direct-costs', type: 'out', sub_name: 'Serviços (saídas)', color: 'rgb(255, 99, 71)', total: 0 },  // tomato
-      { name: 'Empréstimos', field: 'loans_out', dre: 'loans', type: 'out', color: 'rgb(128, 0, 0)', total: 0 },  // maroon
-      { name: 'Investimentos', field: 'investments_out', dre: 'investments', type: 'out', color: 'rgb(255, 215, 0)', total: 0 },  // gold
-      { name: 'Outros custos directos', field: 'state_out', dre: 'direct-costs', type: 'out', color: 'rgb(139, 69, 19)', total: 0, dre_name: 'Taxas e impostos' }  // saddle brown
-  ]*/
+    }
+
 
       
     let default_categories = [
@@ -235,26 +337,26 @@ export const DataProvider = ({ children }) => {
       { name: 'Custo de mercadorias vendidas ', field: 'products_out', dre: 'direct-costs', type: 'out', color: 'rgb(220, 20, 60)', total: 0 },  // crimson
       { name: 'Custo de serviços prestados', field: 'services_out', dre: 'direct-costs', type: 'out', color: 'rgb(255, 99, 71)', total: 0 },  // tomato
       { name: 'Empréstimos', field: 'loans_out', dre: 'loans', type: 'out', color: 'rgb(128, 0, 0)', total: 0 },  // maroon
-      { name: 'Investimentos', dre: 'outflows',field: 'investments_out', dre: 'investments', type: 'out', color: 'rgb(255, 215, 0)', total: 0 },  // gold
+      { name: 'Investimentos',field: 'investments_out', dre: 'investments', type: 'out', color: 'rgb(255, 215, 0)', total: 0 },  // gold
       { name: 'Outros custos directos', field: 'state_out', dre: 'direct-costs', type: 'out', color: 'rgb(139, 69, 19)', total: 0}  // saddle brown
   
   ]
 
   
   if(!_categories.length){
-
+   
     try{
-
+        await deleteAllDocuments(db.categories)
         for (let i = 0; i < default_categories.length; i++) {
-
-         
           await db.categories.put({...default_categories[i],index_position:i + 1,_id:Math.random().toString(),deleted:false,id:Math.random().toString()})  
-
         }
-
+      
+        return
     }catch(e){
+          
            console.log(e)
-           console.log(`Ocorreu um erro de inicialização. Messagem de erro (${e.toString()})`)  
+           console.log(`Ocorreu um erro de inicialização. Messagem de erro (${e.toString()})`)
+           return  
     }
 
   }
@@ -263,13 +365,11 @@ export const DataProvider = ({ children }) => {
 
  async function _add(from,array){
 
-
-
         try{
          
           for (let i = 0; i < array.length; i++) {
             let index_position=dbs.filter(i=>i.name==from)[0].get.length + 1
-            await dbs.filter(i=>i.name==from)[0].db.put({index_position,...array[i],createdAt:new Date().toISOString()})
+            await dbs.filter(i=>i.name==from)[0].db.put({index_position,...array[i],createdAt:new Date().toISOString(),company_id:user.company.id,created_by:user.id,updated_by:user.id})
           }
           _get(from)
 
@@ -281,11 +381,13 @@ export const DataProvider = ({ children }) => {
 
  }
 
- const [_openCreatePopUp,_setOpenCreatePopUp]=useState(null)
+ const [_openCreatePopUp,_setOpenCreatePopUp]=useState('')
+ const [_openDialogRes,_setOpenDialogRes]=useState({item:null,page:null})
 
 
-function _showCreatePopUp(page){
+function _showCreatePopUp(page,from,details){
     _setOpenCreatePopUp(page)
+    _setOpenDialogRes({from,details})
 }
 
  let _initial_form={
@@ -302,6 +404,8 @@ function _showCreatePopUp(page){
       payments:[{account_id:null,amount:'',name:''}],
       account_origin:'',
       has_fees:false,
+      invoice_number:'',
+      invoice_emission_date:'',
       files:[],
       fine:'',
       link_payment:false
@@ -326,7 +430,7 @@ function _showCreatePopUp(page){
       try{
 
       let docs=await selected.db.get(array[0]._id)
-      await selected.db.put({...array[0],_rev:docs._rev})
+      await selected.db.put({...array[0],updated_by:user.id,_rev:docs._rev})
       _get(from)
 
       return {ok:true}
@@ -352,9 +456,9 @@ function _showCreatePopUp(page){
       return data
  }
 
-  async function _get(from){
+  async function _get(from,do_not_update){
     let selected=dbs.filter(i=>i.name==from)[0]
-
+    let docs
    
    let response
    if(selected.remote){
@@ -367,7 +471,15 @@ function _showCreatePopUp(page){
       response.sort((a, b) => a.index_position - b.index_position)
       selected.update(response)
    }else{
-      let docs=await  selected.db.allDocs({ include_docs: true })
+      
+
+      if(from=="categories" || from=="managers" || from=="companies"){
+        docs=await  selected.db.allDocs({ include_docs: true })
+      }else{
+        docs=await  selected.db.query(mapFunction,{ include_docs: true, key: user.company.id })
+      }
+      
+     
       docs=docs.rows.map(i=>i.doc).filter(i=>!i.deleted)
       docs.sort((a, b) => a.index_position - b.index_position)
       selected.update(docs)
@@ -377,6 +489,12 @@ function _showCreatePopUp(page){
       }
    }
       handleLoaded('add',from)
+
+
+
+      return docs
+
+
 
   }
 
@@ -584,12 +702,30 @@ let _projected=[]
 let _done=[]
 
 
+ 
+  let account_origin_in_filters=[]
+  let accounts_in_filters=[]
+  let isAccountsFilterOn=false
+
+  if(filterOptions){
+      if(filterOptions.filter(i=>i.field=="_account_categories")[0]){
+         isAccountsFilterOn=filterOptions.filter(i=>i.field=="_account_categories")[0].groups[0].selected_ids.length
+         accounts_in_filters=filterOptions.filter(i=>i.field=="_account_categories")[0].groups[0].selected_ids
+         account_origin_in_filters=_account_categories.filter(i=>accounts_in_filters.includes(i.id)).map(i=>i.account_origin)
+
+      }
+     
+  }
+
+
+
+ 
   let category_types_ob={}
 
   _categories.forEach(e=>category_types_ob[e.field]=[])
 
 
-  _account_categories.forEach(c=>{
+  _account_categories.filter(i=>accounts_in_filters.includes(i.id) || !isAccountsFilterOn).forEach(c=>{
           category_types_ob[c.account_origin].push({name:c.name,color:'#16a34a',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
           let id=Math.random()
           let row={projected:0,done:0}
@@ -607,7 +743,7 @@ let _done=[]
 
 let transations_types={inflows:[],outflows:[]}
 
-_categories.forEach((c,index)=>{
+_categories.filter(i=>account_origin_in_filters.includes(i.field) || !isAccountsFilterOn).forEach((c,index)=>{
       let from=c.type == "in" ? 'inflows' :'outflows'
       transations_types[from][index]={...c,name:c.dre_name ? c.dre_name : c.name,color:'#16a34a',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
         let id=Math.random()
@@ -662,10 +798,12 @@ _categories.forEach((c,index)=>{
                })
              }
 
-
-             if(g.field=='_accounts' && g.selected_ids.length){
+             if(g.field=="_account_categories" && g.selected_ids.length){
                 done.forEach((_,i)=>{
                     done[i]=done[i].filter(i=>(igual ?  g.selected_ids.includes(i.transation_account.id) : !g.selected_ids.includes(i.transation_account.id)))
+                })
+                projected.forEach((_,i)=>{
+                  projected[i]=projected[i].filter(i=>(igual ?  g.selected_ids.includes(i.account_id) : !g.selected_ids.includes(i.account_id)))
                 })
              }
 
@@ -748,7 +886,7 @@ function convert_stat_data_to_daily(data,filterOptions){
         })},
 
 
-        {name:'Saldo do mês anterior',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
+        /*{name:'Saldo do mês anterior',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
           let month=new Date().getMonth()
           let year=new Date().getFullYear()
           let id=['last_balance']
@@ -759,7 +897,7 @@ function convert_stat_data_to_daily(data,filterOptions){
           row['done']=_done[id][_i].filter(i=>!(i.year==year && i.month==month)).map(item => item.amount).reduce((acc, curr) =>  acc + curr, 0)
           row['percentage']=!row['done'] && !row['projected'] ? 0 : !row['done'] && row['projected'] ? 0 : row['done'] && !row['projected'] ? 100 : !row['projected'] ? 100 :  (parseFloat(row['done']) / parseInt(row['projected'])) * 100
           return row
-        })},
+        })},*/
 
         {name:'Total de recebimentos',field:'inflow',color:'#16a34a',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
           let id=['inflow']
@@ -1242,6 +1380,7 @@ function _get_dre_stats(filterOptions,period){
 
 
   function handleLoaded(action,item){
+    
       if(action=='add'){
          setLoaded((prev)=>[...prev.filter(i=>i!=item),item])
       }else{
@@ -1321,8 +1460,164 @@ function generate_color() {
 }
 
 
+
+const _exportToExcel = (data, fileName) => {
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], { type: 'application/octet-stream' });
+  saveAs(blob, `${fileName}.xlsx`);
+};
+
+function exportToExcelArray(data,fileName){
+  const wb = XLSX.utils.book_new();
+  const wsData = data;
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], { type: 'application/octet-stream' });
+  saveAs(blob, `${fileName}.xlsx`);
+}
+
+
+const [_printData,setPrintData]=useState({data:[],type:null/**array or object */})
+const _print = (data,type) =>{
+       setPrintData({data,type})
+       setTimeout(()=> window.print(),100)
+     
+}
+
+
+
+
+function _print_exportExcel(data,type,currentMenu,period,project_only,month,title){
+
+  let _d=[]              
+  let months=['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'].filter((_,_i)=>currentMenu!=1 || _i==month)
+  if(period=="m"){
+        let header=['Categoria de lançamento']
+        let extended_months_to_two_col=[]
+
+        months.forEach((m,_i)=>{
+          extended_months_to_two_col.push(m)
+          if(project_only==1)  extended_months_to_two_col.push('')
+        })
+        
+        header=[...header,...extended_months_to_two_col]
+
+        _d.push(header)
+
+        let sub_header=[''] 
+
+        
+      
+        for (let f = 0; f < (currentMenu==1 ? 1 : 12); f++) {
+           
+            if(project_only==3 || project_only==1) sub_header.push('Previsto')
+            if(project_only==2 || project_only==1) sub_header.push('Realizado')
+        }
+
+        _d.push(sub_header)
+       
+
+       data.forEach((i,_i)=>{
+           let row=[]
+           row.push(i.name)
+           i.items.forEach((f,_i)=>{
+             if(currentMenu!=1 || _i==month){
+              if(project_only==3 || project_only==1) row.push(f.projected)
+              if(project_only==2 || project_only==1) row.push(f.done)
+             }
+           })
+           _d.push(row)
+
+           if(i?.sub){
+               i.sub.filter(f=>_account_categories.some(j=>j.account_origin==f.field)).forEach(f=>{
+                  let row=[]
+                  row.push(`  ${f.name}`)
+                  f.items.forEach((j,_i)=>{
+                    if(currentMenu!=1 || _i==month){
+                      if(project_only==3 || project_only==1) row.push(j.projected)
+                      if(project_only==2 || project_only==1) row.push(j.done)
+                    }
+                  })
+                  _d.push(row)
+
+                         if(f.sub){
+                            f.sub.forEach(g=>{
+                              let row=[]
+                              row.push(`    ${g.name}`)
+                              g.items.forEach((h,_i)=>{
+                                if(currentMenu!=1 || _i==month){
+                                  if(project_only==3 || project_only==1) row.push(h.projected)
+                                  if(project_only==2 || project_only==1) row.push(h.done)
+                                }
+                              })
+                              _d.push(row)
+                            })
+
+                         }
+
+                        
+
+
+               })
+         }
+
+         _d.push([])
+
+       })
+
+  }else if(period=="d"){
+
+        let header=['Dias']
+        
+      
+        
+        let sub_header=['']
+        for (let f = 0; f < (currentMenu==1 ? 4 : 12); f++) {
+          if(project_only==3 || project_only==1) sub_header.push('Previsto')
+          if(project_only==2 || project_only==1) sub_header.push('Realizado')
+        }
+
+        ['Saidas','Entradas','Resultado','Saldo'].forEach(i=>{
+            header.push(i)
+            if(project_only==1) header.push('')
+        })
+
+        
+        _d.push(header)
+        _d.push(sub_header)
+
+
+
+        _d=[..._d,...data.map(i=>{
+          let row=[i.day]
+          i.items.forEach((h,_i)=>{
+              if(project_only==3 || project_only==1) row.push(h.projected)
+              if(project_only==2 || project_only==1) row.push(h.done)
+          })
+          return row
+        })]
+
+  }
+
+  if(type=="excel"){
+    _d.unshift([''])
+    _d.unshift([title])
+    exportToExcelArray(_d,`Relatorio ${period=="m" ? 'mensal' :'diário'} de fluxo de caixa - ${_convertDateToWords(_today(),null,'all')}  ${new Date().getHours()}_${new Date().getMinutes()}`)
+  }else{
+    _print(currentMenu==0 ? [] : _d,'array')
+  }  
+}
+
+
+
+
   function _get_stat(name,data){
 
+    try{
           let period=data?.period
 
           let labels=period=="m" ? ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'] : Array.from({ length: 31 }, (_,i) => i+1)
@@ -1536,6 +1831,10 @@ function generate_color() {
 
          
        }
+
+        }catch(e){
+              window.location.reload()
+       }
        
   }
 
@@ -1708,6 +2007,7 @@ if(filterOptions){
   let initial_popups={
    nots:false,
    search:false,
+   not_bill_accounts:false,
    menu_companies:false,
  }
 
@@ -1772,6 +2072,8 @@ if(filterOptions){
     _setFilteredContent,
     _menu,
     _setMenu,
+    _update_all,
+    _change_company,
     _get_cash_managment_stats,
     _get_dre_stats,
     _get_budget_managment_stats,
@@ -1780,6 +2082,8 @@ if(filterOptions){
     _payment_methods,
     _investments,
     _filters,
+    _print,
+    _printData,
     _updateFilters,
     _cn,
     _cn_n,
@@ -1791,7 +2095,14 @@ if(filterOptions){
     _divideDatesInPeriods,
     _sendFilter,
     _clearData,
+    _settings,
     _initial_form,
+    _loading,
+    _openDialogRes,
+    APP_BASE_URL,
+    _setOpenDialogRes,
+    _print_exportExcel,
+    _exportToExcel,
     dbs
   };
 
@@ -1808,11 +2119,11 @@ if(filterOptions){
      }
 
      if(options.method=="post") {
-          response = await axios.post(`${process.env.REACT_APP_BASE_URL}/`+options.url,postData,{headers}); 
+          response = await axios.post(`${APP_BASE_URL}/`+options.url,postData,{headers}); 
      }else if(options.method=="delete"){
-          response = await axios.delete(`${process.env.REACT_APP_BASE_URL}/`+options.url,{headers});
+          response = await axios.delete(`${APP_BASE_URL}/`+options.url,{headers});
      }else{
-          response = await axios.get(`${process.env.REACT_APP_BASE_URL}/`+options.url,{headers});
+          response = await axios.get(`${APP_BASE_URL}/`+options.url,{headers});
      }
       return response.data;
 

@@ -106,11 +106,13 @@ import MultipleSelectChip from '../../../components/TextField/chipInput';
 
             
 
+            
+
             if(id){
-               setChipOptions(data._companies.filter(i=>(formData.companies.includes(i.id) && i.admin_id==user.id) || (!canEdit && formData.companies.includes(i.id))).map(i=>i.name))
-            }else{
-               setChipNames(data._companies.filter(i=>i.admin_id==user.id).map(i=>i.name))
+               setChipOptions(data._companies.filter(i=>(formData.companies.includes(i.id) && i.admin_id==user.id) || !canEdit).map(i=>i.name))
             }
+             setChipNames(data._companies.filter(i=>i.admin_id==user.id).map(i=>i.name))
+            
                
           },[initialized])
 
@@ -191,9 +193,12 @@ import MultipleSelectChip from '../../../components/TextField/chipInput';
 
 
           useEffect(()=>{
+            console.log(formData)
             let v=true
             Object.keys(formData).forEach(f=>{
-               if((!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) || (!formData[f].length && required_fields.includes(f))){
+                
+               console.log(f,formData[f])
+               if((!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) || (!formData[f]?.length && required_fields.includes(f))){
                   v=false
                }
            })

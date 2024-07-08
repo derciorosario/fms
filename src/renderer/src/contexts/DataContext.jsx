@@ -202,13 +202,12 @@ const [updateSync,setUpdateSync]=useState(Math.random())
 
       remoteDBs.forEach(i=>{
         let _db=new PouchDB(i)
-        _db.sync(new PouchDB(`http://admin:secret@http://13.40.24.65:3000/${i}`), {
+        _db.sync(new PouchDB(`http://admin:secret@13.40.24.65:3000/${i}`), {
           live: true,
           retry: true
         }).on('change', (info) => {
           console.log('Change:'+i, info);
 
-          alert('Change')
         }).on('paused', (err) => {
           console.log('Replication paused:'+i);
         }).on('active', () => {

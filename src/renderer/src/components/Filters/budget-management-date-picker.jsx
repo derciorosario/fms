@@ -179,11 +179,11 @@ React.useEffect(()=>{
        <>
           <div className={`__date-picker-period-${id}`}>
 
-            <button onClick={()=>handleClickFilter()} type="button" className="cursor-text text-gray-900 bg-white flex hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-[0.3rem] text-sm px-3 py-[8px] text-center items-center dark:focus:ring-gray-600 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:bg-gray-700 me-2 mb-2">
+            <button onClick={()=>handleClickFilter()} type="button" className="cursor-text text-gray-900 bg-white flex hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-[0.3rem] text-sm px-3 py-[8px] text-center items-center me-2 mb-2">
             <span className="text-[14px]">{!options[id+'Date'] ? 'Selecione a data' : _convertDateToWords(options[id+'Date']?.toJSON()?.split('T')?.[0], options[id+'Date']?.toString()?.split(' ')?.[2])}</span><ArrowDropDownIcon/>
             </button>
            
-           <div id="dropdown"  className={`${!open ? 'hidden' :''}  z-10 absolute top-1 translate-y-[40px] left-0 w-56 p-3 bg-white rounded-lg shadow dark:bg-gray-700`}>
+           <div id="dropdown"  className={`${!open ? 'hidden' :''}  z-10 absolute top-1 translate-y-[40px] left-0 w-56 p-3 bg-white rounded-lg shadow`}>
 
 <div className="w-full">
 
@@ -197,7 +197,7 @@ React.useEffect(()=>{
 
               <div className="flex border-b-[1px] items-center pb-2 mb-2">
 
-                    <h6 key={_g} className={`mb-3 ${options[id+'_groups'].length==1 ? 'hidden' :''} mr-2 text-sm font-medium text-gray-900 dark:text-white flex justify-between items-center`}>
+                    <h6 key={_g} className={`mb-3 ${options[id+'_groups'].length==1 ? 'hidden' :''} mr-2 text-sm font-medium text-gray-900 flex justify-between items-center`}>
                     <span>{g.name}</span>
                     <svg className="w-5 hidden" aria-hidden="true" data-accordion-icon="" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path fillRule="evenodd" clipRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z">
@@ -206,8 +206,8 @@ React.useEffect(()=>{
                     </h6>
 
                     <div class={`${!g.dropdown ? 'hidden' :''} col-span-2 sm:col-span-1 flex-1`}>
-                          <label for="category" class="hidden text-sm font-medium text-gray-900 dark:text-white">Category</label>
-                          <select value={g.selected_ids[0]} onChange={(e)=>check_and_uncheck(g.field,g.items[parseInt(e.target.value)])} id="category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                          <label for="category" class="hidden text-sm font-medium text-gray-900">Category</label>
+                          <select value={g.selected_ids[0]} onChange={(e)=>check_and_uncheck(g.field,g.items[parseInt(e.target.value)])} id="category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
                           <option value="" selected disabled>Selecione</option>
                           {g.items.map((i,_i)=>(
                             
@@ -240,7 +240,7 @@ React.useEffect(()=>{
      
      <div className="inset-y-0 start-0 flex items-center pointer-events-none">
        <svg
-         className="w-4 h-4 text-gray-500 dark:text-gray-400"
+         className="w-4 h-4 text-gray-500"
          aria-hidden="true"
          xmlns="http://www.w3.org/2000/svg"
          fill="currentColor"
@@ -261,7 +261,7 @@ React.useEffect(()=>{
           startDate={options.startDate}
           dateFormat="dd-MM-yyyy"
           endDate={options.endDate}
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
           placeholderText="Data de inicio"
         />
 
@@ -277,7 +277,7 @@ React.useEffect(()=>{
           endDate={options.endDate}
           minDate={minMaxDates.end.min}
           maxDate={minMaxDates.end.max}
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
           placeholderText="Data de fim"
         />
 </div>

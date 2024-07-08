@@ -3,53 +3,59 @@ import React, { useEffect, useState } from 'react';
 import TextField from '@mui/material/TextField';
 import toast from 'react-hot-toast';
 import { useData  } from '../../../contexts/DataContext';
-import {useParams} from 'react-router-dom';
+import {useParams,useNavigate, useLocation} from 'react-router-dom';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import ListSubheader from '@mui/material/ListSubheader';
 import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select';
 import FormLayout from '../../../layout/DefaultFormLayout';
+import { v4 as uuidv4 } from 'uuid';
+import { useAuth } from '../../../contexts/AuthContext';
 
 
-import PouchDB from 'pouchdb';
-       
-       
        function App({isPopUp}) {
 
           const { id } = useParams()
+          const navigate = useNavigate()
+          const {pathname} = useLocation()
 
-          const db={
-            account_categories:new PouchDB('account_categories')
-          } 
+
+          const {db} = useAuth() 
 
           const [items,setItems]=React.useState([])
+          const [initialized,setInitialized]=React.useState()
+          const required_data=['account_categories']
           
 
           useEffect(()=>{
+            if(!id || !db.account_categories || formData.id==id) return 
 
-                if(!id) return
+               (async()=>{
 
-                (async()=>{
-                try {
-                    let item=await db.account_categories.get(id)
-                    setFormData(item)
-                } catch (error) {
-                    console.log(error)
-                }
-                })()
+                     let item =  await db.account_categories.find({selector: {id}})
+                     item=item.docs[0]
+                     if(item){
+                     setFormData(item)
 
-          },[])
+                     }else{
+                      toast.error('Item não encontrado')
+                      navigate(`/accounts`)
+                     }
+
+               })()
+
+          },[db,pathname])
 
           const [loading, setLoading] = React.useState(false);
           const [valid, setValid] = React.useState(false);
-          const {makeRequest,_account_categories,_add,_get,_update,_loaded,_categories,_setOpenDialogRes,_setOpenCreatePopUp,_openDialogRes} = useData();
+          const {_account_categories,_add,_get,_update,_loaded,_categories,_setOpenDialogRes,_setOpenCreatePopUp,_openDialogRes} = useData();
           
             let initial_form={
                name:'',
                notes:'',
                account_origin:'',
-               transation_type:'',
+               type:'',
                deleted:false
            }
 
@@ -58,13 +64,22 @@ import PouchDB from 'pouchdb';
           const [formData, setFormData] = React.useState(initial_form);
 
           useEffect(()=>{
-            (async()=>{
-                setItems(await _get('account_categories'))
-            })()
-          },[])
+            if(!(required_data.some(i=>!_loaded.includes(i)))){
+                setInitialized(true)
+            }
+           },[_loaded])
+          
+           useEffect(()=>{
+                _get(required_data.filter(i=>!_loaded.includes(i)))    
+           },[db])
+
+           useEffect(()=>{
+                  setItems(_account_categories)
+           },[_account_categories])
+
 
           useEffect(()=>{
-            setFormData({...formData,transation_type:_categories.filter(i=>i.field==formData.account_origin)?.[0]?.type})
+            setFormData({...formData,type:_categories.filter(i=>i.field==formData.account_origin)?.[0]?.type})
           },[formData.account_origin])
         
        
@@ -81,7 +96,7 @@ import PouchDB from 'pouchdb';
          async function SubmitForm(){
               
               if(valid){
-                  if(items.some(i=>i.name.toLowerCase() == formData.name.toLowerCase() && i._id!=id)){
+                  if(items.some(i=>i.name.toLowerCase() == formData.name.toLowerCase() && i.id!=id)){
                      toast.error('Nome já existe')
                      return
                   }
@@ -92,7 +107,7 @@ import PouchDB from 'pouchdb';
                         toast.success('Canta actualizada')
                      }else{
                         
-                        let new_item={...formData,id:Math.random().toString(),_id:Math.random().toString()}
+                        let new_item={...formData,id:uuidv4()}
                         let res=await _add('account_categories',[new_item])
 
                         if(res.ok){
@@ -104,7 +119,6 @@ import PouchDB from 'pouchdb';
                         setVerifiedInputs([])
                         toast.success('Conta adicionada')
                         setFormData(initial_form)
-                        await setItems(await _get('account_categories'))
                      }
                  }catch(e){
                         console.log(e)
@@ -128,13 +142,16 @@ import PouchDB from 'pouchdb';
           },[formData])
 
     
-          console.log(_openDialogRes)
-        
+          useEffect(()=>{
+                  if(_openDialogRes?.details?.account_origin){
+                           setFormData({...formData,account_origin:_openDialogRes?.details?.account_origin})
+                  }
+          },[])
         
          return (
            <>
 
-         <FormLayout isPopUp={isPopUp} maxWidth={'700px'} name={id ? 'Actualizar' : 'Nova conta'} formTitle={isPopUp ? 'Adicionar nova conta' : (id ? 'Actualizar' : 'Adicionar nova')}>
+         <FormLayout loading={!initialized || loading} isPopUp={isPopUp} maxWidth={'700px'} name={id ? 'Actualizar' : 'Nova conta'} formTitle={isPopUp ? 'Adicionar nova conta' : (id ? 'Actualizar' : 'Adicionar nova')}>
 
                     <FormLayout.Section maxWidth={'700px'}>
 
@@ -211,17 +228,15 @@ import PouchDB from 'pouchdb';
                         label="Tipo de conta"
                         onChange={(e)=>setFormData({...formData,account_origin:e.target.value})}
                      >
-                     
-                   
                         <MenuItem value="">
                            <em>Selecione uma opção</em>
                         </MenuItem>
                         {(_openDialogRes?.details?.type=="in"|| !isPopUp) && <ListSubheader><span className="font-semibold text-[#16a34a] opacity-70">Entradas</span></ListSubheader>}
-                        {_categories.filter(i=>i.type == _openDialogRes?.details?.type || !isPopUp).filter(i=>i.type=="in").map(i=>(
-                              <MenuItem value={i.field} key={i.field}><span className=" w-[7px] rounded-full h-[7px] bg-[#16a34a] inline-block mr-2"></span> <span>{i.name}</span></MenuItem>
+                        {_categories.filter(i=>i.type == _openDialogRes?.details?.type || !isPopUp || i.field==_openDialogRes?.details?.type).filter(i=>i.type=="in").map(i=>(
+                               <MenuItem value={i.field} key={i.field}><span className=" w-[7px] rounded-full h-[7px] bg-[#16a34a] inline-block mr-2"></span> <span>{i.name}</span></MenuItem>
                         ))}
                         {(_openDialogRes?.details?.type=="out"|| !isPopUp) && <ListSubheader><span className="font-semibold text-red-600 opacity-70">Saídas</span></ListSubheader>}
-                        {_categories.filter(i=>i.type == _openDialogRes?.details?.type || !isPopUp).filter(i=>i.type=="out").map(i=>(
+                        {_categories.filter(i=>i.type == _openDialogRes?.details?.type || !isPopUp || i.field==_openDialogRes?.details?.type).filter(i=>i.type=="out").map(i=>(
                              <MenuItem value={i.field} key={i.field}><span className=" w-[7px] rounded-full h-[7px] bg-red-500 inline-block mr-2"></span> <span>{i.name}</span></MenuItem>
                         ))}
                      </Select>

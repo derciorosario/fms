@@ -93,9 +93,14 @@ import BudgetManagementReports from './pages/budget-management/reports'
 import CreateBudgetManagement from './pages/budget-management/create'
 import CreateInvestments from './pages/investments/create'
 
+import CreateLoans from './pages/loans/create'
+import Loans from './pages/loans/index'
+
+
 import ProtectedRoute from './components/ProjectedRoute'
 
 import Admin from './pages/admin'
+import FirstStart from './pages/setup/index'
 
 import UserPreferences from './pages/user-preferences/index'
 
@@ -145,6 +150,10 @@ function App() {
         <Route path="/investments" element={<ProtectedRoute redirectTo="/login"> <Investments/> </ProtectedRoute>} />
         <Route path="/investments/create" element={<ProtectedRoute redirectTo="/login"> <CreateInvestments/> </ProtectedRoute>} />
         <Route path="/investments/:id" element={<ProtectedRoute redirectTo="/login"> <CreateInvestments/> </ProtectedRoute>} />
+
+        <Route path="/loans" element={<ProtectedRoute redirectTo="/login"> <Loans/> </ProtectedRoute>} />
+        <Route path="/loans/create" element={<ProtectedRoute redirectTo="/login"> <CreateLoans/> </ProtectedRoute>} />
+        <Route path="/loans/:id" element={<ProtectedRoute redirectTo="/login"> <CreateLoans/> </ProtectedRoute>} />
         
         <Route path="/budget-management" element={<ProtectedRoute redirectTo="/login"> <BudgetManagement/> </ProtectedRoute>} />
         <Route path="/budget-management/create" element={<ProtectedRoute redirectTo="/login"> <CreateBudgetManagement/> </ProtectedRoute>} />
@@ -188,6 +197,7 @@ function App() {
     
         <Route path="/login" element={ <Login/>} />
         <Route path="/admin" element={ <Admin/>} />
+        <Route path="/new-company" element={ <FirstStart/>} />
         <Route path="/logout" element={<ProtectedRoute redirectTo="/logout">  </ProtectedRoute>} />
 
       </Routes>

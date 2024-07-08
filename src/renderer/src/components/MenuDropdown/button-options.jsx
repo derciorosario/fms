@@ -94,7 +94,7 @@ export default function CustomizedMenus({text,options}) {
       >
        
        {options.map(i=>(
-           <MenuItem key={Math.random()} onClick={()=>handleClose(i.path)} disableRipple>
+           <MenuItem key={uuidv4()} onClick={()=>handleClose(i.path)} disableRipple>
                {i.name}
            </MenuItem>
        ))}

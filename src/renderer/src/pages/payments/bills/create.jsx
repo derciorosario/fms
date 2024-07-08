@@ -16,36 +16,33 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import { Autocomplete, Button, Checkbox} from '@mui/material';
 import Switch from '@mui/material/Switch';
-import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
 import InstallentsTable from '../../../components/Tables/Installments'
 import PouchDB from 'pouchdb';
 import moment from 'moment';
 import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined';
-import AttachmentIcon from '@mui/icons-material/Attachment';
-import FilePresentIcon from '@mui/icons-material/FilePresent';
-import RestorePageOutlinedIcon from '@mui/icons-material/RestorePageOutlined';
 import FormLayout from '../../../layout/DefaultFormLayout';
-import LinearWithValueLabel from '../../../components/progress/uploadFile';
-import { Add, Download, RefreshOutlined } from '@mui/icons-material';
 import ConfirmDialog from '../../../components/Dialogs/confirm';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
+import { v4 as uuidv4 } from 'uuid';
+import { useAuth } from '../../../contexts/AuthContext';
+import DefaultUpload from '../../../components/Files/default-upload';
 
        function App() {
-
-         /// const { ipcRenderer } = window.require('electron');
-
-         const navigate = useNavigate()
+          const {t} = useTranslation()
+        
+          const navigate = useNavigate()
 
           const data = useData()
+          const {user,db} = useAuth()
+          
+          const [initialized,setInitialized]=React.useState()
+          const required_data=['account_categories','bills_to_pay','bills_to_receive']
+          
 
           const { id } = useParams()
 
-          const db={
-            bills_to_pay:new PouchDB('bills_to_pay'),
-            bills_to_receive:new PouchDB('bills_to_receive'),
-            transations:new PouchDB('transations'),
-
-          } 
+         
 
           let {pathname} = useLocation()
 
@@ -55,32 +52,6 @@ import axios from 'axios';
 
           const [countFormUpdates,setCountFormUpdates]=React.useState(0)
          
-
-          function devideDate(startDate, endDate, numberOfParts, total_to_pay) {
-
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-      
-            const dateDiff = end - start;
-            const interval = Math.floor(dateDiff / numberOfParts);
-      
-            let result = [];
-      
-            for (let i = 0; i < numberOfParts; i++) {
-              const partStart = new Date(start.getTime() + i * interval);
-              const partEnd = new Date(start.getTime() + (i + 1) * interval);
-              if (i === numberOfParts - 1) {
-                partEnd.setTime(end.getTime());
-            }
-      
-            let item={id:Math.random(),paid:0,status:'pending',setEnd:'',setStart:'',start: partStart, end: partEnd, total_to_pay: total_to_pay ? (total_to_pay /  numberOfParts): 0}
-            item.initial_amount=item.total_to_pay
-            result.push(item);
-      
-            }
-
-            return result;
-          }
 
            function  calculateEndDate (startDate, days) {
 
@@ -107,122 +78,85 @@ import axios from 'axios';
      
          }
 
-
-       
-
          const calculateDaysLeft = (futureDateString) => {
           const futureDate = moment(futureDateString); 
           const currentDate = moment(); 
           return futureDate.diff(currentDate, 'days'); 
-        }
+         }
 
-          const [items,setItems]=React.useState([])
-
+          
+       
           useEffect(()=>{
 
-                data._get('account_categories')
-                data._get('bills_to_pay')
-                data._get('bills_to_receive')
-
-
-                if(!id) return 
+                if(!id || id==formData.id || !db['bills_to_'+type]) return 
 
                 (async()=>{
-                try {
-                    let item=await db['bills_to_'+type].get(id)
-                    setFormData({...item,
-                       paid:item.paid ? item.paid : '',
-                       files:item.files[0] ? [{...item.files[0],checked:item.files[0].local ? false : true}] : []
-                    })
-                } catch (error) {
-                    console.log(error)
-                }
+                  let item =  await db['bills_to_'+type].find({selector: {id}})
+                  item=item.docs[0]
+
+                  if(item){
+                   setFormData({...item,
+                      paid:item.paid ? item.paid : '',
+                      files:item.files[0] ? [{...item.files[0],checked:item.files[0].local ? false : true}] : []
+                   })
+                  }else{
+                    navigate(`/bills-to-${type}`)
+                    toast.error(`Item não encontrado`)
+                  }
+                  
                 })()
 
-                
+          },[db,pathname])
 
-              
+       
 
-          },[])
-
-
-
-
-         
 
 
           const [paydayHelper,setPaydayHelper]=React.useState('custom')
           const [loading, setLoading] = React.useState(false);
           const [valid, setValid] = React.useState(false);
-          const {makeRequest,_add,_update,_loaded} = useData();
+          const {makeRequest,_add,_update,_loaded,_initial_form,_get} = useData();
           const [accountCategorieOptions, setAccountCategorieOptions] = React.useState([]);
           const account_name = React.useRef(null);
           const [accountCategories,setAccountCategories]=React.useState([])
           const [referenceOptions,setReferenceOptions]=React.useState([])
           const [showMoreOptions,setShowMoreOptions]=React.useState(false)
-          const [upload,setUpload]=React.useState({
-            uploading:false,
-            file:{},
-            progress:0
-          })
-          const fileInputRef_1 = React.useRef(null);
-          const fileInputRef_2 = React.useRef(null);
-
+         
           const [deletePayments,setDeletePayments]=React.useState({
             showDialog:false,
             loading:false,
-            message:''
+            message:'',
+            buttons:[]
           })
 
-         
-         
 
-            let initial_form={
-               id:Math.random().toString(),
-               account_id:'',
-               type:'fixed',
-               description:'',
-               account_origin:'',
-               deleted:false,
-               installments:[],
-               paid:0,
-               payday:'',
-               total_installments:'',
-               invoice_number:'',
-               invoice_emission_date:'',
-               amount:'',
-               payment_origin:'cash',
-               reference:{id:null,name:''},
-               status:'pending',
-               pay_in_installments:false,
-               repeat_details:{repeat:false,times:1,period:'month'},
-               createdAt:new Date().toISOString(),
-               files:[]
+          useEffect(()=>{
+            if(!(required_data.some(i=>!_loaded.includes(i)))){
+                setInitialized(true)
+            }
+           },[_loaded])
+          
+           useEffect(()=>{
+              _get(required_data.filter(i=>!_loaded.includes(i))) 
+           },[db])
 
-           }
+
            
 
-           const [formData, setFormData] = React.useState(initial_form);
+           const [formData, setFormData] = React.useState(_initial_form.bills);
 
            useEffect(()=>{
             if(formData.account_origin=="loans_out" || formData.account_origin=="loans_in"){
-              setReferenceOptions(data._investors)
+              setReferenceOptions([{name:t('common.add_new')},...data._investors])
             }else if(type=="receive"){
-                setReferenceOptions(data._clients)
+                setReferenceOptions([{name:t('common.add_new')},...data._clients])
             }else{
-                setReferenceOptions(data._suppliers)
+                setReferenceOptions([{name:t('common.add_new')},...data._suppliers])
             }
            },[formData.reference,data._suppliers,data._investors,data._clients])
 
            useEffect(()=>{
-            (async()=>{
-                let docs=await db['bills_to_'+type].allDocs({ include_docs: true })
-                setItems(docs.rows.map(i=>i.doc).filter(i=>!i.deleted))
-            })()
-
             setCountFormUpdates(prev=>prev + 1)
-
-           // console.log(formData)
           },[formData])
 
 
@@ -230,12 +164,10 @@ import axios from 'axios';
           
           useEffect(()=>{
             if(formData.account_origin){
-                setAccountCategories(data._account_categories.filter(i=>i.account_origin==formData.account_origin && i.transation_type==(type=="receive" ? "in" :"out")))
+                setAccountCategories(data._account_categories.filter(i=>(!formData.loan_id || i.account_origin=="loans_out")  && i.account_origin==formData.account_origin && i.type==(type=="receive" ? "in" :"out")))
             }else{
-                setAccountCategories(data._account_categories.filter(i=>i.transation_type==(type=="receive" ? "in" :"out")))
+                setAccountCategories(data._account_categories.filter(i=>i.type==(type=="receive" ? "in" :"out")))
             }
-
-            
 
           },[data._account_categories,formData.account_origin])
 
@@ -278,7 +210,7 @@ import axios from 'axios';
                setFormData({...formData,
                 installments:Array.from({ length: parts }, (i,_i) => {
                       
-                      return {fees:'',id:Math.random(),amount:parseFloat(formData.amount / parts),date:_i==0 ? formData.payday : null,paid:0,status:'pending'}
+                      return {fees:'',id:uuidv4(),amount:parseFloat(formData.amount / parts),date:_i==0 ? formData.payday : null,paid:0,status:'pending'}
                 })})
 
                 //if(id) return
@@ -293,7 +225,7 @@ import axios from 'axios';
 
                     setFormData({...formData,
                       installments:Array.from({ length: parts }, () => {
-                            return {fees:'',id:Math.random(),amount:parseFloat(formData.amount / parts),date:parts == 1 ? formData.payday : null,paid:0,status:'pending'}
+                            return {fees:'',id:uuidv4(),amount:parseFloat(formData.amount / parts),date:parts == 1 ? formData.payday : null,paid:0,status:'pending'}
                     })})
 
                    }
@@ -309,16 +241,16 @@ import axios from 'axios';
             let id=account?.id
 
             if(account){
-                 setFormData({...formData,account_origin:account.account_origin,type:account.type,account_id:id ? id : formData.account_name ? Math.random() : null})
+                 setFormData({...formData,account_origin:account.account_origin,type:account.type,account_id:id ? id : formData.account_name ? uuidv4() : null})
             }else{
-                 setFormData({...formData,account_id:id ? id : formData.account_name ? Math.random() : null})
+                 setFormData({...formData,account_id:id ? id : formData.account_name ? uuidv4() : null})
             }
           },[formData.account_name,accountCategories])
 
           useEffect(()=>{
            
              let items=accountCategories.map(i=>i.name)
-             setAccountCategorieOptions(items)
+             setAccountCategorieOptions([t('common.add_new'),...items])
          
          },[accountCategories])
 
@@ -353,18 +285,16 @@ import axios from 'axios';
 
          async  function saveAndPay(){
                if(!valid) return
-
                await SubmitForm()
-
-               navigate(`/cash-management/${type!='pay' ? 'in' :'out'}flow/create?bill_to_${type}=${formData._id}`)
+               navigate(`/cash-management/${type!='pay' ? 'in' :'out'}flow/create?bill_to_${type}=${formData.id}`)
           }
 
 
           async function confirmDeletePayments(res){
 
-
                  if(!res) {
-                  setDeletePayments({showDialog:false})
+                    setDeletePayments({showDialog:false})
+                    return
                  }else{
                     setDeletePayments({...deletePayments,loading:true})
                  }
@@ -376,6 +306,18 @@ import axios from 'axios';
 
                  for (let i = 0; i < transations.length; i++) {
                     await db.transations.put({...transations[i],deleted:true})
+                 }
+
+                 if(formData.loan_id){
+
+                    let loan = await db.loans.find({selector: {id:formData.loan_id}})
+                    loan=loan.docs[0]
+                    if(loan){
+                      loan.paid=0
+                      loan.fees=0
+                      await _update('loans',[loan])
+                    }
+
                  }
 
                  let item=await db['bills_to_'+type].get(id)
@@ -391,56 +333,79 @@ import axios from 'axios';
                  setDeletePayments(prev=>({...prev,showDialog:false}))
                  toast.success('Pagamentos anulados')
           }
-       
+
+         
 
          async function SubmitForm(){
               
               if(valid){
+
+
+                let reference_id=formData.reference.id
+
+                if(formData.reference.name && !formData.reference.id){
+                   reference_id=uuidv4()
+
+                 await _add(type=="receive" ? 'clients' : (formData.account_origin=="loans_out" || formData.account_origin=="loans_in" ? 'investors' : 'suppliers'),[{
+                    id:reference_id,
+                    name:formData.reference.name,
+                    last_name:'',
+                    contacts:[],
+                    nuit:'',
+                    notes:'',
+                    email:'',
+                    address:'',
+                    deleted:false
+                  }])
+
+                }
+
+                //add category if it does not exist!
+                if(!accountCategories.some(a=>a.id==formData.account_id)){
+                  await  _add('account_categories',[{
+                      id:formData.account_id,
+                      name:formData.account_name,
+                      type:data._categories.filter(i=>i.field==formData.account_origin)[0].type,
+                      reference:{...formData.reference,id:reference_id,type:formData.account_origin=="loans_out" || formData.account_origin=="loans_in" ? 'investors' : type=="receive" ? 'clients': 'suppliers' },
+                      description:'',
+                      initial_amount:0,
+                      account_origin:formData.account_origin,
+                      deleted:false
+                    }])
+                }
+
+                
+
+
+
+
                    try{
                      if(id){
-                        await _update('bills_to_'+type,[{...formData}])
+
+                        let status=formData.paid >= formData.amount && parseFloat(formData.amount) && id ? 'paid' : formData.status!="paid" &&  new Date(data._today()) > new Date(formData.payday) && id ? 'delayed' : 'pending'
+                        
+                        if(formData.loan_id){
+                            let loan = await db.loans.find({selector: {id:formData.loan_id}})
+                            loan=loan.docs[0]
+                          
+                            if(loan){
+                              loan.reference=formData.reference
+                              loan.payday=formData.payday
+                              loan.status=status
+                              loan.account_id=formData.account_id
+                              loan.account_name=formData.account_name
+                              loan.total_installments=parseInt(formData.total_installments || 1),
+                              loan.transation_fees=formData.amount
+                              loan.installment_amount=parseFloat(formData.amount) / parseFloat(formData.total_installments || 1)
+                              await _update('loans',[loan])
+                            }
+                        }
+
+                        await _update('bills_to_'+type,[{...formData,status}])
                         toast.success('Conta actualizada')
                      }else{
 
-                        let reference_id=formData.reference.id
-
-                        if(formData.reference.name && !formData.reference.id){
-                           reference_id=Math.random().toString()
-
-                         await _add(type=="receive" ? 'clients' : (formData.account_origin=="loans_out" || formData.account_origin=="loans_in" ? 'investors' : 'suppliers'),[{
-                            id:reference_id,
-                            _id:Math.random().toString(),
-                            name:formData.reference.name,
-                            last_name:'',
-                            contacts:[],
-                            nuit:'',
-                            notes:'',
-                            email:'',
-                            address:'',
-                            deleted:false
-                          }])
-
-                        }
-
-                        //add category if it does not exist!
-                        if(!accountCategories.some(a=>a.id==formData.account_id)){
-                          await  _add('account_categories',[{
-                              id:formData.account_id,
-                              _id:Math.random().toString(),
-                              name:formData.account_name,
-                              transation_type:data._categories.filter(i=>i.field==formData.account_origin)[0].type,
-                              type:formData.type,
-                              reference:{...formData.reference,id:reference_id,type:formData.account_origin=="loans_out" || formData.account_origin=="loans_in" ? 'investors' : type=="receive" ? 'clients': 'suppliers' },
-                              description:'',
-                              account_origin:formData.account_origin,
-                              deleted:false
-                            }])
-                        }
-
-
-
-
-                        let linked_id=Math.random()
+                        let linked_id=uuidv4()
 
                         let date_intervals=data._divideDatesInPeriods(formData.payday, formData.repeat_details.times,formData.repeat_details.period)
 
@@ -460,17 +425,16 @@ import axios from 'axios';
                                         index:_i,
                                         total_installments:parseInt(formData.total_installments ? formData.total_installments : 1),
                                         status:parseFloat(formData.paid) == parseFloat(formData.amount) ? 'paid' : formData.status,
-                                        id:Math.random(),_id:Math.random().toString()}
+                                        id:uuidv4(),_id:new Date().toISOString() + "-" + _i}
 
                         })
                        
                             
                         await  _add('bills_to_'+type,data_to_add)
 
-                        
                         setVerifiedInputs([])
                         toast.success('Conta adicionada')
-                        setFormData(initial_form)
+                        setFormData(_initial_form.bills)
                         setPaydayHelper('custom')
 
                     }
@@ -526,203 +490,6 @@ import axios from 'axios';
 
        
 
-          function clearFileInputs(){
-             if(fileInputRef_1.current) fileInputRef_1.current.value=""
-             if(fileInputRef_2.current) fileInputRef_2.current.value=""
-          }
-
-
-          const handleFileChange =async (event) => {
-
-           
-
-            let {name,size,path} = event.target.files[0]
-            let orginal_name=name
-            let generated_name=new Date().toISOString().split('T')[0] +`-${Math.random().toString().slice(1,8)}-`+ name
-            let file={name:orginal_name,path,size,generated_name,local:Boolean(window.electron)}
-
-            if(size/1024/1024 > 5){
-               toast.error('Arquivo não pode der maior que 2MB')
-               return
-            }
-
-            file.from=`bills-to-${type}`
-            file.from_id=formData.id
-           
-            if(!window.electron) {
-
-               const _formData = new FormData();
-               _formData.append('from',file.from);
-               _formData.append('from_id',file.from_id);
-               _formData.append('file',event.target.files[0]);
-               setUpload(prev=>({...prev,uploading:true,progress:0,file}))
-
-               try {
-                const res = await axios.post(data.APP_BASE_URL+'/api/upload-file', _formData, {
-                  headers: {
-                    'Content-Type': 'multipart/form-data'
-                  },
-                  onUploadProgress: (progressEvent) => {
-                    const { loaded, total } = progressEvent;
-                    const progress = Math.floor((loaded * 100) / total);
-                    setUpload(prev=>({...prev,progress}))
-                  }
-                });
-
-                setUpload(prev=>({...prev,uploading:false}))
-                setFormData({...formData,files:[{...file,generated_name:res.data,exists:true}]})
-                clearFileInputs()
-
-              }catch (err) {
-
-                  if(err.code=="ERR_NETWORK"){
-                    toast.error('Verifique sua internet e tente novamente')
-                  }else{
-                    toast.error('Erro inesperado! detalhes do erro:'+err)
-                  }
-
-                  setUpload({
-                    uploading:false,
-                    file:{},
-                    progress:0
-                  })
-
-                  console.log(err)
-
-                  
-              }
-              clearFileInputs()
-              return
-            };
-
-
-            setUpload(prev=>({...prev,uploading:true,progress:0,file}))
-            window.electron.ipcRenderer.send('file-upload',{...file,exists:true})
-          
-            
-          }
-
-
-          useEffect(()=>{
-
-                if(!window.electron) return
-
-                 window.electron.ipcRenderer.on('file-progress',(event,progress)=>{
-                     setUpload(prev=>({...prev,progress}))
-                 })
-
-                 window.electron.ipcRenderer.on('upload-complete',(event,file)=>{
-                    setUpload(prev=>({...prev,uploading:false}))
-                    setFormData({...formData,files:[file]})
-                 })
-                 
-                 window.electron.ipcRenderer.on('file-exists-result',(event,exists)=>{
-                      if(formData.files[0]?.path && !formData.files[0]?.checked){
-                          if(formData.files[0]?.exists!=exists) setFormData({...formData,files:[{...formData.files[0],exists,checked:true}]})
-                      }    
-                 })
-
-                 window.electron.ipcRenderer.on('download-complete',(event,desc)=>{
-                  setUpload(prev=>({...prev,downloading:false}))
-                  console.log({v:formData.files[0]})
-                  setFormData({...formData,files:[{...upload.file,local_path:desc}]})
-                 })
-
-
-          },[])
-
-          
-
-
-          useEffect(()=>{
-
-            if(formData.files[0]?.checked && window.electron){
-               window.electron.ipcRenderer.send('check-file-exists',formData.files[0].path)
-            }
-          
-          },[formData])
-
-          console.log({up:formData.files[0]})
-
-          function openFileInFolder(){
-            if(window.electron){
-              window.electron.ipcRenderer.send('download-file',`http://localhost:4000/download/2024-06-30-ce2e4e3e-a9d2-41ce-9dbe-7b297acba8c2%20-%20ars-c-data.json`)
-            }
-
-            setUpload(prev=>({...prev,downloading:true,progress:0,file:formData.files[0]}))
-
-            //alert('hi')
-            return
-            window.electron.ipcRenderer.send('open-file-in-folder',formData.files[0].path)
-          }
-
-          function openFile(){
-            if(!formData.files[0].local){
-              window.open(data.APP_BASE_URL+'/file/'+formData.files[0].generated_name, '_blank')
-              return
-            }
-
-            if(formData.files[0]?.exists)  window.electron.ipcRenderer.send('open-file',formData.files[0].path)
-
-          }
-
-
-
-
-          
-           
-          const downloadFile = () => {
-
-            let download_url=data.APP_BASE_URL+`/download/${formData.files[0].generated_name}`
-            
-
-            setUpload(prev=>({...prev,downloading:true,progress:0,file:formData.files[0]}))
-
-
-            if(!window.electron){
-                 window.electron.ipcRenderer.send('download-file',`http://localhost:4000/download/2024-06-30-ce2e4e3e-a9d2-41ce-9dbe-7b297acba8c2%20-%20ars-c-data.json`)
-            }
-
-            axios({
-              url: download_url,
-              method: 'GET',
-              responseType: 'blob',
-              onDownloadProgress: (progressEvent) => {
-                const total = progressEvent.total;
-                const current = progressEvent.loaded;
-                
-                setUpload(prev=>({...prev,progress:(current / total) * 100}))
-               
-              },
-            })
-              .then((response) => {
-                const url = window.URL.createObjectURL(new Blob([response.data]));
-                const link = document.createElement('a');
-                link.href = url;
-                link.setAttribute('download', formData.files[0].name); 
-                document.body.appendChild(link);
-                link.click();
-                link.remove();
-              })
-              .catch((error) => {
-                console.error('Download error', error);
-                setUpload(prev=>({...prev,progress:0,downloading:false}))
-
-                if(error.code=="ERR_NETWORK"){
-                  toast.error('Verifique sua internet e tente novamente')
-                }else{
-                  toast.error('Erro inesperado! detalhes do erro:'+error)
-                }
-              })
-              .finally(() => {
-                setUpload(prev=>({...prev,progress:0,downloading:false}))
-                
-              });
-          };
-
-
-
-
 
           useEffect(()=>{
                 let v=true
@@ -731,8 +498,6 @@ import axios from 'axios';
                       v=false
                   }
               })
-
-             
               setValid(v)
          },[formData])
 
@@ -746,13 +511,12 @@ import axios from 'axios';
              
               <ConfirmDialog show={deletePayments.showDialog} message={deletePayments.message} res={confirmDeletePayments} loading={deletePayments.loading}/>
                
-               <FormLayout name={ `${id ? 'Actualizar' : 'Nova'} conta a `+ (type=="receive" ? 'receber' : 'pagar')} formTitle={id ? 'Actualizar' : 'Adicionar nova'} topLeftContent={(
-                   <>
-
-                    
+               <FormLayout loading={!initialized || loading} name={ `${id ? 'Actualizar' : 'Nova'} conta a `+ (type=="receive" ? 'receber' : 'pagar')} formTitle={id ? 'Actualizar' : 'Adicionar nova'} topLeftContent={(
+                 
+                 <>
                         <div className="flex justify-center items-center">
                             
-                              {id && <span className="mr-3 opacity-80">Pagamentos: </span>}
+                              {id && <span className="mr-3 opacity-80">Pagamentos:</span>}
                             
                            {(formData.paid) ? <>
 
@@ -822,30 +586,35 @@ import axios from 'axios';
                             </div>
                         <div className=" relative">
 
-                        <div onClick={()=>data._showCreatePopUp('accounts','bills',{type:type=="receive" ? "in":"out"})} className={`text-[13px] ${formData.paid ?'opacity-30 pointer-events-none':''} absolute hover:opacity-55 cursor-pointer right-0 top-[-0.1rem] translate-y-[-100%] flex items-center`}>
+                        {/*<div className={`text-[13px] ${formData.paid ?'opacity-30 pointer-events-none':''} absolute hover:opacity-55 cursor-pointer right-0 top-[-0.1rem] translate-y-[-100%] flex items-center`}>
                               <Add sx={{width:16,height:16,opacity:0.6}}/>
-                       </div>
+                       </div>*/}
 
 
                                 
                             <Autocomplete size="small"
                                 value={formData.account_name ? formData.account_name : null}
                                 onChange={(event, newValue) => {
-                                    setFormData({...formData,account_name:newValue})
+                                    if(newValue==t('common.add_new')){
+                                      data._showCreatePopUp('accounts','bills',{type:formData.loan_id ? "loans_out": type=="receive" ? "in":"out",account_origin:formData.account_origin})
+                                    }else{
+                                      setFormData({...formData,account_name:newValue})
+                                    }
                                 }}
                                 noOptionsText="Não encotrado"
                                 ref={account_name}
                                 defaultValue={null}
                                 inputValue={formData.account_name}
                                 onInputChange={(event, newInputValue) => {
-                                setFormData({...formData,account_name:newInputValue})
+                                  if(!newInputValue==t('common.add_new')){
+                                    setFormData({...formData,account_name:newInputValue})
+                                  }
                                 }}
                                 id="controllable-states-demo"
                                 options={accountCategorieOptions}
                                 sx={{ width: 300 }}
-                                disabled={formData.paid ? true : false}
                                 renderInput={(params) => <TextField {...params}
-                                helperText={!accountCategories.some(a=>a.id==formData.account_id) && formData.account_name ? "(Nova conta será adicionada)" :''}
+                                helperText={!accountCategories.some(a=>a.id==formData.account_id) && formData.account_name && initialized ? "(Nova conta será adicionada)" :''}
                                 sx={{'& .MuiFormHelperText-root': {color:!accountCategories.some(a=>a.id==formData.account_id) && formData.account_name ? 'green' : 'crimson'}}}
                                 value={formData.account_name} label="Nome da conta *" />}
                         />   
@@ -855,7 +624,7 @@ import axios from 'axios';
 
                                             <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Categoria *</InputLabel>
                                             <Select
-                                            disabled={formData.paid || accountCategories.some(a=>a.id==formData.account_id) ? true : false}
+                                            disabled={accountCategories.some(a=>a.id==formData.account_id) || formData.loan_id ? true : false}
                                             labelId="demo-simple-select-error-label_"
                                             id="demo-simple-select-error_"
                                             value={formData.account_origin}
@@ -885,26 +654,33 @@ import axios from 'axios';
 
                             <div className="relative"> 
 
-                            <div  onClick={()=>data._showCreatePopUp('register','bills',{[`${type=="in" ? (formData.account_origin=="loans_in" ? "investor" : "client")  : (formData.account_origin == "loans_out" ? 'investor' :'supplier')}`]:true})}
+                              {/**<div  onClick={()=>data._showCreatePopUp('register','bills',{[`${type=="in" ? (formData.account_origin=="loans_in" ? "investor" : "client")  : (formData.account_origin == "loans_out" ? 'investor' :'supplier')}`]:true})}
                                   className={`text-[13px] ${!formData.account_origin ? ' opacity-25 pointer-events-none':"hover:opacity-55 cursor-pointer"} absolute   right-0 top-[-0.1rem] translate-y-[-100%] flex items-center`}>
                                           <Add sx={{width:16,height:16,opacity:0.6}}/>
-                              </div>
+                              </div> */}
 
                                 <Autocomplete size="small"
                                 value={formData.reference.name && formData.account_origin ? formData.reference.name : null}
                                 onChange={(event, newValue) => {
-                                    newValue=newValue ? newValue : ''
-                                    let reference_id=referenceOptions.filter(i=>i.name?.toLowerCase()==newValue?.toLowerCase())[0]?.id
-                                    setFormData({...formData,reference:{...formData.reference,name:newValue,id:reference_id}})
-                                }}
+                                    if(newValue==t('common.add_new')){
+                                      data._showCreatePopUp('register','bills',{[`${type=="in" ? (formData.account_origin=="loans_in" ? "investor" : "client")  : (formData.account_origin == "loans_out" ? 'investor' :'supplier')}`]:true})
+                                   }else{
+                                      newValue=newValue ? newValue : ''
+                                      let reference_id=referenceOptions.filter(i=>i.name?.toLowerCase()==newValue?.toLowerCase())[0]?.id
+                                      setFormData({...formData,reference:{...formData.reference,name:newValue,id:reference_id}})
+                                
+                                    }
+                                   }}
                                 noOptionsText="Sem opções"
                                 defaultValue={null}
                                 inputValue={(formData.account_origin) ? formData.reference.name  : "" }
                                 onInputChange={(event, newInputValue) => {
-                                    newInputValue=newInputValue ? newInputValue : ''
-                                    let reference_id=referenceOptions.filter(i=>i.name?.toLowerCase()==newInputValue?.toLowerCase())[0]?.id
-                                    setFormData({...formData,reference:{...formData.reference,name:newInputValue,id:reference_id}})
-                            
+                                    if(newInputValue!=t('common.add_new')){
+                                      newInputValue=newInputValue ? newInputValue : ''
+                                      let reference_id=referenceOptions.filter(i=>i.name?.toLowerCase()==newInputValue?.toLowerCase())[0]?.id
+                                       setFormData({...formData,reference:{...formData.reference,name:newInputValue,id:reference_id}})
+                                    }
+                                    
                                 }}
                                 
                                 id="_referece"
@@ -956,7 +732,6 @@ import axios from 'axios';
                                             label="Valor a pagar *"
                                             placeholder="Digite o valor a pagar"
                                             multiline
-                                            disabled={formData.paid ? true : false}
                                             value={formData.amount}
                                             onBlur={()=>validate_feild('amount')}
                                             onChange={(e)=>setFormData({...formData,amount:data._cn_op(e.target.value)})}
@@ -1229,35 +1004,12 @@ import axios from 'axios';
                                
                                         
                             </FormLayout.Section>
+                           
 
-                            <div className="block w-full px-4">
-                                <div className={`border min-h-[80px] p-3 flex-col justify-center items-center rounded-[2px] border-dashed relative ${!formData.files[0] ?'cursor-pointer' :''}`}>
-                                        <div className="flex items-center justify-center ">
-                                          {(!upload.uploading && !upload.downloading) && !formData.files[0] && <label>
-                                              <Button sx={{width:'100%'}} endIcon={<FilePresentIcon/>}>Anexar documento ou imagem max [2MB]</Button>
-                                              <input ref={fileInputRef_1} onChange={handleFileChange} className="w-full h-full absolute top-0 left-0 opacity-0" type="file"/>
-                                          </label>}
-                                        </div>
-
-                                        {(upload.uploading || upload.downloading) &&  <>
-                                           <div className="flex items-center justify-center h-full">
-                                             <LinearWithValueLabel progress={upload.progress}/>
-                                           </div>
-                                        </>}
-
-                                        {formData.files[0] && (!upload.uploading && !upload.downloading) &&  <>
-                                            <div className="flex flex-col">
-                                              <span className={`text-center block mb-4`} onClick={openFile}><span className={`${formData.files[0]?.exists ? 'text-blue-500':''} ${formData.files[0]?.exists ? 'underline cursor-pointer':' opacity-50'} `}>{formData.files[0]?.name}</span> {!formData.files[0]?.exists && <label className="text-red-600 ml-2">(Removido)</label>}</span>
-                                              <div className="text-center"> {formData.files[0]?.local==false && <span><Button onClick={downloadFile} startIcon={<Download style={{color:'rgb(59,130,246)'}}/>}>Baixar</Button></span>} {formData.files[0]?.exists && formData.files[0]?.local && <Button onClick={openFileInFolder}>Abrir pasta</Button>}<label className="ml-4 relative"><Button endIcon={<RefreshOutlined/>} variant="contained">Alertar</Button><input ref={fileInputRef_2} onChange={handleFileChange} className="w-full h-full absolute top-0 left-0 opacity-0" type="file"/></label></div>
-                                            </div>
-                                        </> }
-
-
-                              </div>
-                            </div>
 
                      </div>
-
+                        
+                        <DefaultUpload show={!(showMoreOptions || id)} from={`bills-to-${type}`} formData={formData} setFormData={setFormData}/>
 
                      <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={id}/>
 

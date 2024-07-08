@@ -4,6 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import PageLoader from './progress/pageLoader';
  const ProtectedRoute =  ({ children, redirectTo = '/',path}) => {
+
+
+  localStorage.removeItem('first-company-created-message')
   
   const { isAuthenticated, user, loading, token,logout,destroying} = useAuth();
 

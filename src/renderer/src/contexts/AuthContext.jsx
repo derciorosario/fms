@@ -1,85 +1,160 @@
-import axios from 'axios';
 import { createContext, useContext, useState, useEffect} from 'react';
 import toast from 'react-hot-toast';
 import PouchDB from 'pouchdb';
-import { useData } from './DataContext';
-
 const AuthContext = createContext();
 
 
 export const AuthProvider = ({ children }) => {
-  
-  let APP_BASE_URL='https://server-fms.onrender.com'//'http://localhost:4000'  //https://server-fms.onrender.com
+  let APP_BASE_URL='https://server-fms.onrender.com' //'http://localhost:4000'  //https://server-fms.onrender.com
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
   const [auth, setAuth] = useState(false);
+  const [db, setDB] = useState({});
   const [loadingLocalUser,setloadingLocalUser]=useState(null)
   const [destroying,setDestroying]=useState(localStorage.getItem('destroying') ? true : false)
+  const [changingCompany,setChangingCompany]=useState(false)
+  if(!localStorage.getItem('dbs')) localStorage.setItem('dbs',JSON.stringify([]))
+  const [remoteDBs,setRemoteDBs]=useState([])
+ 
 
-  const db={
-    managers:new PouchDB('managers'),
-    clients:new PouchDB('clients'),
-    investors:new PouchDB('investors'),
-    suppliers:new PouchDB('suppliers'),
-    account_categories:new PouchDB('account_categories'),
-    bills_to_pay:new PouchDB('bills_to_pay'),
-    bills_to_receive:new PouchDB('bills_to_receive'),
-    accounts:new PouchDB('accounts'),
-    investments:new PouchDB('investments'),
-    transations:new PouchDB('transations'),
-    categories:new PouchDB('categories'),
-    payment_methods:new PouchDB('payment_methods'),
-    budget:new PouchDB('budget'),
-    user:new PouchDB('user'),
-    companies:new PouchDB('companies')
-  }
-  
-  
+
+
   
   useEffect(()=>{
     (async()=>{
+
       try {
-        let user=await  db.user.get('user')
+        let u=new PouchDB('user')
+        let {id}=await u.get('user')
+        db.user=new PouchDB('user-'+id)
+        db.user.createIndex({index: { fields: ['id'] }})
+        let user=await  db.user.find({selector: { id }})
+        user=user.docs[0]
         setloadingLocalUser(true)
         setLoading(false)
         setUser(user)
         setToken(user.token_value)
         setAuth(true)
+       
       } catch (error) {
+        console.log(error)
         setloadingLocalUser(false)
       }
     })()
-
-    
   },[])
+
+  useEffect(()=>{
+
+    if(!user) return
+
+    update_dbs()
+
+  },[user])
+
+
+
+  function register_db(name){
+     let dbs=JSON.parse(localStorage.getItem('dbs'))
+     localStorage.setItem('dbs',JSON.stringify([...dbs.filter(i=>i!=name),name]))
+  }
+ 
+
+  function update_dbs(){
+
+      let db_names=[
+         {name:'managers',db_name:'managers-'+user.selected_company},
+         {name:'bills_to_pay',db_name:'bills_to_pay-'+user.selected_company},
+         {name:'account_categories',db_name:'account_categories-'+user.selected_company},
+         {name:'bills_to_receive',db_name:'bills_to_receive-'+user.selected_company},
+         {name:'payment_methods',db_name:'payment_methods-'+user.selected_company},
+         {name:'transations',db_name:'transations-'+user.selected_company},
+         {name:'account_categories',db_name:'account_categories-'+user.selected_company},
+         {name:'loans',db_name:'loans-'+user.selected_company},
+         {name:'clients',db_name:'clients-'+user.selected_company},
+         {name:'investors',db_name:'investors-'+user.selected_company},
+         {name:'suppliers',db_name:'suppliers-'+user.selected_company},
+         {name:'investments',db_name:'investments-'+user.selected_company},
+         {name:'settings',db_name:'settings-'+user.id+'-'+user.selected_company}
+
+      ]
+
+      setRemoteDBs(db_names.map(i=>i.db_name))
+
+      let _db={}
+      db_names.forEach(i=>{
+         _db[i.name]=new PouchDB(i.db_name)
+         register_db(i.db_name)
+      })
+      setDB(_db)    
+  }
+
+
+   async function _change_company(company_id){
+    let user_db=new PouchDB('user-'+user.id)
+    await user_db.put({...user,selected_company:company_id})
+    setChangingCompany(true)
+    setTimeout(()=>window.location.reload(),500)
+  }
 
 
   const login =  async (userData, authToken) => {
-    
-   
-    let {name,email,id,token_value,company,last_name,companies}=userData
-    
 
+    if(user?.selected_company==userData.selected_company){
+      return {ok:true}
+    }  
 
-
-   
-  try{
-    await deleteAllDocuments(db.companies)
-    await deleteAllDocuments(db.user)
-    await _add('companies',companies)
-    await db.user.put({name,id,email,token_value,last_name,_id:'user',company,companies})
-    if(localStorage.getItem('token')) localStorage.setItem('token', authToken);
-    setUser(userData);
-    setToken(authToken);
-    return {ok:true}
-  }catch(e){
-    await reset()
-    return {ok:false,error:e}
-  }
+    try{
+      await update_user(userData)
+      if(localStorage.getItem('token')) localStorage.setItem('token', authToken);
+      setUser(userData);
+      setToken(authToken);
+      return {ok:true}
+    }catch(e){
+      await reset()
+      return {ok:false,error:e}
+    }
  
 };
 
+
+async function update_user(userData){
+
+  delete userData.__v
+
+  try{
+
+        let u=new PouchDB('user')
+        let docs=await u.allDocs({ include_docs: true })
+        let user=docs.rows.map(i=>i.doc)[0]
+
+        if(user){
+           u.put({id:user.id,_rev:user._rev,_id:user._id})
+        }else{
+           u.put({_id:'user',id:userData.id})
+        }
+
+        let user_db=new PouchDB('user-'+userData.id)
+        user_db.createIndex({index: { fields: ['id'] }})
+        let _user=await user_db.find({selector: { id:userData.id }})
+        _user=_user.docs[0]
+
+        if(_user){
+           user_db.put({...userData,_rev:_user._rev})
+        }else{
+           user_db.put(userData)
+        }
+
+        return
+
+
+  }catch(e){
+     console.log(e)
+     return
+  }
+   
+  return
+}
 
   
 
@@ -231,7 +306,7 @@ export const AuthProvider = ({ children }) => {
    
 
   return (
-    <AuthContext.Provider value={{ APP_BASE_URL,user,setDestroying,destroying,login, logout, isAuthenticated , loading, setUser, setLoading, token,auth}}>
+    <AuthContext.Provider value={{changingCompany,remoteDBs,_change_company,db,APP_BASE_URL,user,update_user,setDestroying,destroying,login, logout, isAuthenticated , loading, setUser, setLoading, token,auth}}>
       {children}
     </AuthContext.Provider>
   );

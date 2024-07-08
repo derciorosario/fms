@@ -5,7 +5,7 @@ import BasicTable from '../../components/Tables/basic';
 import TotalCard from '../../components/Cards/default_totals';
 
 function App() {
-  const {_investments,_cn} = useData();
+  const {_loans,_cn} = useData();
   const [_filtered_content,_setFilteredContent]=useState([])
   
 
@@ -21,7 +21,7 @@ React.useEffect(()=>{
       let res=JSON.parse(JSON.stringify(statResponses))
 
       Object.keys(statResponses).forEach(o=>{
-                let from=o=="global" ? _investments : _filtered_content 
+                let from=o=="global" ? _loans : _filtered_content 
                 let total=from.map(item => parseFloat(item.amount)).reduce((acc, curr) => acc + curr, 0);
                 res[o]={
                   ...res[o],
@@ -32,16 +32,16 @@ React.useEffect(()=>{
 
       setStatResponses(res)
 
-},[_filtered_content,_investments])
+},[_filtered_content,_loans])
 
 
 
   
   return (
     <>
-     <DefaultLayout details={{name:'Investimentos'}}>
+     <DefaultLayout details={{name:'Empréstimos'}}>
           
-          <TotalCard page={'investments'} items={
+          <TotalCard page={'loans'} items={
              [
               {name:'Total',value:statResponses.global.total}
              ]
@@ -49,8 +49,7 @@ React.useEffect(()=>{
 
          <BasicTable res={[
             {name:'Total',value:statResponses.result.total},
-           ]} _setFilteredContent={_setFilteredContent} _filtered_content={_filtered_content}  page={'investments'}/>
-           
+           ]} _setFilteredContent={_setFilteredContent} _filtered_content={_filtered_content}  page={'loans'}/>
         </DefaultLayout>
     </>
   )

@@ -2,7 +2,7 @@ import React from 'react';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
-import { ButtonBase } from '@mui/material';
+import { ButtonBase, CircularProgress } from '@mui/material';
 import Dropdown from '../MenuDropdown/index'
 import DropdownTest from '../MenuDropdown/add'
 import DropDownProfile from '../MenuDropdown/profile'
@@ -16,7 +16,7 @@ import colors from '../../assets/colors.json'
 import { useData } from '../../contexts/DataContext';
 
 
-function App({details}) {
+function App({details,_isLoading}) {
     const {user}=useAuth()
     const [addMenuAnchorEl, setAddMenuAnchorEl] = React.useState(null);
     const [openPopUps, setOpenPopUps] = React.useState({
@@ -99,6 +99,10 @@ function App({details}) {
 
 
             <div className="flex items-center justify-center">
+
+              {_isLoading && <div className=" scale-[0.6] mr-4">
+                <CircularProgress style={{color:colors.app_orange[500]}} />
+              </div>}
 
              <div onClick={(e)=>console.log(e.currentTarget)} className="overflow-hidden relative mr-2 cursor-pointer size-9 flex items-center justify-center">
                   

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import TextField from '@mui/material/TextField';
 import toast from 'react-hot-toast';
 import { useData  } from '../../../contexts/DataContext';
-import {useParams} from 'react-router-dom';
+import {useLocation, useParams} from 'react-router-dom';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl'
@@ -16,37 +16,27 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import 'dayjs/locale/en-gb';
 import { Switch } from '@mui/material';
-       
+import { v4 as uuidv4 } from 'uuid';      
+import { useAuth } from '../../../contexts/AuthContext';
        
        function App({isPopUp}) {
 
           const { id } = useParams()
-
-          const db={
-            payment_methods:new PouchDB('payment_methods')
-          } 
+          
+          const {db} = useAuth()
 
           const [items,setItems]=React.useState([])
-          
 
-          useEffect(()=>{
+          const {pathname} = useLocation()
 
-                if(!id) return
-
-                (async()=>{
-                try {
-                    let item=await db.payment_methods.get(id)
-                    setFormData(item)
-                } catch (error) {
-                    console.log(error)
-                }
-                })()
-
-          },[])
 
           const [loading, setLoading] = React.useState(false);
           const [valid, setValid] = React.useState(false);
-          const {_add,_update,_initial_form,_cn_op,_scrollToSection,_openDialogRes,_setOpenDialogRes,_setOpenCreatePopUp} = useData();
+          const [initialized,setInitialized]=React.useState()
+
+          const required_data=['payment_methods']
+
+          const {_get,_loaded,_payment_methods,_add,_update,_cn_op,_scrollToSection,_openDialogRes,_setOpenDialogRes,_setOpenCreatePopUp} = useData();
           
           
           
@@ -63,14 +53,39 @@ import { Switch } from '@mui/material';
 
 
           const [formData, setFormData] = React.useState(initial_form);
+          
 
           useEffect(()=>{
-            (async()=>{
-                let docs=await db.payment_methods.allDocs({ include_docs: true })
-                setItems(docs.rows.map(i=>i.doc).filter(i=>!i.deleted))
-            })()
-          },[formData])
 
+            if(!id || !db.payment_methods || formData.id==id) return 
+               (async()=>{
+                     let item =  await db.payment_methods.find({selector: {id}})
+                     item=item.docs[0]
+                     if(item){
+                     setFormData(item)
+                     }else{
+                      toast.error('Item não encontrado')
+                      navigate(`/payment_methods`)
+                     }
+               })()
+          },[db,pathname])
+
+
+
+          useEffect(()=>{
+            if(!(required_data.some(i=>!_loaded.includes(i)))){
+                setInitialized(true)
+            }
+           },[_loaded])
+          
+           useEffect(()=>{
+                _get(required_data.filter(i=>!_loaded.includes(i)))    
+           },[db])
+
+           useEffect(()=>{
+              setItems(_payment_methods)
+          },[_payment_methods])
+      
         
        
           let required_fields=['name','type']
@@ -86,7 +101,7 @@ import { Switch } from '@mui/material';
          async function SubmitForm(){
               
               if(valid){
-                  if(items.some(i=>i.name.toLowerCase() == formData.name.toLowerCase() && i._id!=id)){
+                  if(items.some(i=>i.name.toLowerCase() == formData.name.toLowerCase() && i.id!=id)){
                      toast.error('Nome já existe')
                      return
                   }
@@ -96,26 +111,14 @@ import { Switch } from '@mui/material';
                         _update('payment_methods',[{...formData}])
                         toast.success('Conta actualizada')
                      }else{
-                          let new_id=Math.random()
-                          let new_item={...formData,id:new_id,_id:Math.random().toString()}
+                          let new_id=uuidv4()
+                          let new_item={...formData,id:new_id}
                           let res=await _add('payment_methods',[new_item])
-
-                        
-
-
+                          
                           if(res.ok){
                             _setOpenDialogRes({..._openDialogRes,item:new_item,page:'payment_methods'})
                           }
 
-                        /*if(formData.has_initial_amount && parseFloat(formData.initial_amount)){
-                           _add('transations',[{..._initial_form.transations,
-                            description:`Valor inicial ${}`
-                            type:parseFloat(formData.initial_amount) > 0 ? 'in' : 'out',
-                            payments:[{id:new_id,name:formData.name,amount:parseFloat(formData.initial_amount)}],
-                            amount:parseFloat(formData.initial_amount),
-                            is_initial_amount:true,
-                            id:Math.random(),_id:Math.random().toString()}])
-                        }*/
 
                         setVerifiedInputs([])
                         toast.success('Conta adicionada')
@@ -160,7 +163,7 @@ import { Switch } from '@mui/material';
          return (
            <>
 
-         <FormLayout isPopUp={isPopUp} maxWidth={'700px'} name={id ? 'Actualizar' : 'Nova conta'} formTitle={isPopUp ? 'Adicionar novo meio de pagamento' : (id ? 'Actualizar' : 'Adicionar nova')}>
+         <FormLayout loading={!initialized || loading} isPopUp={isPopUp} maxWidth={'700px'} name={id ? 'Actualizar' : 'Nova conta'} formTitle={isPopUp ? 'Adicionar novo meio de pagamento' : (id ? 'Actualizar' : 'Adicionar nova')}>
 
                     <FormLayout.Section maxWidth={'700px'}>
 
@@ -263,7 +266,7 @@ import { Switch } from '@mui/material';
                                                 multiline
                                                 value={formData.initial_amount}
                                                 onBlur={()=>validate_feild('initial_amount')}
-                                                onChange={(e)=>setFormData({...formData,initial_amount:_cn_op(e.target.value)})}
+                                                onChange={(e)=>setFormData({...formData,initial_amount:_cn_op(e.target.value,'allow_negative')})}
                                                 error={(!formData.initial_amount) && verifiedInputs.includes('initial_amount') ? true : false}
                                                 sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                                 '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}

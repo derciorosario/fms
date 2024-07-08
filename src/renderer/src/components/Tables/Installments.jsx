@@ -49,7 +49,7 @@ export default function CircularIndeterminate({items,setFormData,formData,page,d
 <>  
   <div class={`relative bg-white overflow-x-auto mb-4 max-h-[200px] max-w-[800px] px-4 ${disabled ? 'opacity-70 pointer-events-none' :''}`}>
     <table class="w-full text-sm text-left rtl:text-right shadow-md rounded-[0.2rem] ">
-        <thead class="text-xs text-gray-900 uppercase rounded-[1rem]  dark:text-gray-400 bg-gray-50">
+        <thead class="text-xs text-gray-900 uppercase rounded-[1rem]  bg-gray-50">
             <tr className="[&>_th]:px-3 [&>_th]:py-2">
                 <th scope="col">
                     Valor a {page == 'pay' ? 'pagar' :'receber'}
@@ -69,7 +69,7 @@ export default function CircularIndeterminate({items,setFormData,formData,page,d
         <tbody>
             {items.map((i,_i)=>(
                     <tr class="bg-white [&>_td]:px-3 [&>_td]:py-2 [&>_td]:border-b">
-                    <th scope="row" class="px-3 py-2 border-b font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                    <th scope="row" class="px-3 py-2 border-b font-medium text-gray-900 whitespace-nowrap">
                         {i.amount.toFixed(2)}
                     </th>
                     <td>
@@ -92,8 +92,8 @@ export default function CircularIndeterminate({items,setFormData,formData,page,d
             ))}
 
             {!items.length && (
-                   <tr class="bg-white dark:bg-gray-800">
-                   <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                   <tr class="bg-white">
+                   <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                       -
                    </th>
                    <td class="px-6 py-4">

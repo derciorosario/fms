@@ -26,12 +26,6 @@ function App() {
 
   
 
-  React.useEffect(()=>{
-   
-     _get('categories') 
-
-   },[])
-
    
   React.useEffect(()=>{
    
@@ -43,7 +37,7 @@ function App() {
   return (
   <>
 
-  <FormLayout maxWidth={'700px'} name={'Categorias gerais'} formTitle={'Categorias'}>
+  <FormLayout  maxWidth={'700px'} name={'Categorias gerais'} formTitle={'Categorias'}>
 
         <div>
 

@@ -1,14 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputLabel from '@mui/material/InputLabel';
-import InputAdornment from '@mui/material/InputAdornment';
-import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Autocomplete from '@mui/material/Autocomplete'
 import toast from 'react-hot-toast';
 import { useAuth  } from '../../contexts/AuthContext';
@@ -17,97 +10,107 @@ import {useParams, useNavigate} from 'react-router-dom';
 import PouchDB from 'pouchdb';
 import FormLayout from '../../layout/DefaultFormLayout';
 import MultipleSelectChip from '../../components/TextField/chipInput';
+import { Switch } from '@mui/material';
+import { v4 as uuidv4 } from 'uuid';     
+import UploadCompanylogo from '../setup/compnents/upload-company-logo';
+      
   
        
        function App() {
 
-         const {navigate}=useNavigate()
+         const navigate=useNavigate()
 
           const { id } = useParams()
 
-          const db={
-            companies:new PouchDB('companies'),
-            user:new PouchDB('user')
-          }  
+          const {db,user} = useAuth()
 
+          const [items,setItems]=React.useState([])
+
+          const required_data=['managers']
           
-          const {makeRequest,_add,_update,_loaded,_get} = useData();
-          const data=useData()
-
-          useEffect(()=>{
-
-            
-            if(!id) return
-
-            (async()=>{
-              try {
-                let item=await db.companies.get(id)
-
-                setFormData(item)
-                handleLoaded('form','add')
-                
-              } catch (error) {
-                console.log(error)
-              }
-            })()
-
-          },[])
-
-
-       
-          const [showPassword, setShowPassword] = React.useState(false);
+          const {makeRequest,_add,_update,_loaded,_get,_get_all,_all,_all_loaded} = useData();
+          const data=useData()       
+          const [isFilial,setIsFilial]=useState(false)
+          const [filialDetails,setFilialDetails]=useState({name:''})
           const [loading, setLoading] = React.useState(false);
           const [valid, setValid] = React.useState(false);
           const [chipOptions, setChipOptions] = React.useState([]);
+          const [initialized, setInitialized] = React.useState(false);
           const [chipNames, setChipNames] = React.useState([]);
+          const [allManagers, setAllManagers] = React.useState([]);
+          const [allManagersLoaded, setAllManagersLoaded] = React.useState(false);
 
 
-          const {user,setUser}=useAuth()
+          const {setUser}=useAuth()
           
             let initial_form={
               name:'',
               nuit:'',
               address:'',
               contacts:[],
-              email:''
+              company:{logo:{}},
+              email:'',
+              createdAt:new Date().toISOString()
             }
+
 
           const [formData, setFormData] = React.useState(initial_form);
 
-          const [loaded, setLoaded] = React.useState([]);
-          const [initialized, seTinitialized] = React.useState(false);
 
-
-          function handleLoaded(item,action){
-              if(action=='add'){
-                setLoaded((prev)=>[...prev.filter(i=>i!=item),item])
-              }else{
-                setLoaded((prev)=>prev.filter(i=>i!=item))
-              }
-          }
-
+        
           React.useEffect(()=>{
-
-            if((loaded.includes('form') || !id)){
-               seTinitialized(true)
-            }
-                  
-          },[loaded])
-
-          React.useEffect(()=>{
-            if(!initialized && formData) return
+            if(!initialized && formData || !_all.managers) return
 
              if(id){
 
-              setChipOptions(data._managers.filter(i=>i.companies.includes(formData.id)).map(i=>i.name+" "+i.last_name))
+                setChipOptions(_all.managers.filter(i=>i.companies.includes(formData.id)).map(i=>i.name+" "+i.last_name))
 
              }
 
-             setChipNames(data._managers.filter(i=>i.created_by==user.id).map(i=>i.name+" "+i.last_name))
+             setChipNames(_all.managers.filter(i=>i.created_by==user.id).map(i=>i.name+" "+i.last_name))
            
-            
                
-          },[initialized])
+          },[initialized,_all])
+
+          
+          useEffect(()=>{
+            if(!(required_data.some(i=>!_loaded.includes(i))) && user && (formData.id || !id)){
+                 setInitialized(true)
+            }
+
+
+          },[db,user,_loaded,formData])
+
+
+
+          useEffect(()=>{
+            _get(required_data.filter(i=>!_loaded.includes(i))) 
+            
+          },[db])
+
+          useEffect(()=>{
+
+
+              if(user) _get_all('managers')  
+
+
+
+              if(!id) return
+
+              if(id){
+                      let item=user.companies_details.filter(i=>i.id==id)[0]
+                      if(item){
+                          setFormData({...formData,...item})
+                      }else{
+                          toast.error('Item não encontrado')
+                          navigate(`/managers`)
+                      }
+              }
+
+              
+
+          },[user])
+
        
           let required_fields=['name']
        
@@ -117,15 +120,118 @@ import MultipleSelectChip from '../../components/TextField/chipInput';
              setVerifiedInputs(field!='all' ? [...verifiedInputs,field] : required_fields)
           }
        
-          const handleClickShowPassword = () => setShowPassword((show) => !show);
-        
-          const handleMouseDownPassword = (event) => {
-            event.preventDefault();
-          };
-          
        
-       
-         async function SubmitForm(){
+
+          async function SubmitForm(){
+              if(valid){
+                  try{
+
+                  
+                  if(id){
+
+                    let user_db=new PouchDB('user-'+user.id)
+                    let new_user_content={...user,companies_details:[...user.companies_details.filter(i=>i.id!=formData.id),formData]}
+                    let res=await user_db.put(new_user_content)
+                    setUser({...new_user_content,_rev:res.rev})
+
+
+                    let selected_managers_ids=_all.managers.filter(i=>chipOptions.includes(i.name+" "+i.last_name)).map(i=>i.id)
+                    let olds=_all.managers.filter(i=>i.companies.includes(formData.id))
+                    let removed_m=_all.managers.filter(i=>i.companies.includes(formData.id) && !selected_managers_ids.includes(i.id))
+                    let new_m=_all.managers.filter(i=>selected_managers_ids.includes(i.id) && !olds.some(f=>f.id==i.id))
+                    
+                   
+
+                    for (let i = 0; i < removed_m.length; i++) {
+                        let cps=removed_m[i].companies
+                        for (let f = 0; f < cps.length; f++) {
+                          let c=new PouchDB(`managers-`+cps[f])
+                          let manager = await c.find({selector: {id:email[i].email}})
+                          manager=manager.docs[0]
+                          let res=await c.put({...manager,deleted:true,companies:[...manager.companies.filter(i=>i!=formData.id)]})
+                          console.log(res)
+                       }
+                    }
+
+
+                  for (let i = 0; i < new_m.length; i++) {
+                        let new_c=new PouchDB(`managers-`+formData.id)
+                        delete new_m[i].company_id
+                        delete new_m[i]._rev
+                        await new_c.put({...new_m[i],companies:[...new_m[i].companies,formData.id]})
+
+                      
+                        let cps=new_m[i].companies
+                        for (let f = 0; f < cps.length; f++) {
+                          let c=new PouchDB(`managers-`+cps[f])
+                          let manager = await c.find({selector: {email:new_m[i].email}})
+                          manager=manager.docs[0]
+                          let res=await c.put({...manager,companies:[...manager.companies,formData.id]})
+                          console.log({res})
+                        } 
+
+                  }
+
+
+                  }else{
+
+                    let company_id=uuidv4()
+                    let company=new PouchDB('managers-'+company_id)
+                    let managers=_all.managers.filter(i=>chipOptions.includes(i.name+" "+i.last_name))
+
+
+                    for (let i = 0; i < managers.length; i++) {
+                         delete managers[i]._rev
+                         await company.put({...managers[i],companies:[...managers[i].companies,company_id]})
+
+
+                         let associated_companies=managers[i].companies
+
+                        for (let f = 0; f < associated_companies.length; f++) {
+                             let c=new PouchDB('managers-'+associated_companies[f])
+                             let manager = await c.find({selector: {id:managers[i].id}})
+                             manager=manager.docs[0]
+                             await c.put({...manager,companies:[...manager.companies,company_id]})
+                        }
+                    }
+
+                  
+                    let new_company=JSON.parse(JSON.stringify(formData))
+                    let logo=formData.company.logo
+                    delete new_company.company
+
+                    if(!formData.headquarter_id) {
+                      delete new_company.headquarter_id
+                    }
+
+                    let new_user_content={...user,companies_details:[...user.companies_details,{
+                      ...formData,
+                      logo,
+                      id:company_id,
+                      companies:[...user.companies,company_id],
+                      admin_id:user.id,
+                      _id:new Date().toISOString()
+                    }]}
+
+                    let user_db=new PouchDB('user-'+user.id)
+                    let res=await user_db.put(new_user_content)
+                    setUser({...new_user_content,_rev:res.rev})
+                    setVerifiedInputs([])
+                    setFormData(initial_form)
+                    setChipOptions([])
+
+                  }
+
+                  toast.success('Empresa '+(id ? "actualizada" : "criada"))
+
+                }catch(e){
+                     console.log(e)
+                     toast.error('Erro inesperado')
+                }
+              }
+         }
+
+       /*  async function SubmitForm(){
               if(valid){
                   setLoading(true)
                   toast.loading(`${id ? 'A actualizar...' :'A enviar...'}`)
@@ -153,8 +259,6 @@ import MultipleSelectChip from '../../components/TextField/chipInput';
                         setVerifiedInputs([])
                         setFormData(initial_form)
                         setChipOptions([])
-
-
                      }
                      
                      setLoading(false)
@@ -190,28 +294,99 @@ import MultipleSelectChip from '../../components/TextField/chipInput';
                toast.error('Preencha todos os campos obrigatórios')
               }
           }
+              */
 
-
-          console.log({chipNames})
-
+        
           useEffect(()=>{
             let v=true
             Object.keys(formData).forEach(f=>{
-               if((!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email) || (!formData[f].length && required_fields.includes(f))){
+
+               if((!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email) || (!formData[f]?.length && required_fields.includes(f))){
                   v=false
                }
            })
            if(user.id!=formData.admin_id && id) v=false
+
+           if(isFilial && !formData.headquarter_id) v=false
+
+           if(user.companies_details.some(i=>i.name.toLowerCase()==formData.name.toLocaleLowerCase() && i.id!=formData.id)) v=false
           
            setValid(v)
-          },[formData,chipOptions,loaded])
+          },[formData,chipOptions])
        
           
         
-        
          return (
            <>
-              <FormLayout name={ `${id ? 'Actualizar filial' : 'Nova filial'}`} formTitle={id ? 'Actualizar' : 'Adicionar'}>
+              <FormLayout loading={(!initialized || (id && !_all_loaded.includes('managers'))) ? true : false} name={ `${id ? 'Actualizar '+(formData.headquarter_id ? 'filial':'empresa') : 'Nova '+(isFilial ?'filial':'empresa')}`} formTitle={id ? 'Actualizar' : 'Adicionar'}>
+
+
+              
+              {!id && <div className="flex px-[6px] items-center mt-3" id="add-bill-account">
+                   <label className="flex items-center cursor-pointer hover:opacity-90">
+                    <Switch
+                      checked={isFilial}
+                      inputProps={{ 'aria-label': 'controlled' }}
+                      onChange={(e)=>{
+                         setIsFilial(!isFilial)
+                      }}
+                    />
+                    <span>Adicionar como filial</span>
+                   </label>
+               </div>}
+
+
+
+
+               <div className={`${ isFilial ? 'flex' :'hidden'}`}>   
+               
+               <FormLayout.Section>
+
+               <div>
+                       
+                       <Autocomplete size="small"
+                          value={filialDetails.name ? filialDetails.name : null}
+                          onChange={(_, newValue) => {
+                            newValue=newValue ? newValue : ''
+                            let _id=user.companies_details.filter(i=>i.name?.toLowerCase()==newValue?.toLowerCase())[0]?.id
+                            setFormData({...formData,headquarter_id:_id})
+                            setFilialDetails({name:newValue})
+                          }}
+                          noOptionsText="Sem opções"
+                          defaultValue={null}
+                          inputValue={filialDetails.name}
+                          onInputChange={(event, newValue) => {
+                            newValue=newValue ? newValue : ''
+                            let _id=user.companies_details.filter(i=>i.name?.toLowerCase()==newValue?.toLowerCase())[0]?.id
+                            setFormData({...formData,headquarter_id:_id})
+                            setFilialDetails({name:newValue})
+                          }}
+      
+                          onBlur={()=>{
+                               if(!formData.headquarter_id)  setFilialDetails({name:''})
+                                validate_feild('headquarter')
+                          }}
+                          id="_transation_account"
+                          options={user ? user.companies_details.map(i=>i.name) : [] }
+                          sx={{ width: 300 }}
+                          disabled={id}
+                          renderInput={(params) => <TextField  {...params}
+                          helperText={(!formData.headquarter_id) && verifiedInputs.includes('headquarter') ? 'Campo obrigatório':''}
+                          error={(!formData.headquarter_id) && verifiedInputs.includes('headquarter') ? true : false}             
+                           value={filialDetails.name} label={'Empresa'} />}
+                      />   
+                       </div>
+
+                </FormLayout.Section>
+
+                </div>
+                 
+
+
+
+
+
+
               
               <FormLayout.Section>
               <div>
@@ -224,8 +399,8 @@ import MultipleSelectChip from '../../components/TextField/chipInput';
                            value={formData.name}
                            onBlur={()=>validate_feild('name')}
                            onChange={(e)=>setFormData({...formData,name:e.target.value})}
-                           error={(!formData.name) && verifiedInputs.includes('name') ? true : false}
-                           helperText={!formData.name && verifiedInputs.includes('name') ? "Nome obrigatório" :''}
+                           error={(!formData.name) && verifiedInputs.includes('name') || user.companies_details.some(i=>i.name.toLowerCase()==formData.name.toLocaleLowerCase() && i.id!=formData.id) ? true : false}
+                           helperText={!formData.name && verifiedInputs.includes('name') ? "Nome obrigatório" :user.companies_details.some(i=>i.name.toLowerCase()==formData.name.toLocaleLowerCase() && i.id!=formData.id)   ?'Nome já existe':''}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -236,7 +411,7 @@ import MultipleSelectChip from '../../components/TextField/chipInput';
                        <div>
                         <TextField
                            id="outlined-textarea"
-                           label="Email *"
+                           label="Email"
                            placeholder="Digite o email"
                            multiline
                            value={formData.email}
@@ -319,49 +494,7 @@ import MultipleSelectChip from '../../components/TextField/chipInput';
                            />
                        </div>
        
-                       <div className="hidden" style={{transform:'translateX(-0.5rem)'}}>
-                       <FormControl sx={{ m: 1 ,width:'100%'}} variant="outlined">
-                            <InputLabel htmlFor="outlined-adornment-password">Senha *</InputLabel>
-                            <OutlinedInput
-                               id="outlined-adornment-password"
-                               type={showPassword ? 'text' : 'password'}
-                               onBlur={()=>validate_feild('password')}
-                               value={formData.password}
-                               onChange={(e)=>setFormData({...formData,password:e.target.value})}
-                               error={true}
-                               disabled={user.id!=formData.admin_id && id ? true : false}
-                               helperText={(formData.length <= 5 && verifiedInputs.includes('password')) ? 'Senha deve ter no minimo 6 caracteres' : verifiedInputs.includes('password') && !formData.password ? "Senha obrigatória" :''}
-                               endAdornment={
-                               <InputAdornment position="end">
-                                  <IconButton
-                                     aria-label="toggle password visibility"
-                                     onClick={handleClickShowPassword}
-                                     onMouseDown={handleMouseDownPassword}
-                                     edge="end"
-                                  >
-                                     {showPassword ? <VisibilityOff /> : <Visibility />}
-                                  </IconButton>
-                               </InputAdornment>
-                               }
-                               label="Senha"
-                            />
-                   </FormControl>
-                       </div>
        
-                       <div className="w-[100%]">
-                       <TextField
-                               id="outlined-multiline-static"
-                               label="Observações"
-                               multiline
-                               disabled={user.id!=formData.admin_id && id ? true : false}
-                               rows={4}
-                               value={formData.notes}
-                               onChange={(e)=>setFormData({...formData,notes:e.target.value})}
-                               defaultValue=""
-                               sx={{width:'100%'}}
-                               />
-                       </div>
-
                        <div className=" relative">
                           <MultipleSelectChip disabled={user.id!=formData.admin_id && id ? true : false} label={'Gestores'} setItems={setChipOptions} names={chipNames} items={chipOptions}/>
                         <div className="text-[13px] absolute right-[0px] top-0 translate-y-[-100%] flex items-center">
@@ -370,6 +503,14 @@ import MultipleSelectChip from '../../components/TextField/chipInput';
 
                        </div>
               </FormLayout.Section>
+
+
+              
+              <div className="ml-7 mb-4">
+                 <UploadCompanylogo formData={formData} setFormData={setFormData}/>
+              </div>
+              <br/>
+
        
        
               <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={id}/>

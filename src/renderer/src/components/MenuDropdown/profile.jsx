@@ -101,12 +101,12 @@ export default function AccountMenu() {
           Configurações
         </MenuItem> */}
         <MenuItem onClick={()=>{
-            handleClose('/logout')
+            handleClose('/login')
         }}>
           <ListItemIcon>
             <Logout fontSize="small" />
           </ListItemIcon>
-          Sair
+          Login
         </MenuItem>
       </Menu>
     </React.Fragment>

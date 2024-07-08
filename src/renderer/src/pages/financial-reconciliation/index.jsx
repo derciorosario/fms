@@ -8,24 +8,9 @@ import BasicTable from '../../components/Tables/basic';
 import TotalCard from '../../components/Cards/default_totals';
 
 function App() {
-  const {_delete,_loaded,_transations,_cn} = useData();
-  const [itemsToDelete,setItemsToDelete]=React.useState([])
-  const [deleteLoading,setDeleteLoading]=React.useState(false)
+  const {_transations,_cn} = useData();
   const [_filtered_content,_setFilteredContent]=useState([])
   
-
- async function confirmDelete(res){
-    
-     setItemsToDelete([])
-    
-     if(res){
-        let items=JSON.parse(JSON.stringify(itemsToDelete))
-        _delete(items,'bills_to_receive')
-     }
-   }
-
-  
-  const navigate=useNavigate()
 
 
   let stats={
@@ -57,13 +42,36 @@ React.useEffect(()=>{
       Object.keys(statResponses).forEach(o=>{
                 let from=o=="global" ? _transations : _filtered_content 
 
+                let total
+                let paid
+                let confirmed
+                let not_confirmed
+                let inflows
+                let outflows
 
-                let total=from.map(item => (item.type=="out" ? - (item.amount) : item.amount)).reduce((acc, curr) => acc + curr, 0);
-                let paid=from.map(item => item.paid).reduce((acc, curr) => acc + curr, 0);
-                let confirmed=from.filter(i=>i.confirmed).map(item => item.amount).reduce((acc, curr) => acc + curr, 0);
-                let not_confirmed=from.filter(i=>!i.confirmed).map(item => item.amount).reduce((acc, curr) => acc + curr, 0);
-                let inflows=from.filter(i=>i.type=="in").map(item => item.amount).reduce((acc, curr) => acc + curr, 0);
-                let outflows=from.filter(i=>i.type=="out").map(item => item.amount).reduce((acc, curr) => acc + curr, 0);
+
+                if(o=="global"){
+
+                  total=from.map(item => (item.type=="out" ?  - (parseFloat(item.amount)) : parseFloat(item.amount))).reduce((acc, curr) => acc + curr, 0);
+                  paid=from.map(item => item.paid).reduce((acc, curr) => acc + curr, 0);
+                  confirmed=from.map(i=>i.payments.filter(f=>f.confirmed).map(item => parseFloat(item.amount)).reduce((acc, curr) => acc + curr, 0)).map(item => item).reduce((acc, curr) => acc + curr, 0);
+                  not_confirmed=from.map(i=>i.payments.filter(f=>!f.confirmed).map(item =>parseFloat(item.amount)).reduce((acc, curr) => acc + curr, 0)).map(item => item).reduce((acc, curr) => acc + curr, 0);
+                  inflows=from.filter(i=>i.type=="in").map(item => parseFloat(item.amount)).reduce((acc, curr) => acc + curr, 0);
+                  outflows=from.filter(i=>i.type=="out").map(item => parseFloat(item.amount)).reduce((acc, curr) => acc + curr, 0);
+                  
+                }else{
+
+                    total=from.map(item => (item.type=="out" ? - (parseFloat(item.payment.amount)) : parseFloat(item.payment.amount))).reduce((acc, curr) => acc + curr, 0);
+                    paid=from.map(item => item.payment.paid).reduce((acc, curr) => acc + curr, 0);
+                    confirmed=from.filter(i=>i.payment.confirmed).map(item => parseFloat(item.payment.amount)).reduce((acc, curr) => acc + curr, 0);
+                    not_confirmed=from.filter(i=>!i.payment.confirmed).map(item => parseFloat(item.payment.amount)).reduce((acc, curr) => acc + curr, 0);
+                    inflows=from.filter(i=>i.type=="in").map(item => parseFloat(item.payment.amount)).reduce((acc, curr) => acc + curr, 0);
+                    outflows=from.filter(i=>i.type=="out").map(item => parseFloat(item.payment.amount)).reduce((acc, curr) => acc + curr, 0);
+                    
+
+                }
+
+
                 
                 
 
@@ -90,6 +98,42 @@ React.useEffect(()=>{
 
 },[_filtered_content,_transations])
 
+
+
+return (
+  <>
+       <DefaultLayout  details={{name:'Conciliação financeira'}}>
+        
+              <TotalCard page={`transations`} items={
+                  [
+                    {
+                      name:'Saldo',value:statResponses.global.total,
+                    },
+                    {
+                      name:'Conciliado',value:statResponses.global.confirmed,
+                    },
+                    {
+                      name:'Não conciliado',value:statResponses.global.not_confirmed,
+                    },
+                    {
+                      name:'Entradas',value:statResponses.global.inflows,
+                    },
+                    {
+                      name:'Saidas',value:statResponses.global.outflows,
+                    },
+                    
+                  ]
+              }/>
+
+         <BasicTable res={[
+            {name:'Saldo',value:statResponses.result.total},
+            {name:'Conciliado',value:statResponses.result.confirmed},
+            {name:'Não conciliado',value:statResponses.result.not_confirmed},
+           ]} _setFilteredContent={_setFilteredContent} _filtered_content={_filtered_content}  page={'financial-reconciliation'}/>
+           
+        </DefaultLayout>
+  </>
+)
 
 
   

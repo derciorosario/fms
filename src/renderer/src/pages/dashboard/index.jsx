@@ -1,10 +1,10 @@
 import React,{useState,useEffect} from 'react';
 import DefaultLayout from '../../layout/DefaultLayout';
-import { useAuth } from '../../contexts/AuthContext';
 import MonetizationOn from '@mui/icons-material/MonetizationOn';
 import ArrowCircleRightOutlinedIcon from '@mui/icons-material/ArrowCircleRightOutlined';
 import MixedChart from '../../components/Charts/chart-1';
 import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Doughnut from '../../components/Charts/chart-4'
 import colors from '../../assets/colors.json'
@@ -14,6 +14,12 @@ function App() {
  
 
   const {_get_cash_managment_stats,_loaded,_get_stat,_cn,_categories,_get} = useData();
+  const {db} = useAuth();
+
+  let required_data=['bills_to_pay','account_categories','bills_to_receive','payment_methods','transations']
+
+
+  const [initialized,setInitialized]=useState(false)
   
   const [filterOptions,setFilterOPtions]=useState([
     {
@@ -32,30 +38,22 @@ function App() {
 
 
 useEffect(()=>{
-
-  if(!_loaded.includes('categories')) return
-
   const {datasets:d_cm,labels:l_cm} = _get_cash_managment_stats([filterOptions.filter(i=>i.id=="monthy_cm")[0]],'m')
   setDataChartCM({datasets:d_cm,labels:l_cm})
-
+  if(!(required_data.some(i=>!_loaded.includes(i)))){
+      setInitialized(true)
+  }
  },[_loaded,filterOptions])
 
  useEffect(()=>{
-  _get('categories')
- },[])
+      _get(required_data.filter(i=>!_loaded.includes(i)))    
+ },[db])
 
-
-
- 
   let {user}=useAuth()
-
-  if(!_loaded.includes('categories')){
-     return (<></>)
-  }
 
   return (
     <>
-       <DefaultLayout details={{name:'Olá '+user.name+"!"}}>
+       <DefaultLayout details={{name:'Olá '+user?.name+"!"}} _isLoading={!initialized}>
 
         <div className="max-w-[1424px]">
 
@@ -143,8 +141,8 @@ useEffect(()=>{
 </div>        
 
 
-<div class="relative overflow-x-auto w-[100%]">
-<table class="w-full text-sm text-left rtl:text-right text-gray-500">
+<div class="relative overflow-x-auto w-[100%] max-h-[300px]">
+<table class="w-full text-sm text-left rtl:text-right text-gray-500 ">
   <thead class="text-xs text-gray-700 uppercase bg-gray-50">
       <tr>
           <th scope="col" class="px-6 py-3 font-medium">
@@ -166,9 +164,9 @@ useEffect(()=>{
   <tbody>
 
       {_get_stat('upcomming_payments')[i].map((f,_f)=>(
-             <tr key={_f} class="bg-white shadow-sm px-1">
-             <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                 {_categories.filter(i=>i.field==f.account_origin)[0].name}
+             <tr key={_f} class="bg-white shadow-sm px-1 hover:text-gray-900 cursor-pointer" onClick={()=>navigate('/'+(i=="inflows" ? "bills-to-receive" : "bills-to-pay")+"/"+f._id)}>
+             <th scope="row" class="px-6 py-4 truncate font-medium text-gray-900 whitespace-nowrap">
+                 <span  className="max-w-300"> {_categories.filter(i=>i.field==f.account_origin)[0].name}</span>
              </th>
              <td class="px-6 py-4">
                  {f.description}
@@ -179,7 +177,7 @@ useEffect(()=>{
              <td class="px-6 py-4">
                  {f.payday.split('T')[0]}
              </td>
-             <td><button onClick={()=>navigate('/'+(i=="inflows" ? "bills-to-receive" : "bills-to-pay")+"/"+f._id)} className="mr-2 px-2 py-1 bg-blue-400 text-white rounded hover:opacity-70">Ver</button></td>
+             <td className="hidden"><button  className="mr-2 px-2 py-1 bg-blue-400 text-white rounded hover:opacity-70">Ver</button></td>
          </tr>
       ))}
   </tbody>
@@ -225,7 +223,7 @@ useEffect(()=>{
                   <div className="flex justify-between border-gray-200 border-b  pb-3">
                     <div>
                       <div className={`text-base font-medium  text-gray-500  pb-1`}>Saldo da semana</div>
-                      <div className={`leading-none text-3xl font-bold ${ _get_stat('this_week_transations').balance < 0 ? 'text-red-600' :'text-gray-900'} dark:text-white`}>{_cn(_get_stat('this_week_transations').balance)}</div>
+                      <div className={`leading-none text-3xl font-bold ${ _get_stat('this_week_transations').balance < 0 ? 'text-red-600' :'text-gray-900'}`}>{_cn(_get_stat('this_week_transations').balance)}</div>
                     </div>
                     <div className="hidden">
                       <span className="bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md">
@@ -240,11 +238,11 @@ useEffect(()=>{
                   <div className="grid grid-cols-2 py-3">
                     <dl>
                       <dt className="text-base font-normal text-gray-500 pb-1">Entradas ({_get_stat('this_week_transations').inflows_total})</dt>
-                      <dd className="leading-none text-xl font-bold text-green-500 dark:text-green-400">{_cn(_get_stat('this_week_transations').inflows)}</dd>
+                      <dd className="leading-none text-xl font-bold text-green-500">{_cn(_get_stat('this_week_transations').inflows)}</dd>
                     </dl>
                     <dl>
-                      <dt className="text-base font-normal text-gray-500 dark:text-gray-400 pb-1">Saidas ({_get_stat('this_week_transations').outflows_total})</dt>
-                      <dd className="leading-none text-xl font-bold text-red-600 dark:text-red-500">{_get_stat('this_week_transations').outflows ? '-' :''}{_cn(_get_stat('this_week_transations').outflows)}</dd>
+                      <dt className="text-base font-normal text-gray-500 pb-1">Saidas ({_get_stat('this_week_transations').outflows_total})</dt>
+                      <dd className="leading-none text-xl font-bold text-red-600">{_get_stat('this_week_transations').outflows ? '-' :''}{_cn(_get_stat('this_week_transations').outflows)}</dd>
                     </dl>
                   </div>
                 
@@ -285,28 +283,10 @@ useEffect(()=>{
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
                           </svg>
                         </button>
-                        <div id="lastDaysdropdown" className="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg  w-44 dark:bg-gray-700">
-                            <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
+                        <div id="lastDaysdropdown" className="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg  w-44">
+                            <ul className="py-2 text-sm text-gray-700" aria-labelledby="dropdownDefaultButton">
                               <li>
-                                <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Yesterday</a>
-                              </li>
-                              <li>
-                                <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Today</a>
-                              </li>
-                              <li>
-                                <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 7 days</a>
-                              </li>
-                              <li>
-                                <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 30 days</a>
-                              </li>
-                              <li>
-                                <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 90 days</a>
-                              </li>
-                              <li>
-                                <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 6 months</a>
-                              </li>
-                              <li>
-                                <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last year</a>
+                                <a href="#" className="block px-4 py-2 hover:bg-gray-100">Yesterday</a>
                               </li>
                             </ul>
                         </div>
@@ -411,22 +391,11 @@ useEffect(()=>{
         </svg>
       </button>
       <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg w-44">
-          <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
+          <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownDefaultButton">
             <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Yesterday</a>
+              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Yesterday</a>
             </li>
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Today</a>
-            </li>
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 7 days</a>
-            </li>
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 30 days</a>
-            </li>
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 90 days</a>
-            </li>
+            
           </ul>
       </div>
       <a
@@ -476,11 +445,11 @@ useEffect(()=>{
 
 
 
-<div key={_i} class={`${_i==0 ? 'w-[48.8%]':'w-[50%]'}  dark:bg-gray-800   mb-3 rounded-[0.3rem] shadow-sm bg-white ${_i==0 ? 'mr-2':''}`}>
+<div key={_i} class={`${_i==0 ? 'w-[48.8%]':'w-[50%]'}  mb-3 rounded-[0.3rem] shadow-sm bg-white ${_i==0 ? 'mr-2':''}`}>
    
   <div class="flex justify-between mb-3 border-b">
       <div class="flex justify-center items-center">
-          <h5 class="p-3 font-semibold text-[17px] leading-none text-gray-900 dark:text-white pe-1">{i=="in" ? 'Entradas por plano de contas' :'Saídas por plano de contas'}</h5>
+          <h5 class="p-3 font-semibold text-[17px] leading-none text-gray-900 pe-1">{i=="in" ? 'Entradas por plano de contas' :'Saídas por plano de contas'}</h5>
           
       </div>
   </div>
@@ -494,41 +463,29 @@ useEffect(()=>{
       <Doughnut {..._get_stat('accounts_cat_balance')[i]}/>
   </div>
 
-  <div class="grid grid-cols-1 items-center border-gray-200  dark:border-gray-700 justify-between">
+  <div class="grid grid-cols-1 items-center border-gray-200  justify-between">
     <div class="flex justify-between items-center pt-5">
        <button
         id="dropdownDefaultButton"
         data-dropdown-toggle="lastDaysdropdown"
         data-dropdown-placement="bottom"
-        class="hidden text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
+        class="hidden text-sm font-medium text-gray-500 hover:text-gray-900 text-center inline-flex items-center"
         type="button">
         Last 7 days
         <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
         </svg>
       </button>
-      <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg  w-44 dark:bg-gray-700">
-          <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
+      <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg  w-44">
+          <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownDefaultButton">
             <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Yesterday</a>
-            </li>
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Today</a>
-            </li>
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 7 days</a>
-            </li>
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 30 days</a>
-            </li>
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 90 days</a>
+              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Yesterday</a>
             </li>
           </ul>
       </div>
       <a
         onClick={()=>navigate('/reports/cash-management/monthly')}
-        class="uppercase cursor-pointer text-sm font-semibold inline-flex items-center rounded-lg text-orange-500 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+        class="uppercase cursor-pointer text-sm font-semibold inline-flex items-center rounded-lg text-orange-500  hover:bg-gray-100 px-3 py-2">
          Mais detalhes 
         <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>

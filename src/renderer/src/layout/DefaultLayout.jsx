@@ -8,14 +8,16 @@ import CreatePopUp from '../components/PopUps/create';
 import PageLoader from '../components/progress/pageLoader';
 import Close from '@mui/icons-material/Close';
 import PrintTable from '../components/Tables/print';
+import { useAuth } from '../contexts/AuthContext';
 
-const DefaultLayout = ({ children , details ,isPopUp,loading}) => {
+const DefaultLayout = ({ children , details ,isPopUp,loading,_isLoading}) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const {changingCompany} = useAuth()
 
-  const {_loaded,dbs,_categories,_openPopUps,_loading,_openCreatePopUp,_setOpenCreatePopUp} = useData()
+  const {_openPopUps,_loading,_openCreatePopUp,_setOpenCreatePopUp} = useData()
 
   
-  if(_loaded.length < dbs.length || !_categories.length || loading || _loading){
+  if(loading || _loading || changingCompany){
      return (
 
          <PageLoader/>
@@ -36,7 +38,7 @@ const DefaultLayout = ({ children , details ,isPopUp,loading}) => {
       <>
 
       <PrintTable/>
-     <div className="dark:bg-boxdark-2 dark:text-bodydark">
+     <div>
       {/* <!-- ===== Page Wrapper Start ===== --> */}
       <div className="flex h-screen overflow-hidden">
         {/* <!-- ===== Sidebar Start ===== --> */}
@@ -63,7 +65,7 @@ const DefaultLayout = ({ children , details ,isPopUp,loading}) => {
               </div>
           <Search show={_openPopUps.search}/>
           {/* <!-- ===== Header Start ===== --> */}
-          <Header details={details} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+          <Header details={details} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} _isLoading={_isLoading} />
           
           {/* <!-- ===== Header End ===== --> */}
 

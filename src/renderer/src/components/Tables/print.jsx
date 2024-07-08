@@ -5,7 +5,6 @@ export default function PrintTable() {
  const {_printData} = useData()
  const {pathname}= useLocation()
  
- console.log(_printData)
 
   return (
       <>  

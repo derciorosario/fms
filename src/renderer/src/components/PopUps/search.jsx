@@ -87,7 +87,7 @@ export default function Search({show}) {
 
                
                 <table class="w-full text-sm text-left rtl:text-right  rounded-[0.2rem] ">
-        <thead class="text-xs text-gray-900 uppercase rounded-[1rem]  dark:text-gray-400">
+        <thead class="text-xs text-gray-900 uppercase rounded-[1rem]">
             <tr className="[&>_th]:px-3 [&>_th]:py-2">
                 <th scope="col">
                     
@@ -107,8 +107,8 @@ export default function Search({show}) {
                  <tr onClick={()=>{
                     navigate(`/${i._from}/${i._id}`)
                     data._closeAllPopUps()
-                 }} class="bg-white [&>_td]:px-3 [&>_td]:py-2 [&>_td]:border-b hover:bg-gray-100 cursor-pointer">
-                 <th scope="row" class="px-3 py-2 border-b font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                 }} class="bg-white [&>_td]:px-3 [&>_td]:py-2 [&>_td]:border-b cursor-pointer">
+                 <th scope="row" class="px-3 py-2 border-b font-medium text-gray-900 whitespace-nowrap">
                      <span className="text-[13px] p-1 rounded bg-gray-100">{i.n}</span>
                  </th>
                  <td className="min-w-0">

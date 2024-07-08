@@ -22,8 +22,8 @@ import { useTranslation } from 'react-i18next';
 
 function App({float}) {
     const { t } = useTranslation();
-    const {user}=useAuth()
-    const {_setMenu,_menu,_openPopUps,_closeAllPopUps,_showPopUp,_change_company}=useData()
+    const {user,_change_company}=useAuth()
+    const {_setMenu,_menu,_openPopUps,_closeAllPopUps,_showPopUp}=useData()
 
     let {pathname} = useLocation()
     //const [open,setOpen]=React.useState(() => localStorage.getItem('menu_open'))
@@ -138,6 +138,7 @@ function App({float}) {
         
 
         {name:t('sidebar.main.investments'),path:'/investments',paths:['/investments','/investments/create','investments/:id'],field:'investments',icon:'Inventory2OutlinedIcon'},
+        {name:t('sidebar.main.loans'),path:'/loans',paths:['/loans','/loans/create','loans/:id'],field:'loans',icon:'PriceChangeOutlinedIcon'},
 
         /*{name:'Controle de orçamento',paths:['/budget-management','/budget-management/create','/budget-management/reports'],field:'budget-management',icon:'PriceChangeOutlinedIcon',sub_menus:[
             {name:'Orçamentos',path:'/budget-management',field:'budget-management',paths:['/budget-management','budget-management/create'],icon:'PaymentsOutlinedIcon'},
@@ -154,7 +155,7 @@ function App({float}) {
         ]},
 
         {divide:true, name:t('sidebar.main.settings'),field:'settings',icon:'SettingsIcon',sub_menus:[
-            {name:t('sidebar.settings.accountsPlan'),path:'/account-categories',field:'account-categories',paths:['/account-categories','/account-categories/create','/account-categories/:id'],icon:'PaymentsOutlinedIcon'},
+           // {name:t('sidebar.settings.accountsPlan'),path:'/account-categories',field:'account-categories',paths:['/account-categories','/account-categories/create','/account-categories/:id'],icon:'PaymentsOutlinedIcon'},
             {name:t('sidebar.settings.accounts'),path:'/accounts',field:'accounts',paths:['/accounts','/accounts/create','/account/:id'],icon:'PaymentsOutlinedIcon'},
             {name:t('sidebar.settings.paymentMethods'),path:'/payment-methods',field:'payment-methods',paths:['/payment-methods','/payment-methods/create','/payment-methods/:id'],icon:'PaymentsOutlinedIcon'},
             {name:t('sidebar.settings.managers'),path:'/managers',field:'managers',paths:['/managers','/managers/create','/manager/:id'],icon:'PaymentsOutlinedIcon'},
@@ -187,11 +188,13 @@ function App({float}) {
         SettingsIcon:<SettingsIcon style={getIconStyle('settings')}/>,
         CorporateFareIcon:<CorporateFareIcon style={getIconStyle('companies')}/>,
         Inventory2OutlinedIcon:<Inventory2OutlinedIcon style={getIconStyle('investments')}/>,
+        PriceChangeOutlinedIcon:<PriceChangeOutlinedIcon style={getIconStyle('loans')}/>,
         TuneIcon:  <TuneIcon style={getIconStyle('user-preferences')}/>,
         CurrencyExchangeOutlinedIcon:<PublishedWithChangesOutlinedIcon style={getIconStyle('financial-reconciliation')}/>,
         MonetizationOnOutlinedIcon: <MonetizationOnOutlinedIcon style={getIconStyle('cash-management')} />,
        
     }
+    
   
 
     return (
@@ -211,26 +214,25 @@ function App({float}) {
               
                <div className={`relative ${!_menu.open && !float ? 'hidden' :''}`}>
                     <button onClick={()=>{
-                        if(user?.companies?.length >=2){
+                        if(user?.companies_details?.length >=2){
                             if(_openPopUps.menu_companies){
                                 _closeAllPopUps()
                             }else{
                                 _showPopUp('menu_companies')
-    
                             }
                         }
-                    }} id="dropdownDefaultButton"  className={`text-white ${user?.companies?.length == 1 ? 'cursor-default':''} truncate bg-transparent  font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center`}
+                    }} id="dropdownDefaultButton"  className={`text-white ${user?.companies_details?.length == 1 ? 'cursor-default':''} truncate bg-transparent  font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center`}
                      type="button">
-                       {user?.company?.name?.slice(0,50)}{user?.company?.name?.length > 50 && '...'} 
-                       {user?.companies?.length >= 2 && <svg  className={`w-2.5 h-2.5 ms-3 ${_openPopUps.menu_companies ? 'rotate-180':''} transition duration-150 ease-in-out`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                       {user?.companies_details.filter(i=>i.id==user?.selected_company)?.[0]?.name?.slice(0,50)}{user?.companies_details.filter(i=>i.id==user?.selected_company)?.[0]?.name.length > 50 && '...'} 
+                       {user?.companies_details?.length >= 2 && <svg  className={`w-2.5 h-2.5 ms-3 ${_openPopUps.menu_companies ? 'rotate-180':''} transition duration-150 ease-in-out`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
                         </svg>}
                     </button>
                    
                       <div id="dropdown" className={`max-h-[350px] overflow-y-auto ${_openPopUps.menu_companies ? 'z-10 opacity-1' :'opacity-0 translate-y-2 pointer-events-none'} left-[-20px] absolute transition duration-150 ease-in-out max-w-[180px]  bg-white divide-y divide-gray-200 rounded-lg shadow w-44`}>
-                       {user.companies?.filter(i=>i.id!=user?.company.id).map((i,_i)=>(
+                       {user.companies_details?.filter(i=>i.id!=user?.selected_company).map((i,_i)=>(
                             <ul className="py-2 text-sm text-gray-700" aria-labelledby="dropdownDefaultButton">
-                                    <li onClick={()=>_change_company(i)}>
+                                    <li onClick={()=>_change_company(i.id)}>
                                         <a className="block px-4 py-2 cursor-pointer hover:text-app_orange-400">{i.name}</a>
                                     </li>
                                 </ul>

@@ -11,6 +11,7 @@
       "register": "Register",
       "settings": "Settings",
       "investments": "Investments",
+      "loans": "Loans",
       "finacialReconciliation": "finacial reconcilation",
       "reports": "Reports",
       "companies": "Companies",
@@ -92,6 +93,7 @@
     }
   },
   "common": {
+    "add_new":"+ Add new",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",

@@ -6,9 +6,6 @@ import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined
 import TableLoader from '../../components/progress/TableProgress'
 import { useData } from '../../contexts/DataContext';
 import {useParams, useNavigate} from 'react-router-dom';
-import PouchDB from 'pouchdb';
-import { Button } from '@mui/material';
-import TextField from '@mui/material/TextField';
 import toast from 'react-hot-toast';
 import CheckIcon from '@mui/icons-material/Check';
 import { useSearchParams, useLocation } from 'react-router-dom';
@@ -16,42 +13,38 @@ import colors from '../../assets/colors.json'
 import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
 import { useAuth } from '../../contexts/AuthContext';
 import DefaultButton from '../Buttons/default';
+import { v4 as uuidv4 } from 'uuid';
+import { CircularProgress } from '@mui/material';
 
 
-export default function Table({setSearch,setItemsToDelete,search,filterOptions,page,periodFilters,_setFilteredContent,setFilterOptions,setDatePickerPeriodOptions,clearAllFilters}) {
-  const {_get,_loaded,_update,_payment_methods,_categories,_cn}= useData()
+export default function Table({page_settings,setSearch,setItemsToDelete,search,filterOptions,page,periodFilters,_setFilteredContent,setFilterOptions,setDatePickerPeriodOptions,clearAllFilters}) {
+  const {_loaded,_update,_categories,_cn}= useData()
   const data=useData()
-  const {user} = useAuth()
+  const {user,db,_change_company} = useAuth()
   const navigate=useNavigate()
   const [selectedItems,setSelectedItems]=React.useState([])
+  const [loading,setLoading]=React.useState(false)
   const [rows,setRows]=React.useState([])
   const [settings,setSettings]=React.useState({
      columns:[],
      selected:'',
      required_data:[]
   })
+
   const {pathname}= useLocation()
   const [searchParams, setSearchParams] = useSearchParams();
 
 
   React.useEffect(()=>{
-      
    //clearAllFilters()
    data._sendFilter(searchParams)
-
+   
   },[])
 
-  React.useEffect(()=>{
-      _get('managers')
-      _get('companies')
-   },[pathname])
-
-  settings.selected
+  
 
   
   React.useEffect(()=>{
-
-  
       let params_names=Object.keys(data._filters).filter(i=>(typeof data._filters[i] == 'string' && data._filters[i]) || (typeof data._filters[i] == 'object' && data._filters[i].length))
 
       setFilterOptions(filterOptions.map(f=>{
@@ -76,39 +69,143 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
 
       setSearch(data._filters.search)
 
-
    },[data._filters])
 
 
 
+
+   async function handleReconciliation(row,action,value){
+
+
+    setLoading(row.id)
+
+
+    if(!row.payment.confirmed && action=="confirm" && ((!row.payment.confirmed_amount || row.payment.confirmed_amount <= 0 || isNaN(row.payment.confirmed_amount)) && row.payment.confirmed_amount!=undefined)){
+      toast.error('Valor deve ser maior que 0')
+      return
+    }
+
+    if(row.payment.confirmed_amount==undefined){
+         row.payment.confirmed_amount=parseFloat(row.payment.amount)
+    } 
+
+   
+    let transation=rows.filter(i=>i.id==row.id)[0]
+
+    transation={...transation,payments:transation.payments.map(i=>{
+        if(action=="confirm"){
+          return i.account_id==transation.payment.account_id ? {...i,amount:transation.payment.confirmed_amount,confirmed_amount:transation.payment.confirmed_amount,confirmed:!transation.payment.confirmed} : i
+        }else{
+          return i.account_id==transation.payment.account_id ? {...i,confirmed_amount:value} : i
+        }
+     })}
+
+    
+     let amount=transation.payments.map(i=>i.amount ? parseFloat(i.amount) : 0).reduce((acc, curr) => acc + curr, 0)
   
 
+     setRows(rows.map((i,_i)=>{
+      if(action=="confirm"){
+        return i.id==row.id ? {...i,amount:transation.payment.confirmed_amount,confirmed_amount:transation.payment.confirmed_amount,confirmed:!transation.payment.confirmed} : i
+      }else{
+        return i.id==row.id ? {...i,payment:{...i.payment,confirmed_amount:value}} : i
+      }
+      
+    }))
 
 
+   if(action=="amount"){
+       setLoading(false)
+       return
+   } 
+
+   
   
+   if(transation.link_payment){
 
-  function consiliate(data,confirmed_amount){
-      if((!confirmed_amount || confirmed_amount <= 0 || isNaN(confirmed_amount)) && confirmed_amount!=undefined){
-          toast.error('Valor deve ser maior que 0')
-          return
+       let account=await db[`bills_to_${transation.type=="in"?"receive":"pay"}`].find({selector: {id:transation.account.id}})
+       account=account.docs[0]
+
+       let last=await db.transations.find({selector: {id:row.transation_id}})
+       last=last.docs[0]
+       let fees=transation.fees ? parseFloat(transation.fees) : 0
+       account.paid=parseFloat(account.paid) - parseFloat(last.amount) + amount
+       if(!account.paid) account.paid=""
+       account.fees=parseFloat(account.fees ? account.fees : 0) - fees
+       if(parseFloat(account.amount) > account.paid) {
+           account.status="pending"
+       }else{
+           account.status="paid"
+       }
+       await db[`bills_to_${transation.type=="in"?"receive":"pay"}`].put(account)
+       
+       
+
+       if(transation.loan_id){
+        let loan = await db.loans.find({selector: {id:transation.loan_id}})
+        loan=loan.docs[0]
+    
+        delete transation.payment
+    
+        if(transation.type=="in"){
+          loan.amount=amount
+          loan.payments=transation.payments
+         }else{
+          loan.paid=account.paid
+          loan.fees=account.fees
+          loan.status=account.status
+        }
+       
+        await _update('loans',[loan])
       }
 
-      _update('transations',[data])
-  }
-  
+       
+   }
+
+   transation.amount=amount
+   delete transation.payment
+   await _update('transations',[transation])
+   setLoading(false)
+}
+
 
   
   function search_f(array){
 
-      let res=data._search(search,array,filterOptions,periodFilters)
+      let res=data._search(search,array,filterOptions,periodFilters,page_settings)
 
       if(page=="inflows" || page=="outflows"){
           res=res.filter(v=>v.type==(page=="inflows" ? 'in' :'out'))
       }
 
-      if(page=="managers"){
-        res=res.filter(v=>v.id!=user.id)
+    
+
+      if(page=="companies"){
+          array=user.companies_details
+          res=data._search(search,array,filterOptions,periodFilters,page_settings)
       }
+
+
+
+      
+
+      if(page=='financial-reconciliation'){
+              let reconciliation_data=[]
+              let selected_filters=filterOptions.filter(i=>i.field=="if_consiliated")[0].groups[0].selected_ids
+              let igual=filterOptions.filter(i=>i.field=="if_consiliated")[0].igual
+              res.forEach(i=>{
+                i.payments.forEach(f=>{
+                  let confirmed=f.confirmed && f.amount==f.confirmed_amount ? true : false
+                  
+                  if(!selected_filters.length || (  (selected_filters.includes(!!(confirmed)) && igual)   ||  (!selected_filters.includes(!!(confirmed)) && !igual) )){
+                     reconciliation_data.push({...i,id:uuidv4(),transation_id:i.id,payment:{...f,confirmed,confirmed_amount:f.confirmed ? f.amount : undefined}})
+                  }
+
+                })
+            })
+            res=reconciliation_data
+
+    }
 
       _setFilteredContent(res)
       return res
@@ -118,11 +215,6 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
 
 
   function update_data(){
-
-    console.log({ddddddddd:data[settings.selected]})
-
-
-    console.log(search_f(data[settings.selected]))
 
       setRows(search_f(data[settings.selected]))
 
@@ -137,13 +229,11 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
  
 
   useEffect(()=>{
-
     let _settings=JSON.parse(JSON.stringify(settings))
-
    if(page=='financial-reconciliation'){
        _settings.selected='_transations'
        _settings.hide_checkbox=true
-       _settings.required_data=['transations','account_categories']
+       _settings.required_data=['transations','account_categories','payment_methods']
    }else if(page=="bills-to-receive"){
       _settings.selected='_bills_to_receive'
       _settings.required_data=['bills_to_receive','account_categories']
@@ -154,7 +244,10 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
    }else if(page=="investments"){
       _settings.selected='_investments'
       _settings.required_data=['investments']
-  }else if(page=="budget-management"){
+  }else if(page=="loans"){
+    _settings.selected='_loans'
+    _settings.required_data=['loans']
+}else if(page=="budget-management"){
       _settings.selected='_budget'
       _settings.required_data=['budget']
   }else if(page=="account-categories"){
@@ -167,41 +260,38 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
       _settings.selected='_transations'
       _settings.required_data=['transations']
   }else if(page=="clients"){
+      _settings.disable_time=true
       _settings.selected='_clients'
       _settings.required_data=['clients']
   }else if(page=="suppliers"){
+      _settings.disable_time=true
       _settings.selected='_suppliers'
       _settings.required_data=['suppliers']
   }else if(page=="investors"){
+      _settings.disable_time=true
       _settings.selected='_investors'
       _settings.required_data=['investors']
   }else if(page=="managers"){
+      _settings.disable_time=true
       _settings.selected='_managers'
       _settings.required_data=['managers']
   }else if(page=="companies"){
-    _settings.selected='_companies'
-    _settings.required_data=['companies']
+    _settings.disable_time=true
+    _settings.required_data=['clients','suppliers','investors','managers']
     _settings.hide_checkbox=true
   }
-     setSettings(_settings)
 
-     _settings.required_data.forEach(i=>{
-      data._get(i)
-    })
-   
+     setSettings(_settings)
+     data._get(_settings.required_data)
+    
  },[])
 
 
 
- function change_row_value(id,field,value){
-       let index=rows.findIndex(i=>i.id==id)
-        setRows(search_f(rows.map((i,_i)=>{
-           return _i==index ? {...i,[field]:value} : i
-        })))
- }
-
-
  
+ React.useEffect(()=>{
+      data._get(settings.required_data)
+},[db,settings])
 
  
 
@@ -215,7 +305,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
                      width: 70,
                      renderCell: (params) => (
                        <div style={{opacity:.6,marginLeft:'2rem'}}>
-                             <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/cash-management/'+params.row._id)}>
+                             <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate(`/cash-management/${params.row.type=="in" ? 'inflow' : 'outflow'}/`+params.row.transation_id)}>
                                  <EditOutlinedIcon/>
                              </span>
                              <span className="hidden" onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
@@ -229,7 +319,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
                   headerName: 'Método de pagamento',
                   width: 170,
                   renderCell: (params) => (
-                    <span>{_payment_methods.filter(i=>i.id==params.row.payment_origin)[0]?.name}</span>
+                    <span>{params.row.payment.name}</span>
                   )
                   },
                  {
@@ -261,17 +351,26 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
                    headerName: 'Valor registrado',
                    width: 150,
                    renderCell: (params) => (
-                     <span className={`${params.row.type=='out' ? 'text-red-600' : ''}`}>{params.row.type=='out' ? '-':''}{new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(params.row.amount)}</span>
+                     <span className={`${params.row.type=='out' ? 'text-red-600' : 'text-green-500'}`}>{params.row.type=='out' ? '-':''}{new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(params.row.payment.amount)}</span>
                    ),
                  },
+
                  { 
                   field: 'confirmed_amount',
                   headerName: 'Valor por conciliar',
                   width: 180,
                   renderCell: (params) => (
                         <div className="flex h-full justify-center items-center">
-                             {!params.row.confirmed ? <input placeholder="Valor"   type="number" onChange={e=>change_row_value(params.row.id,'confirmed_amount',e.target.value)} value={params.row.confirmed_amount==undefined ? params.row.amount : params.row.confirmed_amount}  className="block  outline-none w-[70%] p-[5px] ps-10 text-sm text-gray-900 border border-gray-300 rounded-[5px] bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" /> : <span className={`${params.row.type=='out' ? 'text-red-600' : ''}`}> {params.row.type=='out' ? '-':''}{new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(params.row.amount) } </span>}   
+                             {!params.row.payment.confirmed ? <input placeholder="Valor" type="text" onChange={e=>handleReconciliation(params.row,'amount',data._cn_op(e.target.value))} value={params.row.payment.confirmed_amount==undefined ? params.row.payment.amount : params.row.payment.confirmed_amount}  className="block  outline-none w-[70%] p-[5px] ps-10 text-sm text-gray-900 border border-gray-300 rounded-[5px] bg-gray-50 focus:ring-blue-500 focus:border-blue-500" /> : <span className={`${params.row.type=='out' ? 'text-red-600' : 'text-app_orange-300'}`}> {params.row.type=='out' ? '-':''}{new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(params.row.payment.amount) } </span>}   
                         </div>
+                  ),
+                 },
+                 { 
+                  field: 'market',
+                  headerName: '',
+                  width: 5,
+                  renderCell: (params) => (
+                    <span className="flex h-full justify-center items-center">{params.row.payment.confirmed && <CheckIcon style={{color:'rgb(166, 226, 46)',width:20}}/>}</span>   
                   ),
                  },
 
@@ -280,8 +379,19 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
                   headerName: '',
                   width: 150,
                   renderCell: (params) => (
-                      <span className="flex h-full justify-center items-center"   onClick={()=>consiliate({...params.row,confirmed:true,amount:params.row.confirmed_amount ? params.row.confirmed_amount : params.row.amount },params.row.confirmed_amount)}>{params.row.confirmed ? <CheckIcon style={{color:'rgb(166, 226, 46)'}}/> : <Button style={{width:'80%'}} variant="contained">Conciliar</Button>}</span> 
-                  ),
+                     <>
+                      <span className={`${loading ? ' pointer-events-none':''} flex  h-full justify-center items-center relative`}>
+                      <div className="absolute scale-[0.6] flex items-center justify-center left-0 top-0 w-full h-full">
+                        {( loading==params.row.id ) && <CircularProgress style={{color:params.row.payment.confirmed ? colors.app_orange[500] : '#fff'}} />}
+                      </div>
+                      {loading!=params.row.id && <DefaultButton
+                       onClick={()=>handleReconciliation(params.row,'confirm')}
+                       text={!params.row.payment.confirmed ? 'Conciliar' : 'Anular' } no_bg={params.row.payment.confirmed ? true : false} disabled={false}/>
+                     }
+                     </span> 
+                 
+                     </>
+                   ),
                  },
          
 
@@ -295,7 +405,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
               width: 70,
               renderCell: (params) => (
                 <div style={{opacity:.6}}>
-                      <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/'+page+'/'+params.row._id)}>
+                      <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/'+page+'/'+params.row.id)}>
                           <EditOutlinedIcon/>
                       </span>
                       <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
@@ -333,7 +443,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
             headerName: 'Valor em falta',
             width: 150,
             renderCell: (params) => (
-              <span>{params.row.amount ? new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(parseFloat(params.row.amount) + parseFloat(params.row.fees ? params.row.fees : 0) - parseFloat(params.row.paid ? params.row.paid : 0))  : '-'}</span>
+              <span>{params.row.amount ? data._cn((parseFloat(params.row.amount) + parseFloat(params.row.fees ? params.row.fees : 0) - parseFloat(params.row.paid ? params.row.paid : 0)) <= 0 ? 0 : (parseFloat(params.row.amount) + parseFloat(params.row.fees ? params.row.fees : 0) - parseFloat(params.row.paid ? params.row.paid : 0)))  : '-'}</span>
             ),
           },
           
@@ -386,7 +496,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
           {
             field: 'account_origin',
             headerName: 'Categoria',
-            width: 180,
+            width: 210,
             renderCell: (params) => (
               <span>{_categories.filter(i=>i.field==params.row.account_origin)[0].name}</span>
             ),
@@ -439,7 +549,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
         width: 70,
         renderCell: (params) => (
           <div style={{opacity:.6}}>
-                <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/investments/'+params.row._id)}>
+                <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/investments/'+params.row.id)}>
                     <EditOutlinedIcon/>
                 </span>
                 <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
@@ -470,7 +580,23 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
       width: 170,
       renderCell: (params) => (
         <span>{params.row.time} {params.row.period== "year" ? 'Anos' : 'Meses'}</span>
-      ),editable: true,
+      )
+    },
+    {
+      field: 'depreciantion',
+      headerName: 'Valor da depreciação',
+      width: 170,
+      renderCell: (params) => (
+        <span>{data._cn(parseFloat(params.row.depreciation).toFixed(2))}</span>
+      )
+    },
+    {
+      field: 'buyday',
+      headerName: 'Data de compra',
+      width: 170,
+      renderCell: (params) => (
+        <span>{params.row.buyday.split('T')[0]}</span>
+      )
     },
     {
       field: 'createdAt',
@@ -486,6 +612,130 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
 ];
 
 
+}else if(page=="loans"){
+  columns= [
+    {
+      field: 'edit',
+      headerName: '',
+      width: 70,
+      renderCell: (params) => (
+        <div style={{opacity:.6}}>
+              <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/loans/'+params.row.id)}>
+                  <EditOutlinedIcon/>
+              </span>
+              <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
+                  <DeleteOutlineOutlinedIcon/>
+              </span>
+        </div>
+      )
+  },
+  {
+    field: 'payday',
+    headerName: 'Data de vencimento',
+    width: 170,
+    renderCell: (params) => (
+      <span>{params.row.payday.split('T')[0]}</span>
+    )
+  },
+  {
+    field: 'name',
+    headerName: 'Descrição',
+    width: 150,
+    renderCell: (params) => (
+      <span>{params.row.description}</span>
+    ),
+  },
+  {
+    field: 'amount',
+    headerName: 'Valor do empréstimo',
+    width: 200,
+    renderCell: (params) => (
+      <span>{params.row.amount ? new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(parseFloat(params.row.amount))  : '-'}</span>
+    ),
+  },
+  {
+    field: 'paid',
+    headerName: 'Pago',
+    width: 170,
+    renderCell: (params) => (
+      <span>{data._cn(parseFloat(params.row.paid ? params.row.paid : 0)) }</span>
+    )
+  },
+  {
+    field: 'description',
+    headerName: 'Juros a pagar',
+    width: 170,
+    renderCell: (params) => (
+      <span>{data._cn(parseFloat(params.row.transation_fees))}</span>
+    )
+  },
+  {
+    field: 'status',
+    headerName: 'Estado',
+    width: 120,
+    renderCell: (params) => (
+      <div>
+        
+              <span style={{backgroundColor:!params.row.status || params.row.status=='paid' ? colors.common.paid :  new Date(params.row.payday) >= new Date(data._today()) ? colors.common.pending: colors.common.delayed , color: '#fff' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='paid' || !params.row.status ? 'Pago' : new Date(params.row.payday) >= new Date(data._today())  ? 'Pendente' : 'Atrasado'}</span>
+        
+      </div>
+    )
+  },
+  {
+    field: 'depreciantion',
+    headerName: 'Valor da cada prestação',
+    width: 170,
+    renderCell: (params) => (
+      <span>{data._cn(parseFloat(params.row.installment_amount).toFixed(2))}</span>
+    )
+  },
+ 
+  {
+    field: 'installments',
+    headerName: 'Número de prestações',
+    width: 170,
+    renderCell: (params) => (
+      <span>{params.row.total_installments}</span>
+    )
+  },
+  {
+    field: 'account',
+    headerName: 'Conta',
+    width: 150,
+    renderCell: (params) => (
+      <span>{data._account_categories.filter(i=>i.id==params.row.account_id)[0]?.name}</span>
+    ),
+  },
+  {
+    field: 'next_payment',
+    headerName: 'Pagamento proximo',
+    width: 170,
+    renderCell: (params) => (
+      <span>{params.row.installments.filter(i=>new Date(data._today()) <= new Date(i.end.split('T')[0])).length  ? params.row.installments.filter(i=>new Date(data._today()) <= new Date(i.end.split('T')[0]))?.[0]?.end?.split('T')?.[0] :''}</span>
+    )
+  },
+  {
+    field: 'buyday',
+    headerName: 'Data do empréstimo',
+    width: 170,
+    renderCell: (params) => (
+      <span>{params.row.loanday.split('T')[0]}</span>
+    )
+  },
+  {
+    field: 'createdAt',
+    headerName: 'Data de criação',
+    width: 170,
+    renderCell: (params) => (
+      <span>{params.row.createdAt ? params.row.createdAt.split('T')[0] : '-'}</span>
+    )
+  },
+
+
+
+];
+
+
 }else if(page=="budget-management"){
       columns= [
         {
@@ -494,7 +744,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
           width: 70,
           renderCell: (params) => (
             <div style={{opacity:.6}}>
-                  <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/budget-management/'+params.row._id)}>
+                  <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/budget-management/'+params.row.id)}>
                       <EditOutlinedIcon/>
                   </span>
                   <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
@@ -532,7 +782,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
         headerName: 'Realizado',
         width: 170,
         renderCell: (params) => (
-          <span>{_cn(data._transations.filter(i=>i.account_origin==params.row.account_origin).map(item => (item.type=="out" ? - (item.amount) : item.amount)).reduce((acc, curr) => acc + curr, 0))}</span>
+          <span>{_cn(data._transations.filter(i=>i.account_origin==params.row.account_origin).map(item => (item.type=="out" ? - (parseFloat(item.amount)) : parseFloat(item.amount))).reduce((acc, curr) => acc + curr, 0))}</span>
         ),editable: true,
       },
       {
@@ -565,7 +815,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
       width: 70,
       renderCell: (params) => (
          <div style={{opacity:.8}}>
-              <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/account/'+params.row._id)}>
+              <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/account/'+params.row.id)}>
                   <EditOutlinedIcon/>
               </span>
               <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
@@ -611,7 +861,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
       width: 70,
       renderCell: (params) => (
          <div style={{opacity:.8}}>
-              <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/payment-methods/'+params.row._id)}>
+              <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/payment-methods/'+params.row.id)}>
                   <EditOutlinedIcon/>
               </span>
               <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
@@ -676,7 +926,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
       width: 70,
       renderCell: (params) => (
          <div style={{opacity:.7}}>
-              <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate(`/cash-management/${params.row.type=="in" ? 'inflow' : 'outflow'}/`+params.row._id)}>
+              <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate(`/cash-management/${params.row.type=="in" ? 'inflow' : 'outflow'}/`+params.row.id)}>
                   <EditOutlinedIcon/>
               </span>
               <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
@@ -704,7 +954,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
     },
     {
       field: 'account',
-      headerName: 'Conta de lançamento',
+      headerName: 'Conta de agendamento',
       width: 150,
       renderCell: (params) => (
         <span>{params.row.account.name ? params.row.account.name :'-'}</span>
@@ -716,6 +966,14 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
       width: 150,
       renderCell: (params) => (
         <span>{params.row.transation_account.name ? params.row.transation_account.name :'-'}</span>
+      ),
+    },
+    {
+      field: 'name',
+      headerName: 'Categoria',
+      width: 210,
+      renderCell: (params) => (
+        <span>{_categories.filter(i=>i.field==params.row.account_origin)[0].name}</span>
       ),
     },
     {
@@ -764,7 +1022,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
       width: 70,
       renderCell: (params) => (
          <div style={{opacity:.8}}>
-              <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate(`/${page.slice(0,page.length - 1)}/`+params.row._id)}>
+              <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate(`/${page.slice(0,page.length - 1)}/`+params.row.id)}>
                   <EditOutlinedIcon/>
               </span>
               <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
@@ -820,18 +1078,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
         ),
         editable: true,
       },
-    {
-      field: 'status',
-      headerName: 'Estado',
-      width: 120,
-      renderCell: (params) => (
-        <div>
-           
-                <span style={{backgroundColor:!params.row.status || params.row.status=='active' ? '#C9E8E8': '#F3D4D1', color: '#111' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='active' || !params.row.status ? 'Activo' : 'Inactivo'}</span>
-           
-        </div>
-      )
-    },
+    
     {
         field: 'notes',
         headerName: 'Observações',
@@ -855,10 +1102,6 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
 
 }else if(page=="managers"){
 
-  function change_c(){
-
-  }
-
   
 
   columns = [
@@ -868,18 +1111,19 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
         width: 70,
         renderCell: (params) => (
           <div style={{opacity:.8}}>
-          {user.companies.filter(i=>i.admin_id==user.id).some(i=>params.row.companies.includes(i.id)) ? <>
 
-            <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/manager/'+params.row._id)}>
+          {user.companies_details.filter(i=>i.admin_id==user.id).some(i=>params.row.companies.includes(i.id)) ? <>
+            <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/manager/'+params.row.id)}>
               <EditOutlinedIcon/>
           </span>
-          <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
+
+          <span className="hidden" onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
               <DeleteOutlineOutlinedIcon/>
           </span>
           
           </>:<>
          
-          <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/manager/'+params.row._id)}>
+          <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/manager/'+params.row.id)}>
                <RemoveRedEyeOutlinedIcon/>
           </span>
           </>}
@@ -918,10 +1162,9 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
         headerName: 'Empresas',
         width: 300,
         renderCell: (params) => (
-          <span>{data._companies.filter(i=>params.row.companies.includes(i.id)).map(i=>i.name).join(', ')}</span>
+          <span>{user.companies_details.filter(i=>params.row.companies.includes(i.id)).map(i=>i.name).join(', ')}</span>
         ),
-      }
-     ,
+      },
       {
         field: 'contacts',
         headerName: 'Contactos',
@@ -945,18 +1188,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
         ),
         editable: true,
       },
-      {
-        field: 'status',
-        headerName: 'Estado',
-        width: 120,
-        renderCell: (params) => (
-          <div>
-            
-                  <span style={{backgroundColor:!params.row.status || params.row.status=='active' ? '#C9E8E8': '#F3D4D1', color: '#111' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='active' || !params.row.status ? 'Activo' : 'Inactivo'}</span>
-            
-          </div>
-        )
-      },
+     
       {
           field: 'notes',
           headerName: 'Observações',
@@ -970,7 +1202,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
         headerName: 'Data de  criação',
         width: 170,
         renderCell: (params) => (
-        <span>-</span>
+        <span>{params.row.createdAt ? params.row.createdAt.split('T')[0] : '-'}</span>
         )
       },
       
@@ -985,7 +1217,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
       width: 80,
       renderCell: (params) => (
          <div>
-          {params.row.id!=user.company.id && <span onClick={()=>data._change_company(params.row)} className=" flex rounded-sm text-app_orange-400 cursor-pointer underline">Login</span>}
+          {params.row.id!=user.selected_company && <span onClick={()=>_change_company(params.row.id)} className=" flex rounded-sm text-app_orange-400 cursor-pointer underline">Login</span>}
          </div>
       )
     },
@@ -997,16 +1229,16 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
          <div style={{opacity:.8}}>
               {params.row.admin_id==user.id ? <>
 
-                <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/company/'+params.row._id)}>
+                <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/company/'+params.row.id)}>
                   <EditOutlinedIcon/>
               </span>
-              <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
+              <span className="hidden" onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
                   <DeleteOutlineOutlinedIcon/>
               </span>
               
               </>:<>
              
-              <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/company/'+params.row._id)}>
+              <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/company/'+params.row.id)}>
                    <RemoveRedEyeOutlinedIcon/>
               </span>
               </>}
@@ -1018,10 +1250,18 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
         headerName: 'Nome',
         width: 150,
         renderCell: (params) => (
-          <span className={`${params.row.id==user.company.id ? 'text-app_orange-400':''}`}>{params.row.name ? params.row.name : '-'}</span>
+          <span className={`${params.row.id==user.selected_company ? 'text-app_orange-400':''}`}>{params.row.name ? params.row.name : '-'}</span>
         ),
       },
       {
+        field: 'Filial de:',
+        headerName: 'Filial de:',
+        width: 150,
+        renderCell: (params) => (
+          <span>{params.row.headquarter_id ? user.companies_details.filter(i=>i.id==params.row.headquarter_id)[0].name  : '-'}</span>
+        ),
+      },
+      /*{
         field: 'm',
         headerName: 'Gestores',
         width: 150,
@@ -1034,25 +1274,25 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
         headerName: 'Total clientes',
         width: 150,
         renderCell: (params) => (
-          <span>{data._clients.filter(i=>i.company_id==params.row.id).length ? data._clients.filter(i=>i.company_id==params.row.id).length : '-'}</span>
+          <span>{data._clients.length ? data._clients.length : '-'}</span>
         ),
       },
       {
-        field: 'c',
+        field: 'f',
         headerName: 'Total fornecedores',
         width: 150,
         renderCell: (params) => (
-          <span>{data._suppliers.filter(i=>i.company_id==params.row.id).length ? data._suppliers.filter(i=>i.company_id==params.row.id).length : '-'}</span>
+          <span>{data._suppliers.length ? data._suppliers.length : '-'}</span>
         ),
       },
       {
-        field: 'c',
+        field: 'i',
         headerName: 'Total investidores',
         width: 150,
         renderCell: (params) => (
-          <span>{data._investors.filter(i=>i.company_id==params.row.id).length ? data._investors.filter(i=>i.company_id==params.row.id).length : '-'}</span>
+          <span>{data._investors.length ? data._investors.length : '-'}</span>
         ),
-      },
+      },*/
       {
         field: 'contacts',
         headerName: 'Contactos',
@@ -1076,26 +1316,15 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
         ),
         editable: true,
       },
-    {
-      field: 'status',
-      headerName: 'Estado',
-      width: 120,
-      renderCell: (params) => (
-        <div>
-           
-                <span style={{backgroundColor:!params.row.status || params.row.status=='active' ? '#C9E8E8': '#F3D4D1', color: '#111' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='active' || !params.row.status ? 'Activo' : 'Inactivo'}</span>
-           
-        </div>
-      )
-    },
+  
     {
       field: '-',
       headerName: 'Data de  criação',
       width: 170,
       renderCell: (params) => (
-      <span>-</span>
+        <span>{params.row.createdAt ? params.row.createdAt.split('T')[0] : '-'}</span>
       )
-    },
+    }, 
     
     
 
@@ -1104,30 +1333,25 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
 
 
 
-
-
   useEffect(()=>{
         update_data()
   },[data])
 
-  React.useEffect(()=>{
-   
-    _get('categories') 
-
-  },[])
+  
 
   useEffect(()=>{
     if(settings.selected) {
       let content=search_f(data[settings.selected])
       setRows(content)
     }
+
   },[search,filterOptions,periodFilters,settings])
 
 
  function handleDelete(id){
     let ids=JSON.parse(JSON.stringify([...selectedItems.filter(i=>i!=id), id]))
     setSelectedItems(ids)
-    setItemsToDelete(rows.filter(i=>ids.includes(i.id)).map(i=>i._id))
+    setItemsToDelete(rows.filter(i=>ids.includes(i.id)))
  }
 
 
@@ -1153,6 +1377,7 @@ export default function Table({setSearch,setItemsToDelete,search,filterOptions,p
        checkboxSelection={!Boolean(settings.hide_checkbox)}
        disableColumnMenu
        disableSelectionOnClick
+       isRowSelectable={false}
        onRowSelectionModelChange={(e)=>setSelectedItems(e)}
        localeText={{ noRowsLabel: <TableLoader loading={settings.required_data.filter(i=>!_loaded.includes(i)).length ? true : false}/>}}
      />

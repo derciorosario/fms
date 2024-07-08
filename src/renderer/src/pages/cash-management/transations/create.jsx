@@ -19,32 +19,38 @@ import FormLayout from '../../../layout/DefaultFormLayout';
 import AddIcon from '@mui/icons-material/Add';
 import TransationNextDate from '../../../components/Dialogs/transationNextDate'
 import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined';
-import FilePresentIcon from '@mui/icons-material/FilePresentOutlined'
-import LinearWithValueLabel from '../../../components/progress/uploadFile';
-import RefreshOutlined from '@mui/icons-material/RefreshOutlined'
 import { useSearchParams } from 'react-router-dom';
-import { Add } from '@mui/icons-material';
-import colors from '../../../assets/colors.json'
 import { useAuth } from '../../../contexts/AuthContext';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-   
+import { useTranslation } from 'react-i18next';
+import { v4 as uuidv4 } from 'uuid';
+import DefaultUpload from '../../../components/Files/default-upload';
+
        function App() {
+       
+         const {t} = useTranslation()
+        
 
           let {pathname} = useLocation()
+
+          const mapFunction = function (doc) {
+            if (doc.company_id) {
+              emit(doc.company_id, null);
+            }
+          };
+
+          
+          let required_data=['bills_to_pay','account_categories','bills_to_receive','payment_methods','clients','investors','suppliers','transations']
 
           
           const {_account_categories,_get,_clients,_suppliers,_investors,_payment_methods,_bills_to_pay,_bills_to_receive,_transations,_categories,_scrollToSection,_initial_form,_cn_n,_cn,_openDialogRes,_setOpenDialogRes}= useData()
           const data = useData()
-          const {user} = useAuth()
+          const {user,db} = useAuth()
           const { id } = useParams()
 
-          const db={
-            transations:new PouchDB('transations'),
-            bills_to_pay:new PouchDB('bills_to_pay'),
-            bills_to_receive:new PouchDB('bills_to_receive')
-          }  
+        
 
           const navigate = useNavigate()
 
@@ -53,6 +59,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
           const [loaded, setLoaded] = React.useState([]);
           const [loading, setLoading] = React.useState(false);
           const [initialized, seTinitialized] = React.useState(false);
+          const [refreshAvailableCredit,setRefreshAvailableCredit]=React.useState(uuidv4());
 
 
           function handleLoaded(item,action){
@@ -68,14 +75,13 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
           }
 
           const [type, setType] = React.useState(pathname.includes('inflow') ? 'in' : 'out');
+         
 
+          console.log(_transations)
 
-          const [items,setItems]=React.useState([])
           const [bill,setBill]=React.useState({id:null,from:null})
 
           useEffect(()=>{
-
-               
 
                 
                 let res=data._sendFilter(searchParams)
@@ -89,59 +95,48 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
                
                 (async()=>{
-                    try {
-                       
+
+                      
                       if(id){
 
-
-                          let item=await db.transations.get(id)
-
-                          if(item.company_id!=user.company.id) {
-                               toast.error(`Troque para ${user.companies.filter(i=>i.id==item.company_id)[0].name} para editar!`)
-                               handleLoaded()
-                               return
+                          if(!db.transations || !id || formData.id==id) return
+                         
+                          if(!data._loaded.includes('transations')){
+                             return
                           }
 
-                         
+                          let item =  await db.transations.find({selector: {id}})
+                          item=item.docs[0]
 
-                          
-                          setFormData({...item,
-                            paid:item.paid ? item.paid : '',
-                            files:item.files[0] ? [{...item.files[0],checked:false}] : []
-                          })
+                          if(item){
+                              setFormData({...item,
+                                paid:item.paid ? item.paid : '',
+                                files:item.files[0] ? [{...item.files[0],checked:item.files[0].local ? false : true}] : []
+                              })
+                          }else{
+                              navigate(`/cash-management/${type}flow`)
+                              toast.error(`Item não encontrado`)
+                          }
 
-                       
-
-                            handleLoaded('form','add')
-                       
-
+                          handleLoaded('form','add')
 
                       }else{
 
-                          let bill=await db[res.bill_to_pay ? 'bills_to_pay' : 'bills_to_receive'].get(res.bill_to_pay || res.bill_to_receive)
-                          setBill({...bill,from:res.bill_to_pay ? 'bills_to_pay' : 'bills_to_receive'})
-                          handleLoaded('bill','add')
-                          
-                      }
-                        
-                    } catch (error) {
-                        toast.error(`Item não encontrado detalhes do erro: ${error}`)
-                        //setTimeout(()=>navigate(`/cash-management/${type}flow`),4000)
-                        console.log(error)
-                    }
+                        if(!db[res.bill_to_pay ? 'bills_to_pay' : 'bills_to_receive']) return
 
+                        let bill=await db[res.bill_to_pay ? 'bills_to_pay' : 'bills_to_receive'].find({selector: {id:res.bill_to_pay || res.bill_to_receive}})
+                        bill=bill.docs[0]
+                        setBill({...bill,from:res.bill_to_pay ? 'bills_to_pay' : 'bills_to_receive'})
+                        handleLoaded('bill','add')
+
+                      }
                 })()
 
+          },[pathname,data._loaded])
 
-
-
-
-                _get('account_categories')
-                _get('categories')
-                _get('suppliers')
-                _get('clients')
-
-          },[user,pathname])
+          useEffect(()=>{
+             _get(required_data.filter(i=>!data._loaded.includes(i)))
+          },[db])
 
 
           useEffect(()=>{
@@ -151,12 +146,6 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
              
           },[pathname,user])
-
-        
-
-          
-      
-
 
 
           
@@ -169,19 +158,9 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
           const [accountDetails,setAccountDetails]=React.useState({})
           const [availableCredit,setAvailableCredit]=React.useState([])
           const [showNextPaymentDialog,setShowNextPaymentDialog]=React.useState(false)
-          const [upload,setUpload]=React.useState({
-            uploading:false,
-            file:{},
-            progress:0
-          })
+         
           const [showMoreOptions,setShowMoreOptions]=React.useState(false)
-          const fileInputRef_1 = React.useRef(null);
-          const fileInputRef_2 = React.useRef(null);
           const [formData, setFormData] = React.useState(_initial_form.transations);
-
-           useEffect(()=>{
-            console.log(formData)
-          },[formData])
 
 
           useEffect(()=>{
@@ -189,14 +168,9 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
            if(_categories.length && accountOptions.length && transationAccountOptions.length && bill?.id && !formData.account.id){
                
               if((bill?.from=="bills_to_pay" && data._loaded.includes('suppliers') || bill?.from=="bills_to_receive" && data._loaded.includes('clients')) && data._loaded.includes('investors') ){
-
-               
                 let subname=bill.repeat_details.times >= 2 ? `[${bill.index + 1}/${bill.repeat_details.times}] ${bill.description}` : bill.description
                 setFormData({...formData,link_payment:true,account:{id:bill?.id,name:subname}})
               }
-
-             
-             
            }
 
          },[transationAccountOptions,accountOptions,_categories,_suppliers,_clients,_investors])
@@ -206,13 +180,10 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
          useEffect(()=>{
 
 
-          console.log(loaded)
-
             if(loaded.length>=6){
-                      console.log({_account_categories,accountOptions,loaded})
-                      setTimeout(()=>seTinitialized(true),700)
+                       seTinitialized(true)
             }else{
-              seTinitialized(false)
+                       seTinitialized(false)
             }
 
 
@@ -266,7 +237,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
                    handleLoaded('payment_methods','add')
              }
               
-             setPaymentMethodsOptions(_payment_methods)
+             setPaymentMethodsOptions([{name:t('common.add_new')},..._payment_methods])
 
           },[_payment_methods])
 
@@ -284,12 +255,12 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
           useEffect(()=>{
             if(formData.account_origin=="loans_out" || formData.account_origin=="loans_in"){
                
-              if(!_investors.some(i=>i.id==referenceOptions[0]?.reference?.id))  setReferenceOptions(_investors)
+              if(!_investors.some(i=>i.id==referenceOptions[0]?.reference?.id))  setReferenceOptions([{name:t('common.add_new')},..._investors])
 
             }else if(type=="in"){
-               if(!_clients.some(i=>i.id==referenceOptions[0]?.reference?.id)) setReferenceOptions(_clients)
+               if(!_clients.some(i=>i.id==referenceOptions[0]?.reference?.id)) setReferenceOptions([{name:t('common.add_new')},..._clients])
             }else{
-              if(!_suppliers.some(i=>i.id==referenceOptions[0]?.reference?.id)) setReferenceOptions(_suppliers)
+              if(!_suppliers.some(i=>i.id==referenceOptions[0]?.reference?.id)) setReferenceOptions([{name:t('common.add_new')},..._suppliers])
             }
 
             if(data._loaded.includes('investors')) handleLoaded('investors','add')
@@ -306,7 +277,6 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
                   in: _bills_to_receive,
                   out:_bills_to_pay
                }
-              
                setAccountOptions(from[type].filter(i=>i.status!="paid" || i.id==formData.account.id).map(i=>{
                     let subname=i.repeat_details.times >= 2 ? `[${i.index + 1}/${i.repeat_details.times}] ${i.description}` : i.description
                     return {...i,id:i.id,subname} 
@@ -320,36 +290,45 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
            useEffect(()=>{
 
              if(!initialized) return
-
              
                  if(formData.account.id && formData.link_payment){
                      let account=accountOptions.filter(i=>i.id==formData.account.id)[0]
-                     //alert- update referrence name
                      setAccountDetails(account)
-                     setTransationAccountOptions(_account_categories.filter(i=>i.account_origin==account.account_origin))
+                     setTransationAccountOptions([{name:t('common.add_new')},..._account_categories.filter(i=>i.account_origin==account.account_origin)])
                      setFormData({...formData,
+                     loan_id:account.loan_id,
                      payments:formData.payments.length==1 && !formData.payments[0].amount ? [{...formData.payments[0],amount:parseFloat(account.amount) - parseFloat(account.paid ? account.paid : 0)}] : formData.payments,
                      account_origin:account.account_origin,
                      invoice_number:formData.invoice_number ? formData.invoice_number : account.invoice_number,
                      invoice_emission_date:formData.invoice_emission_date ? formData.invoice_emission_date : account.invoice_emission_date,
                      reference:{id:account.reference.id,name:account.reference.name}
                      }) 
-                 }else{
+                 }else{ 
                      setAccountDetails({})
 
                  }   
-           },[formData.account.id,initialized])
+           },[formData.account.id,initialized,refreshAvailableCredit])
+
+
+
 
 
            useEffect(()=>{
-
-            if(formData.account_origin){
-                setTransationAccountOptions(_account_categories.filter(i=>i.account_origin==formData.account_origin))
-            }else{
-              setTransationAccountOptions(_account_categories)
-            }
+              if(formData.account_origin){
+                setTransationAccountOptions([{name:t('common.add_new')},..._account_categories.filter(i=>i.account_origin==formData.account_origin && i.type==type)])       
+              }else{
+                setTransationAccountOptions([{name:t('common.add_new')},..._account_categories.filter(i=>i.type==type)])     
+              }
+            
+            console.log(data._account_categories)
 
            },[_account_categories,formData.account_origin])
+
+           
+         
+
+           
+
 
 
            useEffect(()=>{
@@ -386,23 +365,12 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
                  if(_account_categories.filter(i=>i.id==accountDetails.account_id)[0]?.account_origin==formData.account_origin){
                      let _a=_account_categories.filter(i=>i.id==accountDetails.account_id)[0]
-
                      setFormData({...formData,transation_account:{id:accountDetails.account_id,name:_a.name}})
                  }
                 
-
                   
         },[transationAccountOptions])
 
-
-           useEffect(()=>{
-           /* if(formData.transation_account.id){
-              setAvailableCredit(_transations.filter(i=>i.transation_account.id==formData.transation_account.id && i.type=='in').map(item => parseFloat(item.amount)).reduce((acc, curr) => acc + curr, 0) - _transations.filter(i=>i.transation_account.id==formData.transation_account.id && i.type=='out').map(item => parseFloat(item.amount)).reduce((acc, curr) => acc + curr, 0))
-            }else{
-              setAvailableCredit(0)
-            }   */              
-
-          },[formData.transation_account.id])
 
 
 
@@ -425,8 +393,8 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
                       a[_i]={_in:0,_out:0,_available:0}
                       return 
                     } 
-                    let initial_amount=_payment_methods.filter(i=>i.id==account_id)[0].initial_amount 
-                    initial_amount=!isNaN(initial_amount)  ? initial_amount : 0
+                    let initial_amount=_payment_methods.filter(i=>i.id==account_id)[0].initial_amount
+                    initial_amount=!initial_amount ? 0   : parseFloat(initial_amount) 
                     let _in=_transations.filter(f=>f.type == "in").map(f=>f.payments.filter(j=>j.account_id==formData.payments.filter(v=>v.account_id)[_i].account_id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0)
                     let _out=_transations.filter(f=>f.type == "out").map(f=>f.payments.filter(j=>j.account_id==formData.payments.filter(v=>v.account_id)[_i].account_id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0)
                     let _available=initial_amount + _in - _out
@@ -436,16 +404,11 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
                 
             })
             setAvailableCredit(a)
-          },[formData.payments,initialized,_payment_methods])
+          },[formData.payments,initialized,_payment_methods,refreshAvailableCredit])
 
 
 
 
-
-
-
-
-   
 
          async function SubmitForm(ignore_next_payday){
 
@@ -466,89 +429,146 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
              
               if(valid){
+
+
+                let reference_id=formData.reference.id
+                       
+                if(formData.reference.name && !formData.reference.id && (formData.reference.type=="supplier" || formData.reference.type=="client")){
+                  reference_id=uuidv4()
+                  _add(formData.reference.type+'s',[{
+                    id:reference_id,
+                    name:formData.reference.name,
+                    last_name:'',
+                    contacts:[],
+                    nuit:'',
+                    notes:'',
+                    email:'',
+                    address:'',
+                    deleted:false
+                  }])
+                }
+
+                let transation_account_id=formData.transation_account.id
+                if(formData.transation_account.name && !formData.transation_account.id){
+                  transation_account_id=uuidv4()
+                   _add('accounts',[{
+                    id:transation_account_id,
+                    name:formData.transation_account.name,
+                    description:'',
+                    deleted:false
+                 }])
+               }
+
+
+
+
+               
+
+
+
+
+                   
                    try{
+
                      if(id){
-                          await _update('transations',[{...formData}])
-
-                           let last=await db.transations.get(formData._id)
-
+                       
                           if(formData.link_payment){
-                            
+                            let last=await db.transations.get(formData._id)
                             let fees=formData.fees ? parseFloat(formData.fees) : 0
                             fees=fees - parseFloat(last.fees ? last.fees : 0)
                             let current_amount=formData.payments.map(i=>i.amount ? parseFloat(i.amount): 0).reduce((acc, curr) => acc + curr, 0)
-
                             let account=JSON.parse(JSON.stringify(accountDetails))
-
                             account.paid=parseFloat(account.paid) - parseFloat(last.amount) + current_amount
-                           
-                            if(!account.paid) account.paid=""
                             account.fees=parseFloat(account.fees ? account.fees : 0) - fees
-                            if(parseFloat(accountDetails.amount) > account.paid) {
+                            if(!account.paid) account.paid=""
+                            if(parseFloat(accountDetails.amount) > amount + fees) {
                                 account.status="pending"
                             }else{
                                 account.status="paid"
                             }
-                            console.log({account})
-                           const res=await db[`bills_to_${type=="in"?"receive":"pay"}`].put(account)
-                           console.log({res})
+                            await _update(`bills_to_${type=="in"?"receive":"pay"}`,[{...account,fees,paid:amount + fees}])
+
+                           
+                            if(formData.loan_id){
+                               let loan = await db.loans.find({selector: {id:formData.loan_id}})
+                               loan=loan.docs[0]
+
+                              if(loan){
+
+                                loan.paid=paid + fees
+                                loan.fees=fees
+                                loan.status=account.status
+                                await _update('loans',[loan])
+
+                              }
+                              
+                            }
+
                           }
-                       
+
+
+
+                          if(formData.loan_id && type=="in"){
+                            let loan = await db.loans.find({selector: {id:formData.loan_id}})
+                            loan=loan.docs[0]
+
+                            if(loan){
+                              loan.amount=amount
+                              loan.transation_account=formData.transation_account
+                              loan.payments=formData.payments
+                              await _update('loans',[loan])
+
+                            }
+                           
+                          }
+                        
+                        
+                           await _update('transations',[{...formData,amount}])
+                           setRefreshAvailableCredit(uuidv4())
                            toast.success('Transação actualizada')
                      }else{
-                        let reference_id=formData.reference.id
                        
-                        if(formData.reference.name && !formData.reference.id && (formData.reference.type=="supplier" || formData.reference.type=="client")){
-                          reference_id=Math.random().toString()
-                          _add(formData.reference.type+'s',[{
-                            id:reference_id,
-                            _id:Math.random().toString(),
-                            name:formData.reference.name,
-                            last_name:'',
-                            contacts:[],
-                            nuit:'',
-                            notes:'',
-                            email:'',
-                            address:'',
-                            deleted:false
-                          }])
-                        }
-
-                        let transation_account_id=formData.transation_account.id
-                        if(formData.transation_account.name && !formData.transation_account.id){
-                          transation_account_id=Math.random().toString()
-                           _add('accounts',[{
-                            id:transation_account_id,
-                            _id:Math.random().toString(),
-                            name:formData.transation_account.name,
-                            description:'',
-                            deleted:false
-                         }])
-                       }
-
-                      _add('transations',[{...formData,
+                     _add('transations',[{...formData,
                       reference:{...formData.reference,id:reference_id,type:formData.account_origin=="loans_out" || formData.account_origin=="loans_in" ? 'investors' : type=="receive" ? 'clients': 'suppliers' },
                       transation_account:{...formData.transation_account,id:transation_account_id},
                       amount:amount + fees,
                       type,
                       fees,
-                      id:Math.random(),_id:Math.random().toString()}])
+                      id:uuidv4()}])
+
                       setAccountDetails({})
                       setBill(null)
                       setVerifiedInputs([])
+
                       toast.success('Transação adicionada')
                       setFormData(_initial_form.transations)
-                      
+
 
                       if(formData.link_payment){
-                        _update(formData.type=='in' ? 'bills_to_receive': 'bills_to_pay',[{...accountDetails,
-                             //account_id:formData.transation_account.id,
+                        let paid=parseFloat(accountDetails.paid ? accountDetails.paid : 0) + amount +  fees
+                        let _fees=parseFloat(accountDetails.fees ? accountDetails.fees : 0) + fees
+                        let status=parseFloat(accountDetails.paid ? accountDetails.paid : 0) + amount + fees >= parseFloat(accountDetails.amount) ? 'paid' : accountDetails.status
+                       _update(formData.type=='in' ? 'bills_to_receive': 'bills_to_pay',[{...accountDetails,
                              payday:formData.next_payday && !ignore_next_payday ? formData.next_payday : accountDetails.payday,
-                             paid:parseFloat(accountDetails.paid ? accountDetails.paid : 0) + amount +  fees,
-                             fees:parseFloat(accountDetails.fees ? accountDetails.fees : 0) + fees,
-                             status:parseFloat(accountDetails.paid ? accountDetails.paid : 0) + amount + fees >= parseFloat(accountDetails.amount) ? 'paid' : accountDetails.status
+                             paid,
+                             fees:_fees,
+                             status
                         }])
+
+                        if(formData.loan_id){
+                          let loan = await db.loans.find({selector: {id:formData.loan_id}})
+                          loan=loan.docs[0]
+                          if(loan){
+                            loan.paid=paid
+                            loan.fees=_fees
+                            loan.status=status
+                            await _update('loans',[loan])
+                          }
+                        }
                       }
+
+                      
+                      
 
                      }
                  }catch(e){
@@ -593,65 +613,8 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
           }
 
 
+
         
-
-
-          const handleFileChange = (event) => {
-
-            //fileInputRef_1.current.value=""
-            //fileInputRef_2.current.value=""
-          
-           if(!window.electron) return
-           let {name,size,path} = event.target.files[0]
-           let orginal_name=name
-           let generated_name=new Date().toISOString().split('T')[0] +`-${Math.random().toString().slice(1,8)}-`+ name
-           let file={name:orginal_name,path,size,generated_name}
-           setUpload(prev=>({...prev,uploading:true,progress:0,file}))
-           window.electron.ipcRenderer.send('file-upload',{...file,exists:true})
-         
-           
-         }
-
-
-            useEffect(()=>{
-
-                  if(!window.electron) return
-
-                    window.electron.ipcRenderer.on('file-progress',(event,progress)=>{
-                        setUpload(prev=>({...prev,progress}))
-                    })
-
-                    window.electron.ipcRenderer.on('upload-complete',(event,file)=>{
-                      setUpload(prev=>({...prev,uploading:false}))
-                      setFormData({...formData,files:[file]})
-                    })
-                    
-                    window.electron.ipcRenderer.on('file-exists-result',(event,exists)=>{
-                        if(formData.files[0]?.path && !formData.files[0]?.checked){
-                            if(formData.files[0]?.exists!=exists) setFormData({...formData,files:[{...formData.files[0],exists,checked:true}]})
-                        }    
-                    })
-            },[])
-
-
-              useEffect(()=>{
-
-                if(formData.files[0]?.checked){
-                    window.electron.ipcRenderer.send('check-file-exists',formData.files[0].path)
-                }
-              
-              },[formData])
-
-              function openFileInFolder(){
-
-                window.electron.ipcRenderer.send('open-file-in-folder',formData.files[0].path)
-                
-              }
-
-              function openFile(){
-                if(formData.files[0]?.exists)  window.electron.ipcRenderer.send('open-file',formData.files[0].path) 
-            }
-
 
           
 
@@ -674,7 +637,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
                     </button>
                  </div>
                 
-                {(!id && bill==null) && <div className={`${(!initialized || loading) ?'opacity-30 pointer-events-none':''} hidden flex ml-2 mb-2`}>
+                {(!id && bill==null) && <div className={`${(!initialized || loading) ?' pointer-events-none':''} hidden flex ml-2 mb-2`}>
                    <label className="cursor-pointer">
                       <Radio
                           checked={type=="in"}
@@ -714,7 +677,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 
 
-               <div className={`${!initialized ?'opacity-30 pointer-events-none':''}`}>
+               <div className={`${!initialized ?'pointer-events-none':''}`}>
 
               
                 
@@ -729,7 +692,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
                      setFormData({...formData,link_payment:e.target.checked,account:{id:null,name:''}})
                     }}
                     />
-                    <span className={`${!accountOptions.length ? 'opacity-80' :''}`}>Selecionar {type == 'in' ? 'recebimento' : 'pagamento'} agendado  {accountOptions.length==0 && !id && <label className="text-[14px]">(Nenhuma disponível)</label>}</span>
+                    <span className={`${!accountOptions.length ? 'opacity-80' :''}`}>Selecionar {type == 'in' ? 'recebimento' : 'pagamento'} agendado  {(accountOptions.length==0 && !id && initialized) && <label className="text-[14px]">(Nenhuma disponível)</label>}</span>
                    </label>
                </div>
 }
@@ -754,9 +717,8 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
                           inputValue={formData.account.name}
                           onInputChange={(event, newInputValue) => {
                              newInputValue=newInputValue ? newInputValue : ''
-                             let _id=accountOptions.filter(i=>i.subname?.toLowerCase()==newInputValue?.toLowerCase())[0]?.id
-
-                             setFormData({...formData,account:{...formData.account,name:newInputValue,id:_id}})
+                              let _id=accountOptions.filter(i=>i.subname?.toLowerCase()==newInputValue?.toLowerCase())[0]?.id
+                              setFormData({...formData,account:{...formData.account,name:newInputValue,id:_id}})
                             
                           }}
       
@@ -812,7 +774,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
                      
                      >Categoria</InputLabel>
                      <Select 
-                        disabled={false}
+                        disabled={formData.loan_id || accountDetails.loan_id ? true : false}
                         onBlur={()=>validate_feild('account_origin')}
                         
                         defaultValue="" id="grouped-select"
@@ -852,27 +814,35 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
                  
 
                   <div className="relative">
-                  <div onClick={()=>data._showCreatePopUp('accounts','transations',{type})} className="text-[13px] absolute hover:opacity-55 cursor-pointer right-0 top-[-0.1rem] translate-y-[-100%] flex items-center">
-                              <Add sx={{width:16,height:16,opacity:0.6}}/>
-                  </div>
+                 
 
                  <Autocomplete size="small"
                     value={formData.transation_account.name ? formData.transation_account.name : null}
                     onChange={(event, newValue) => {
-                      newValue=newValue ? newValue : ''
-                      let _id=transationAccountOptions.filter(i=>i.name?.toLowerCase()==newValue?.toLowerCase())[0]?.id
-                      setFormData({...formData,transation_account:{...formData.transation_account,name:newValue,id:_id}})
+                      if(newValue==t('common.add_new')){
+                        data._showCreatePopUp('accounts','transations',{account_origin:formData.account_origin,type:formData.loan_id && type=="in"  ? "loans_in" : formData.loan_id && type=="out" || accountDetails.loan_id  ? "loans_out" : type})
+                      }else{
+                        newValue=newValue ? newValue : ''
+                        let _id=transationAccountOptions.filter(i=>i.name?.toLowerCase()==newValue?.toLowerCase())[0]?.id
+                        setFormData({...formData,transation_account:{...formData.transation_account,name:newValue,id:_id}})
+                      
+                      }
                     }}
                     noOptionsText="Sem opções"
                     defaultValue={null}
                     inputValue={formData.transation_account.name}
                     onInputChange={(event, newInputValue) => {
-                       newInputValue=newInputValue ? newInputValue : ''
+                           
+                      if(!newInputValue==t('common.add_new')){
+                        newInputValue=newInputValue ? newInputValue : ''
                        let _id=transationAccountOptions.filter(i=>i.name?.toLowerCase()==newInputValue?.toLowerCase())[0]?.id
                        setFormData({...formData,transation_account:{...formData.transation_account,name:newInputValue,id:_id}})
                         
+                      }
+
                     }}
                     onBlur={()=>{
+                     
                       if(!formData.transation_account.id){
                           setFormData({...formData,transation_account:{id:null,name:''}})
                       }
@@ -894,25 +864,32 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 
                    <div className="relative" >
-                                 <div onClick={()=>data._showCreatePopUp('register','transations',{[`${type=="in" ? (formData.account_origin=="loans_in" ? "investor" : "client")  : (formData.account_origin == "loans_out" ? 'investor' :'supplier')}`]:true})}
-                                  className={`text-[13px] ${!formData.account_origin ? 'pointer-events-none opacity-25':"hover:opacity-55 cursor-pointer"} absolute   right-0 top-[-0.1rem] translate-y-[-100%] flex items-center`}>
-                                          <Add sx={{width:16,height:16,opacity:0.6}}/>
-                              </div>
+                                
+
                                 <Autocomplete size="small"
                                 value={formData.reference.name && formData.account_origin ? formData.reference.name : null}
                                 onChange={(event, newValue) => {
-                                    newValue=newValue ? newValue : ''
-                                    let reference_id=referenceOptions.filter(i=>i.name?.toLowerCase()==newValue?.toLowerCase())[0]?.id
-                                    setFormData({...formData,reference:{...formData.reference,name:newValue,id:reference_id}})
+                                  
+                                    if(newValue==t('common.add_new')){
+                                      data._showCreatePopUp('register','transations',{[`${type=="in" ? (formData.account_origin=="loans_in" ? "investor" : "client")  : (formData.account_origin == "loans_out" ? 'investor' :'supplier')}`]:true})
+                                    }else{
+                                      newValue=newValue ? newValue : ''
+                                      let reference_id=referenceOptions.filter(i=>i.name?.toLowerCase()==newValue?.toLowerCase())[0]?.id
+                                      setFormData({...formData,reference:{...formData.reference,name:newValue,id:reference_id}})
+                                 
+                                    }
+
                                 }}
                                 noOptionsText="Sem opções"
                                 defaultValue={null}
                                 inputValue={(formData.account_origin) ? formData.reference.name  : "" }
                                 onInputChange={(event, newInputValue) => {
-                                    newInputValue=newInputValue ? newInputValue : ''
-                                    let reference_id=referenceOptions.filter(i=>i.name?.toLowerCase()==newInputValue?.toLowerCase())[0]?.id
-                                    setFormData({...formData,reference:{...formData.reference,name:newInputValue,id:reference_id}})
-                            
+                                    if(!newInputValue==t('common.add_new')){
+                                      newInputValue=newInputValue ? newInputValue : ''
+                                      let reference_id=referenceOptions.filter(i=>i.name?.toLowerCase()==newInputValue?.toLowerCase())[0]?.id
+                                      setFormData({...formData,reference:{...formData.reference,name:newInputValue,id:reference_id}})                    
+                                    }
+                                
                                 }}
                                 
                                 id="_referece"
@@ -949,30 +926,35 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
                               <span className='text-[12px] text-gray-500'>Saldo: </span>  <span className={`${availableCredit[_i]._available < 0 ?'text-red-600':''}`}>{_cn(availableCredit[_i]._available)}</span>
                         </div>}  
 
-                        <div onClick={()=>data._showCreatePopUp('payment_methods','transations',{index:_i})} className="text-[13px] absolute hover:opacity-55 cursor-pointer right-0 top-[-0.1rem] translate-y-[-100%] flex items-center">
-                              <Add sx={{width:16,height:16,opacity:0.6}}/>
-                        </div>
-
                         
 
                         <Autocomplete size="small"
                           value={i.name ? i.name : null}
                           onChange={(_, newValue) => {
-                            newValue=newValue ? newValue : ''
-                            let _id=paymentMethodsOptions.filter(i=>i.name?.toLowerCase()==newValue?.toLowerCase())[0]?.id
-                            setFormData({...formData,payments:formData.payments.map((f,_f)=>{
-                                return _f!=_i ? f : {...f,account_id:_id,name:newValue}
-                            })})
+                            if(newValue==t('common.add_new')){
+                              data._showCreatePopUp('payment_methods','transations',{index:_i})
+                           }else{
+                              newValue=newValue ? newValue : ''
+                              let _id=paymentMethodsOptions.filter(i=>i.name?.toLowerCase()==newValue?.toLowerCase())[0]?.id
+                              setFormData({...formData,payments:formData.payments.map((f,_f)=>{
+                                  return _f!=_i ? f : {...f,account_id:_id,name:newValue}
+                              })})
+                            }
+
+                          
                           }}
                           noOptionsText="Sem opções"
                           defaultValue={null}
                           inputValue={i.name}
                           onInputChange={(event, newInputValue) => {
-                            newInputValue=newInputValue ? newInputValue : ''
+                            if(!newInputValue==t('common.add_new')){
+                              newInputValue=newInputValue ? newInputValue : ''
                             let _id=paymentMethodsOptions.filter(i=>i.name?.toLowerCase()==newInputValue?.toLowerCase())[0]?.id
                             setFormData({...formData,payments:formData.payments.map((f,_f)=>{
                                 return _f!=_i ? f : {...f,account_id:_id,name:newInputValue}
                             })})
+                            }
+                           
                         }}
                         onBlur={()=>{
                           if(!formData.payments[_i].account_id){
@@ -983,12 +965,12 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
                           validate_feild('payment_method'+_i)
                         }}
                         id="_transation_account"
-                        options={paymentMethodsOptions.filter(f=>!formData.payments.some(j=>j.account_id==f.id)).map(i=>i.name)}
+                        options={paymentMethodsOptions.filter(f=>!formData.payments.some(j=>j.account_id==f.id) || f.name==t('common.add_new')).map(i=>i.name)}
                         sx={{ width: 300 }}
                         renderInput={(params) => <TextField {...params}
                         helperText={(!formData.payments[_i].account_id) && verifiedInputs.includes('payment_method'+_i) ? 'Campo obrigatório':''}
                         error={(!formData.payments[_i].account_id) && verifiedInputs.includes('payment_method'+_i) ? true : false}             
-                        value={formData.payments[_i].account_id} label="Meio de pagamento" />}
+                        value={formData.payments[_i].account_id} label="Meio de pagamento*" />}
                     
                     />   
                         </div>
@@ -998,14 +980,14 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
                                   id="outlined-textarea"
                                   label="Valor *"
                                   placeholder="Digite o valor"
-                                  multiline
+                                  multilinep
                                   value={i.amount}
                                   helperText={i.amount && formData.payments.map(i=>i.amount ? parseFloat(i.amount): 0).reduce((acc, curr) => acc + curr, 0) > (parseFloat(accountDetails.amount) - parseFloat(accountDetails.paid)) && formData.link_payment && accountDetails.status!="paid" ? "Maior que o agendado" :(!i.amount) && verifiedInputs.includes('amount') ? 'Campo obrigatório':''}
                                   onBlur={()=>validate_feild('amount'+_i)}
                                   error={(!i.amount) && verifiedInputs.includes('amount'+_i) ? true : false}
                                   onChange={(e)=>{
                                     setFormData({...formData,payments:formData.payments.map((f,_f)=>{
-                                      return _f!=_i ? f : {...f,amount:_cn_n(e.target.value)}
+                                      return _f!=_i ? f : {...f,amount:data._cn_op(e.target.value)}
                                     })})
                                   }}
                                 
@@ -1121,31 +1103,8 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
                             </FormLayout.Section>
 
 
-                          <div className="block w-full px-4">
-                              <div className={`border min-h-[80px] p-3 flex-col justify-center items-center rounded-[2px] border-dashed relative ${!formData.files[0] ?'cursor-pointer' :''}`}>
-                                      <div className="flex items-center justify-center ">
-                                        {!upload.uploading && !formData.files[0] && <label>
-                                            <Button sx={{width:'100%'}} endIcon={<FilePresentIcon/>}>Anexar documento ou imagem</Button>
-                                            <input ref={fileInputRef_1} onChange={handleFileChange} className="w-full h-full absolute top-0 left-0 opacity-0" type="file"/>
-                                        </label>}
-                                      </div>
+                            <DefaultUpload show={!(showMoreOptions || id)} from={`transations`} formData={formData} setFormData={setFormData}/>
 
-                                      {upload.uploading &&  <>
-                                          <div className="flex items-center justify-center h-full">
-                                            <LinearWithValueLabel progress={upload.progress}/>
-                                          </div>
-                                      </>}
-
-                                      {formData.files[0] && !upload.uploading &&  <>
-                                          <div className="flex flex-col">
-                                            <span className={`text-center block mb-4`} onClick={openFile}><span className={`${formData.files[0]?.exists ? 'text-blue-500':''} ${formData.files[0]?.exists ? 'underline cursor-pointer':' opacity-50'} `}>{formData.files[0]?.name}</span> {!formData.files[0]?.exists && <label className="text-red-600 ml-2">(Removido)</label>}</span>
-                                            <div className="text-center">{formData.files[0]?.exists && <Button onClick={openFileInFolder}>Abrir pasta</Button>}<label className="ml-4 relative"><Button endIcon={<RefreshOutlined/>} variant="contained">Alertar</Button><input ref={fileInputRef_2} onChange={handleFileChange} className="w-full h-full absolute top-0 left-0 opacity-0" type="file"/></label></div>
-                                          </div>
-                                      </> }
-
-
-                            </div>
-                          </div>
 
                     </div>
 

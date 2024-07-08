@@ -27,48 +27,37 @@ function App() {
  const { t } = useTranslation();
  const [page,setPage]=React.useState('profile')
  const [editMode,setEditMode]=React.useState(false)
- const {user} = useAuth()
-
+ const {user,update_user,setUser,db} = useAuth()
+ const {_settings} = useData()
  const [showAccounts,setAccounts]=useState(false)
-
- const db={
-   user:new PouchDB('user'),
-
- }  
-
- useEffect(()=>{
-   (async()=>{
-     try {
-       let item=await db.user.get('user')
-       setFormData({...item,contacts:[]})
-       
-     } catch (error) {
-       console.log(error)
-     }
-   })()
-
- },[])
-
-
 
  const [showPassword, setShowPassword] = React.useState(false);
  const [loading, setLoading] = React.useState(false);
  const [valid, setValid] = React.useState(false);
  const {makeRequest,_add,_update,_loaded,_scrollToSection,_showPopUp} = useData();
-  
-   let initial_form={
-      name:'',
-      last_name:'',
-      contacts:[],
-      nuit:'',
-      notes:'',
-      email:'',
-      address:''
-}
+ const [formData, setFormData] = React.useState({contacts:[''],settings:{}});
+ const [settingsDetails, setSettingsDetails]=React.useState({})
+ 
+ useEffect(()=>{
 
- const [formData, setFormData] = React.useState(initial_form);
+    
 
- let required_fields=['email','name','last_name']
+    (async()=>{
+
+      if(db.settings){
+        let set=await db.settings.allDocs({ include_docs: true })
+        set=set.rows.map(i=>i.doc)[0]
+        setSettingsDetails(set)
+        setFormData({...formData,settings:set.settings})
+        
+
+    }
+    
+  })()
+     
+ },[db])
+
+ let required_fields=['name','last_name']
 
  const [verifiedInputs, setVerifiedInputs] = React.useState([]);
 
@@ -83,27 +72,50 @@ function App() {
  };
  
 
+ async function SubmitForm(){
+      if(valid){
+           try{
 
+            await _update('settings',[{...settingsDetails,settings:formData.settings}])
+            toast.success('Actualizado com sucesso!')
+              
+           }catch(e){
+
+            toast.error('erro inesperado')
+
+           }
+      }
+ }
+
+
+ /*
 async function SubmitForm(){
+
      if(valid){
          setLoading(true)
-         toast.loading(`A actualizar...'}`)
+         toast.loading(`A actualizar...`)
+
          try{
-            let response = await makeRequest({method:'post',url:`api/user/update`,data:formData, error: ``},0);
+            await makeRequest({method:'post',url:`api/user/profile/update`,data:formData, error: ``},0);
             toast.remove()
             toast.success('Perfil actualizado')
-            _update('users',[response])
-            setVerifiedInputs([])
-            setFormData(initial_form)
             setLoading(false)
+            await update_user(formData)
+            _update('settings',[formData.companies])
+            setUser(formData)
+             
         }catch(e){
          toast.remove()
+         setLoading(false)
           if(e.response){
                 if(e.response.status==409){
                     toast.error('Email ou nome já existe')
                 }
                 if(e.response.status==400){
                     toast.error('Dados invalidos')
+                }
+                if(e.response.status==401){
+                  toast.error('Senha incorrecta')
                 }
                 if(e.response.status==404){
                   toast.error('Item não encontrado')
@@ -117,6 +129,7 @@ async function SubmitForm(){
                toast.error('Verifique sua internet e tente novamente')
           }else{
                console.log(e)
+               console.log('--------')
                toast.error('Erro inesperado!')
           }
           setLoading(false)
@@ -127,24 +140,34 @@ async function SubmitForm(){
      }
  }
 
+*/
+  useEffect(()=>{
+    let v=true
+    Object.keys(formData).forEach(f=>{
+        if((!formData[f].length && required_fields.includes(f))){
+            v=false
+        }
 
-        useEffect(()=>{
-        let v=true
-        Object.keys(formData).forEach(f=>{
-            if((!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) || (!formData[f].length && required_fields.includes(f))){
-                v=false
-            }
-        })
-        setValid(v)
-        },[formData])
+        if(formData.change_password && (!formData.last_password || !formData.new_password)){
+          v=false
+        }
+    })
+    setValid(v)
+  },[formData])
+
+
+  function activeAndDisable(field,not_type){
+    console.log({field})
+    setFormData({...formData,settings:{...formData.settings,[field]:{...formData.settings[field],[not_type]:!formData.settings[field][not_type]}}})
+  }
 
 
      
         
-    function editProfile(){
-      setTimeout(()=>_scrollToSection('edit-profile'),100)
-      setEditMode(true)
-    }
+  function editProfile(){
+    setTimeout(()=>_scrollToSection('edit-profile'),100)
+    setEditMode(true)
+  }
 
 
   return (
@@ -170,7 +193,7 @@ async function SubmitForm(){
                     </div>
 
 
-                    {!editMode && <div className="flex justify-center mt-4" >
+                    {!editMode && 0==9 && <div className="flex justify-center mt-4" >
                        <DefaultButton goTo={editProfile} text={'Editar perfil'} no_bg={true} disabled={false}/>
                     </div>}
 
@@ -227,13 +250,9 @@ async function SubmitForm(){
                         <TextField
                            id="outlined-textarea"
                            label="Email *"
-                           placeholder="Digite o email"
                            multiline
+                           disabled={true}
                            value={formData.email}
-                           onBlur={()=>validate_feild('email')}
-                           onChange={(e)=>setFormData({...formData,email:e.target.value})}
-                           error={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') ? true : false}
-                           helperText={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') ? "Email inválido":''}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -342,15 +361,15 @@ async function SubmitForm(){
 
                 <div  style={{transform:'translateX(-0.5rem)'}}>
                        <FormControl sx={{ m: 1 ,width:'100%'}} variant="outlined">
-                            <InputLabel htmlFor="outlined-adornment-password">ltima senha *</InputLabel>
+                            <InputLabel htmlFor="outlined-adornment-password">ultima senha *</InputLabel>
                             <OutlinedInput
                                id="outlined-adornment-password"
                                type={showPassword ? 'text' : 'password'}
-                               onBlur={()=>validate_feild('password')}
-                               value={formData.password}
-                               onChange={(e)=>setFormData({...formData,password:e.target.value})}
+                               onBlur={()=>validate_feild('last_password')}
+                               value={formData.last_password}
+                               onChange={(e)=>setFormData({...formData,last_password:e.target.value})}
                                error={true}
-                               helperText={(formData.length <= 5 && verifiedInputs.includes('password')) ? 'Senha deve ter no minimo 6 caracteres' : verifiedInputs.includes('password') && !formData.password ? "Senha obrigatória" :''}
+                               helperText={(formData.length <= 5 && verifiedInputs.includes('last_password')) ? 'Senha deve ter no minimo 6 caracteres' : verifiedInputs.includes('password') && !formData.password ? "Senha obrigatória" :''}
                                endAdornment={
                                <InputAdornment position="end">
                                   <IconButton
@@ -377,11 +396,11 @@ async function SubmitForm(){
                             <OutlinedInput
                                id="outlined-adornment-password"
                                type={showPassword ? 'text' : 'password'}
-                               onBlur={()=>validate_feild('password')}
-                               value={formData.password}
-                               onChange={(e)=>setFormData({...formData,password:e.target.value})}
+                               onBlur={()=>validate_feild('mew_password')}
+                               value={formData.new_password}
+                               onChange={(e)=>setFormData({...formData,new_password:e.target.value})}
                                error={true}
-                               helperText={(formData.length <= 5 && verifiedInputs.includes('password')) ? 'Senha deve ter no minimo 6 caracteres' : verifiedInputs.includes('password') && !formData.password ? "Senha obrigatória" :''}
+                               helperText={(formData.length <= 5 && verifiedInputs.includes('new_password')) ? 'Senha deve ter no minimo 6 caracteres' : verifiedInputs.includes('password') && !formData.password ? "Senha obrigatória" :''}
                                endAdornment={
                                <InputAdornment position="end">
                                   <IconButton
@@ -434,7 +453,7 @@ async function SubmitForm(){
                                     <h2 className="text-lg font-semibold leading-4 text-slate-700">{t('userPreferences.notifications.alerts')}</h2>
                                     <p className="font- text-slate-600">{t('userPreferences.notifications.alertsText')}</p>
                                     </div>
-                                    <NotificationToggles/>
+                                    <NotificationToggles field="alerts" email={formData.settings?.alerts?.email} whatsapp={formData.settings?.alerts?.whatsapp} activeAndDisable={activeAndDisable}/>
                                 </div>
             
                                 <div className="grid border-b py-6 sm:grid-cols-2">
@@ -444,42 +463,47 @@ async function SubmitForm(){
 
                                     <div className=" mt-8 w-full">
                                          <span className="mr-3 font-light">Periodo de notificações</span>
-                                         <select id="category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 p-2.5">
-                                              <option>1 dia antes</option>
-                                              <option>Dentro de 7 dias</option>
-                                              <option>Dentro de 15 dias</option>
+                                         <select onChange={(e)=>{
+
+                                            setFormData({...formData,settings:{...formData.settings,bills_not:{...formData.settings?.bills_not,days:e.target.value}}})
+
+                                         }} id="category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 p-2.5">
+                                              <option value={1} selected={Boolean(formData.settings?.bills_not?.days==1)}>1 dia antes</option>
+                                              <option vlaue={2} selected={Boolean(formData.settings?.bills_not?.days==7)}>Dentro de 7 dias</option>
+                                              <option value={3} selected={Boolean(formData.settings?.bills_not?.days==15)}>Dentro de 15 dias</option>
                                          </select>
                                     </div>
                                     <div className="mt-3 w-full flex items-center">
-                                     <span className="mr-3 font-light">Periodo de notificações</span>
+                                     <span className="mr-3 font-light">Selecionar contas a notificar</span>
                                     
                                       <div className="_not_bill_accounts">
                                         <button onClick={()=>_showPopUp('not_bill_accounts')}  className={`flex relative items-center bg-gray-50 border border-gray-300 text-gray-900 text-sm  focus:outline-none font-medium  rounded-lg text-[13px] px-3 py-[3px] text-center`}>
-                                            <FilterOptions show={showAccounts}/>
-                                        <span className="text-gray-900 ml-1 rounded-[0.3rem] flex p-1 items-center font-light">Todas <ExpandMoreOutlined style={{width:16}}/></span>
+                                            <FilterOptions formData={formData} setFormData={setFormData} show={showAccounts}/>
+                                        <span className="text-gray-900 ml-1 rounded-[0.3rem] flex p-1 items-center font-light">{formData.settings?.bills_not?.accounts?.length==0 ? 'Todas' : `${formData.settings?.bills_not?.accounts?.length} selecionado${formData.settings?.bills_not?.accounts?.length!=1 ? 's' :''}` } <ExpandMoreOutlined style={{width:16}}/></span>
                                         </button>
                                       </div>
                                     </div>
 
                                     </div>
-                                    <NotificationToggles/>
+                                    <NotificationToggles field={'reminder'} email={formData.settings?.reminder?.email} whatsapp={formData.settings?.reminder?.whatsapp} activeAndDisable={activeAndDisable}/>
                                 </div>
                                 <div className="grid border-b py-6 sm:grid-cols-2">
                                     <div className="">
                                     <h2 className="text-lg font-semibold leading-4 text-slate-700">{t('userPreferences.notifications.updates')}</h2>
                                     <p className="font- text-slate-600">{t('userPreferences.notifications.updatesText')}</p>
                                     </div> 
-                                    <NotificationToggles/>
+                                    <NotificationToggles field={'updates'} email={formData.settings?.updates?.email} whatsapp={formData.settings?.updates?.whatsapp} activeAndDisable={activeAndDisable}/>
                                 </div>
             
             
             
                      </div>
+                     <div className="py-4">
+                      <DefaultButton goTo={SubmitForm} text={loading ? 'A actualizar...' :'Actualizar'} disabled={false}/>
+                    </div>
            </>}
 
-           <div className="py-4">
-             <DefaultButton text={'Actualizar'} disabled={false}/>
-           </div>
+          
 
          </UserPreferencesLayout>
     </>

@@ -1,12 +1,9 @@
 
 import React, { useEffect } from 'react';
-import DefaultLayout from '../../layout/DefaultLayout';
 import TextField from '@mui/material/TextField';
-import SendIcon from '@mui/icons-material/Send';
-import LoadingButton from '@mui/lab/LoadingButton';
 import toast from 'react-hot-toast';
 import { useData  } from '../../contexts/DataContext';
-import {useParams} from 'react-router-dom';
+import {useLocation, useNavigate, useParams} from 'react-router-dom';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -15,72 +12,76 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
-import Checkbox from '@mui/material/Checkbox';
 import 'dayjs/locale/en-gb';
-import PouchDB from 'pouchdb';
 import FormLayout from '../../layout/DefaultFormLayout';
-       
+import { v4 as uuidv4 } from 'uuid';     
+import { useAuth } from '../../contexts/AuthContext';
        function App() {
           const {_cn_op}= useData()
 
           const { id } = useParams()
 
-          const db={
-            investments:new PouchDB('investments'),
-          } 
+          const {db} = useAuth()
+
+          const navigate = useNavigate()
+          const {pathname}=useLocation()
 
 
-          const [items,setItems]=React.useState([])
+          const [initialized,setInitialized]=React.useState()
 
-          useEffect(()=>{
+          
+          let initial_form={
+            id:'',
+            period:'year',
+            description:'',
+            deleted:false,
+            time:'',
+            amount:'',
+            buyday:'',
+            createdAt:new Date().toISOString(),
+        }
 
-                 alert('In development')
 
-                if(!id) return 
 
-                (async()=>{
-                    try {
-                        let item=await db.investments.get(id)
-                        setFormData({...item})
-                    } catch (error) {
-                        console.log(error)
-                    }
-                })()
-
-          },[])
+        const [formData, setFormData] = React.useState(initial_form);
 
 
 
           const [loading, setLoading] = React.useState(false);
           const [valid, setValid] = React.useState(false);
-          const {_add,_update} = useData();
+          const {_loaded,_add,_update,_calculateInvestmentCost} = useData();
 
 
+          useEffect(()=>{
+            if(!id || id==formData.id || !db.investments) return 
+
+               (async()=>{
+
+                     let item =  await db.investments.find({selector: {id}})
+                     item=item.docs[0]
+                     if(item){
+                     setFormData(item)
+
+                     }else{
+                      toast.error('Item não encontrado')
+                      navigate(`/investments`)
+                     }
+
+               })()
+
+          },[db,pathname])
+
+          useEffect(()=>{
+            if(!formData.id && id){
+                setInitialized(false)
+            }else{
+                setInitialized(true)
+            }
+           },[_loaded,formData])
+          
+          
         
-            let initial_form={
-               id:'',
-               period:'year',
-               description:'',
-               deleted:false,
-               time:'',
-               amount:'',
-               createdAt:new Date().toISOString(),
-           }
-
-
-           
-           
-
-           const [formData, setFormData] = React.useState(initial_form);
-
-           useEffect(()=>{
-            (async()=>{
-                let docs=await db.investments.allDocs({ include_docs: true })
-                setItems(docs.rows.map(i=>i.doc).filter(i=>!i.deleted))
-            })()
-
-
-          },[formData])
+         
 
           let required_fields=['amount','description','time']
        
@@ -89,6 +90,15 @@ import FormLayout from '../../layout/DefaultFormLayout';
           function validate_feild(field){
              setVerifiedInputs(field!='all' ? [...verifiedInputs,field] : required_fields)
           }
+
+
+        
+
+
+
+          useEffect(()=>{
+            setFormData({...formData,depreciation:formData.amount && formData.buyday && formData.time ? _calculateInvestmentCost({...formData,buyday:!formData.buyday?.split ? formData.buyday?.toISOString() : formData.buyday}).amount.toFixed(2) : '0'})
+          },[formData.amount,formData.buyday,formData.time])
 
         
 
@@ -101,15 +111,15 @@ import FormLayout from '../../layout/DefaultFormLayout';
                    try{
                      if(id){
                         _update('investments',[{...formData}])
-                        toast.success('Investimento actualizada')
+                        toast.success('Investimento actualizado')
                      }else{
                        _add('investments',[{
                             ...formData,
-                            id:Math.random().toString(),
-                            _id:Math.random().toString()
+                            id:uuidv4(),
                         }])
                         setFormData(initial_form)
                         toast.success('Investimento adicionado')
+                        setVerifiedInputs([])
                      }
                  }catch(e){
                         console.log(e)
@@ -135,11 +145,11 @@ import FormLayout from '../../layout/DefaultFormLayout';
     <>
 
 
-<FormLayout maxWidth={'700px'} name={id ? 'Actualizar' : 'Novo investimento'} formTitle={id ? 'Actualizar' : 'Adicionar'}>
+<FormLayout loading={!initialized || loading} maxWidth={'700px'} name={id ? 'Actualizar' : 'Novo investimento'} formTitle={id ? 'Actualizar' : 'Adicionar'}>
 
              
 <FormLayout.Cards topInfo={[
-                          {name:"Valor final",value:0},
+                          {name:"Valor mensal de depreciação",value: formData.depreciation},
                      ]}/>
 
             
@@ -165,6 +175,17 @@ import FormLayout from '../../layout/DefaultFormLayout';
                           />
 
                   </div>
+
+
+
+                  <div className="-translate-y-0">
+                                    <LocalizationProvider  adapterLocale={'en-gb'} dateAdapter={AdapterDayjs} style={{paddingTop:0}} size="small">
+                                        <DatePicker  value={dayjs(formData.buyday).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.buyday)) : null} onChange={(e)=>setFormData({...formData,buyday:e.$d})}  label="Data de compra"  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
+                                            '& .MuiStack-root': { paddingTop:0},'& .MuiInputLabel-root':{ top:-8}}}
+                                            />
+                                    </LocalizationProvider>
+                  </div>
+                  
 
 
 

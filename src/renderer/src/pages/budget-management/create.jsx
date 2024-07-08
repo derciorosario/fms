@@ -14,7 +14,7 @@ import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select';
 import DatePickerRange from '../../components/Filters/budget-management-date-picker';
 import AddIcon from '@mui/icons-material/Add';
-
+import { v4 as uuidv4 } from 'uuid';
 import PouchDB from 'pouchdb';
        
        
@@ -88,7 +88,7 @@ import PouchDB from 'pouchdb';
             let initial_form={
                account_origin:'',
                items:[{
-                   id:Math.random(),startDate:'', endDate:'',value:'',picker:initialDatePickers
+                   id:uuidv4(),startDate:'', endDate:'',value:'',picker:initialDatePickers
                }],
                deleted:false,
                description:'',
@@ -107,7 +107,7 @@ import PouchDB from 'pouchdb';
           },[formData])
 
           useEffect(()=>{
-            setFormData({...formData,transation_type:_categories.filter(i=>i.field==formData.account_origin)?.[0]?.type})
+            setFormData({...formData,type:_categories.filter(i=>i.field==formData.account_origin)?.[0]?.type})
           },[formData.account_origin])
         
        
@@ -131,7 +131,7 @@ import PouchDB from 'pouchdb';
                         _update('budget',[{...formData}])
                         toast.success('Orçamento actualizado')
                      }else{
-                        _add('budget',[{...formData,id:Math.random(),_id:Math.random().toString()}])
+                        _add('budget',[{...formData,id:uuidv4(),_id:uuidv4()}])
                         setVerifiedInputs([])
                         toast.success('Orçamento adicionado')
                         setFormData(initial_form)
@@ -167,7 +167,7 @@ import PouchDB from 'pouchdb';
               }
 
 
-              setFormData({...formData,items:[...formData.items,{...initial_form.items[0],id:Math.random(),picker:initialDatePickers}]})
+              setFormData({...formData,items:[...formData.items,{...initial_form.items[0],id:uuidv4(),picker:initialDatePickers}]})
           }
 
           

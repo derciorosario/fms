@@ -13,47 +13,88 @@ import Autocomplete from '@mui/material/Autocomplete'
 import toast from 'react-hot-toast';
 import { useAuth  } from '../../../contexts/AuthContext';
 import { useData  } from '../../../contexts/DataContext';
-import {useParams, useNavigate} from 'react-router-dom';
+import {useParams, useNavigate, useLocation} from 'react-router-dom';
 import PouchDB from 'pouchdb';
 import FormLayout from '../../../layout/DefaultFormLayout';
 import MultipleSelectChip from '../../../components/TextField/chipInput';
-      
+import { Info } from '@mui/icons-material';
+import { v4 as uuidv4 } from 'uuid';     
        
        function App() {
 
-         const {navigate}=useNavigate()
+         const navigate=useNavigate()
 
           const { id } = useParams()
 
-          const db={
-            managers:new PouchDB('managers')
-          }  
+          const {db,user} = useAuth()
 
-          useEffect(()=>{
-            if(!id) return
+          const [items,setItems]=React.useState([])
 
-            (async()=>{
-              try {
-                let item=await db.managers.get(id)
-                setFormData(item)
-                handleLoaded('form','add')
-                
-              } catch (error) {
-                console.log(error)
-                toast.error('Erro, Item não encontrado')
-              }
-            })()
+          const required_data=['managers']
 
-          },[])
+          const {_loaded,_get} = useData();
+          const data= useData()
+        
+
+          let initial_form={
+            name:'',
+            last_name:'',
+            contacts:[''],
+            nuit:'',
+            notes:'',
+            email:'',
+            address:''
+        }
+
+          const [formData, setFormData] = React.useState(initial_form);
 
 
-       
+          const {pathname} = useLocation()
+         
+
           const [showPassword, setShowPassword] = React.useState(false);
           const [loading, setLoading] = React.useState(false);
           const [valid, setValid] = React.useState(false);
           const [loaded, setLoaded] = React.useState([]);
-          const [initialized, seTinitialized] = React.useState(false);
+          const [initialized, setInitialized] = React.useState(false);
           const [canEdit,setCanEdit] = React.useState(true)
+         
+
+
+          useEffect(()=>{
+
+            if(!id || !db.managers || formData.id==id) return 
+
+               (async()=>{
+
+                     let item =  await db.managers.find({selector: {id}})
+                     item=item.docs[0]
+                     if(item){
+                     setFormData(item)
+                     handleLoaded('form','add')
+                     }else{
+                      toast.error('Item não encontrado')
+                      navigate(`/managers`)
+                     }
+
+               })()
+
+          },[db,pathname])
+
+
+         
+          
+           useEffect(()=>{
+                _get(required_data.filter(i=>!_loaded.includes(i)))    
+           },[db])
+
+           useEffect(()=>{
+                  setItems(data._managers)
+           },[data._managers])
+
+
+       
+          
 
 
           function handleLoaded(item,action){
@@ -65,54 +106,35 @@ import MultipleSelectChip from '../../../components/TextField/chipInput';
           }
 
 
-          const {makeRequest,_add,_update,_loaded} = useData();
-          const data= useData()
-          const {user}=useAuth()
-            let initial_form={
-               name:'',
-               last_name:'',
-               contacts:[''],
-               company_ids:[],
-               nuit:'',
-               notes:'',
-               email:'',
-               address:''
-         }
-
-          const [formData, setFormData] = React.useState(initial_form);
-
+          
           const [chipOptions, setChipOptions] = React.useState([]);
           const [chipNames, setChipNames] = React.useState([]);
 
 
           React.useEffect(()=>{
 
-            if(_loaded.includes('companies') && _loaded.includes('managers') &&  (loaded.includes('form') || !id)){
-               seTinitialized(true)
+            if(_loaded.includes('managers') && user &&  (loaded.includes('form') || !id)){
+                setInitialized(true)
                 if(id){
-                  if(!user.companies.filter(i=>i.admin_id==user.id).some(i=>formData.companies.includes(i.id))){
+                  if(!user.companies_details.filter(i=>i.admin_id==user.id).some(i=>formData.companies.includes(i.id))){
                      setCanEdit(false)
                  }
                 }
-
            }
                   
-          },[data._companies,data._managers,loaded])
+          },[data._managers,loaded])
 
          
 
           React.useEffect(()=>{
             if(!initialized) return
 
-            
+             if(id){
+                  console.log({formData})
+                  setChipOptions(user.companies_details.filter(i=>(formData.companies.includes(i.id) && i.admin_id==user.id) || !canEdit).map(i=>i.name))
+             }
 
-            
-
-            if(id){
-               setChipOptions(data._companies.filter(i=>(formData.companies.includes(i.id) && i.admin_id==user.id) || !canEdit).map(i=>i.name))
-            }
-             setChipNames(data._companies.filter(i=>i.admin_id==user.id).map(i=>i.name))
-            
+             setChipNames(user.companies_details.filter(i=>i.admin_id==user.id).map(i=>i.name))
                
           },[initialized])
 
@@ -122,7 +144,9 @@ import MultipleSelectChip from '../../../components/TextField/chipInput';
           const [verifiedInputs, setVerifiedInputs] = React.useState([]);
        
           function validate_feild(field){
+
              setVerifiedInputs(field!='all' ? [...verifiedInputs,field] : required_fields)
+
           }
        
           const handleClickShowPassword = () => setShowPassword((show) => !show);
@@ -130,9 +154,104 @@ import MultipleSelectChip from '../../../components/TextField/chipInput';
           const handleMouseDownPassword = (event) => {
             event.preventDefault();
           };
-          
-       
-       
+
+
+
+
+          async function SubmitForm(){
+
+            setLoading(true)
+
+            let email_used=false
+
+            if(valid){
+               
+               let companies=user.companies_details.filter(i=>chipOptions.includes(i.name)).map(i=>i.id)
+               
+               try{     
+
+                     if(id){
+
+                           let last_companies=await db.managers.find({selector: {id}})
+                           last_companies=last_companies.docs[0].companies
+                           let removed_from=last_companies.filter(i=>!companies.includes(i))
+
+                           for (let i = 0; i < removed_from.length; i++) {
+                              let company=new PouchDB('managers-'+removed_from[i])
+                              let manager = await company.find({selector: {email:formData.email}})
+                              manager=manager.docs[0]
+                              await company.put({...formData,deleted:true,_rev:manager._rev})
+                           
+                           }
+
+                      }
+
+
+                      let managers=[]
+                      
+                      // Verfiying email conflict
+                      for (let i = 0; i < companies.length; i++) {
+                        let company_name=user.companies_details.filter(f=>f.id==companies[i])[0].name
+                        let company=new PouchDB('managers-'+companies[i])
+                        let manager = await company.find({selector: {email:formData.email}})
+                        manager=manager.docs[0]
+                        if(id){
+                           if(manager.id==formData.id) {
+                               managers.push({...formData,companies,deleted:false,company_id:companies[i]})      
+                           }else{
+                               toast.error('Email já foi usado em: '+company_name)
+                               email_used=true
+                           }
+                        }else{    
+                           if(manager) {
+                               toast.error('Email já foi usado em: '+company_name)
+                               email_used=true
+                           }else{
+                               managers.push({...formData,id:uuidv4(),_id:new Date().toISOString(),companies,company_id:companies[i]})
+                           }
+                        }
+                     }
+                     
+                     // Email was not used in any company
+
+                     if(!email_used){
+
+                        for (let i = 0; i < managers.length; i++) {
+                           let company=new PouchDB('managers-'+managers[i].company_id)
+                           delete managers[i].company_id
+                         if(id){
+                           await company.put(managers[i])    
+                         }else{
+                           company.put({...formData,id:uuidv4(),_id:new Date().toISOString(),companies,created_by:user.id})
+                         }
+                       }
+
+                     }
+                    
+                    
+                    
+                     setLoading(false)
+                     if(!email_used) toast.success('Usuário '+(id ? "actualizado" : "criado"))
+
+              }catch(e){
+                     setLoading(false)
+                     console.log(e)
+                     toast.error('Erro inesperado!')
+              }
+
+              if(!id && email_used==false){
+                  setVerifiedInputs([])
+                  setFormData(initial_form)
+                  setChipOptions([])
+              }
+
+            }
+
+
+      }
+
+
+          /*
          async function SubmitForm(){
               if(valid){
                   setLoading(true)
@@ -151,15 +270,8 @@ import MultipleSelectChip from '../../../components/TextField/chipInput';
                         setVerifiedInputs([])
                         setFormData(initial_form)
                         setChipOptions([])
-                       
-                        
                      }
-
-                    
-                     
                      setLoading(false)
-                     
-                     
                  }catch(e){
                   toast.remove()
                    if(e.response){
@@ -189,21 +301,21 @@ import MultipleSelectChip from '../../../components/TextField/chipInput';
               }else{
                toast.error('Preencha todos os campos obrigatórios')
               }
-          }
+          }*/
+
+
 
 
           useEffect(()=>{
-            console.log(formData)
             let v=true
             Object.keys(formData).forEach(f=>{
-                
-               console.log(f,formData[f])
                if((!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) || (!formData[f]?.length && required_fields.includes(f))){
                   v=false
                }
            })
 
-           if(!chipOptions.length || !canEdit) v=false
+            if(!chipOptions.length || !canEdit || formData.email==user.email) v=false
+
 
            setValid(v)
           },[formData,chipOptions])
@@ -213,9 +325,12 @@ import MultipleSelectChip from '../../../components/TextField/chipInput';
         
          return (
            <>
-              <FormLayout loading={!initialized} name={ `${id ? 'Actualizar Gestor' : 'Novo Gestor'}`} formTitle={id ? 'Actualizar' : 'Adicionar'}>
+              <FormLayout loading={!initialized} name={ `${id ? 'Actualizar Gestor' : 'Novo Gestor'}`} formTitle={id ? 'Actualizar' : 'Adicionar'}  topLeftContent={(
+                  <>
+                     {formData.fistLogin && <span className="text-gray-400 font-light"><Info sx={{width:20}}/> Não poderá editar dados pessoais</span>}
+                  </>
+              )}>
               
-
 
             <div className={`${!initialized ? 'opacity-50 pointer-events-none' :''}`}>
                
@@ -227,7 +342,7 @@ import MultipleSelectChip from '../../../components/TextField/chipInput';
                            label="Nome *"
                            placeholder="Digite o nome"
                            multiline
-                           disabled={!canEdit}
+                           disabled={formData.fistLogin || !canEdit ? true : false}
                            value={formData.name}
                            onBlur={()=>validate_feild('name')}
                            onChange={(e)=>setFormData({...formData,name:e.target.value})}
@@ -244,7 +359,7 @@ import MultipleSelectChip from '../../../components/TextField/chipInput';
                            label="Apelido *"
                            placeholder="Digite o apelido"
                            value={formData.last_name}
-                           disabled={!canEdit}
+                           disabled={formData.fistLogin || !canEdit ? true : false}
                            onBlur={()=>validate_feild('last_name')}
                            onChange={(e)=>setFormData({...formData,last_name:e.target.value})}
                            error={(!formData.last_name)  && verifiedInputs.includes('last_name') ? true : false}
@@ -265,8 +380,8 @@ import MultipleSelectChip from '../../../components/TextField/chipInput';
                            value={formData.email}
                            onBlur={()=>validate_feild('email')}
                            onChange={(e)=>setFormData({...formData,email:e.target.value})}
-                           error={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') ? true : false}
-                           helperText={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') ? "Email inválido":''}
+                           error={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') || formData.email==user.email ? true : false}
+                           helperText={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') ? "Email inválido":formData.email==user.email ? 'Não pode adicionar seu email':''}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -279,9 +394,9 @@ import MultipleSelectChip from '../../../components/TextField/chipInput';
                                multiple
                                id="size-small-outlined-multi"
                                size="small"
-                               disabled={!canEdit}
                                options={formData.contacts}
                                getOptionLabel={(option) => option}
+                               disabled={formData.fistLogin || !canEdit ? true : false}
                                renderInput={(params) => (
                                   <TextField {...params} label="Contactos" placeholder="Digite os contactos" />
                                )}
@@ -318,7 +433,7 @@ import MultipleSelectChip from '../../../components/TextField/chipInput';
                            label="Endereço"
                            placeholder="Digite o endereço"
                            multiline
-                           disabled={!canEdit}
+                           disabled={formData.fistLogin || !canEdit ? true : false}
                            value={formData.address}
                            onChange={(e)=>setFormData({...formData,address:e.target.value})}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
@@ -331,8 +446,8 @@ import MultipleSelectChip from '../../../components/TextField/chipInput';
                            id="outlined-textarea"
                            label="Nuit"
                            placeholder="Digite o nuit"
+                           disabled={formData.fistLogin || !canEdit ? true : false}
                            multiline
-                           disabled={!canEdit}
                            value={formData.nuit}
                            onChange={(e)=>setFormData({...formData,nuit:e.target.value})}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
@@ -382,8 +497,7 @@ import MultipleSelectChip from '../../../components/TextField/chipInput';
                                label="Observações"
                                multiline
                                rows={4}
-                               disabled={!canEdit}
-                               value={formData.notes}
+                               disabled={formData.fistLogin || !canEdit ? true : false}
                                onChange={(e)=>setFormData({...formData,notes:e.target.value})}
                                defaultValue=""
                                sx={{width:'100%'}}
@@ -402,7 +516,7 @@ import MultipleSelectChip from '../../../components/TextField/chipInput';
             </div>
        
        
-              <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={id}/>
+              <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading && initialized} valid={valid} id={id}/>
         
                </FormLayout>
            </>

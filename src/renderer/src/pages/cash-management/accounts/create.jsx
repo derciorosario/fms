@@ -12,6 +12,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 import PouchDB from 'pouchdb';
+import { v4 as uuidv4 } from 'uuid';
        
        
        function App() {
@@ -42,7 +43,7 @@ import PouchDB from 'pouchdb';
 
           const [loading, setLoading] = React.useState(false);
           const [valid, setValid] = React.useState(false);
-          const {makeRequest,_add,_update,_loaded,_get} = useData();
+          const {_add,_update,_loaded,_get} = useData();
           
             let initial_form={
                name:'',
@@ -54,12 +55,7 @@ import PouchDB from 'pouchdb';
 
           const [formData, setFormData] = React.useState(initial_form);
 
-          useEffect(()=>{
-            (async()=>{
-                let docs=await db.accounts.allDocs({ include_docs: true })
-                setItems(docs.rows.map(i=>i.doc).filter(i=>!i.deleted))
-            })()
-          },[formData])  
+   
         
        
           let required_fields=['name','description','initial_amount']
@@ -70,17 +66,15 @@ import PouchDB from 'pouchdb';
              setVerifiedInputs(field!='all' ? [...verifiedInputs,field] : required_fields)
           }
 
-          console.log(formData)
-       
-       
+        
          async function SubmitForm(){
               
               if(valid){
-                  if(items.some(i=>i.name.toLowerCase() == formData.name.toLowerCase() && i._id!=id)){
+                  if(items.some(i=>i.name.toLowerCase() == formData.name.toLowerCase() && i.id!=id)){
                      toast.error('Nome já existe')
                      return
                   }
-                  if(items.some(i=>i.description.toLowerCase() == formData.description.toLowerCase() && i._id!=id)){
+                  if(items.some(i=>i.description.toLowerCase() == formData.description.toLowerCase() && i.id!=id)){
                      toast.error('Descrição já existe')
                      return
                   }
@@ -90,14 +84,14 @@ import PouchDB from 'pouchdb';
                         _update('accounts',[{...formData}])
                         toast.success('Conta actualizada')
                      }else{
-                        let id=Math.random().toString()
-                        _add('accounts',[{...formData,id,_id:Math.random().toString()}])
+                        let id=uuidv4()
+                        _add('accounts',[{...formData,id,_id:uuidv4()}])
                         setVerifiedInputs([])
                         toast.success('Conta adicionada')
                         if(parseInt(formData.initial_amount)){
                            _add('transations',[{
-                              id:Math.random().toString(),
-                              _id:Math.random().toString(),
+                              id:uuidv4(),
+                              _id:uuidv4(),
                               type:parseFloat(formData.initial_amount) < 0 ? 'out' : 'in',
                               description:`Valor inicial (${formData.name})`,
                               deleted:false,

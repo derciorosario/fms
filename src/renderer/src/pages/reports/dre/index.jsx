@@ -7,9 +7,10 @@ import { useLocation } from 'react-router-dom';
 import StatsTable from '../components/table'
 import DefaultButton from '../../../components/Buttons/default';
 import colors from '../../../assets/colors.json'
+import { useAuth } from '../../../contexts/AuthContext';
 function App() {
 
-  const {_get_dre_stats,_transations,_bills_to_pay,_bills_to_receive,_loaded,_get,_print_exportExcel} = useData();
+  const {_get_dre_stats,_transations,_bills_to_pay,_bills_to_receive,_loaded,_get,_print_exportExcel,_investments} = useData();
   const {pathname} = useLocation()
   const [search,setSearch]=React.useState('')
   const [data,setData]=React.useState([])
@@ -17,17 +18,29 @@ function App() {
   const [showProjected,setShowProjected]=React.useState(1)
   const period=pathname.includes('/daily')  ? 'd' : 'm'
   const [currentMenu,setCurrentMenu]=React.useState(1)
-
+ 
   const page_menus=[
     {name:' Análise simples'},
     {name:' Análise comparativa'}
   ]
-  
+
+
+  const [initialized,setInitialized]=useState(false)
+
+  useEffect(()=>{
+    
+    if(!(required_data.some(i=>!_loaded.includes(i)))){
+        setInitialized(true)
+    }
+   },[_loaded])
+
+   let required_data=['investments','loans','bills_to_pay','account_categories','bills_to_receive','payment_methods','transations']
+
+   const {db} = useAuth()
+
+ 
   
   const [filterOptions,setFilterOPtions]=useState([
-
-   
-
     {
       field:'_show_projected',
       name:'Visão',
@@ -61,6 +74,12 @@ function App() {
 ])
 
 
+useEffect(()=>{
+  _get(required_data.filter(i=>!_loaded.includes(i)))
+
+},[db,filterOptions])
+
+ 
 
 useEffect(()=>{
 
@@ -87,6 +106,15 @@ useEffect(()=>{
 
   if(!_loaded.includes('bills_to_pay') || !_loaded.includes('bills_to_receive') || !_loaded.includes('transations')) return
 
+  function getNextYears(currentYear, numberOfYears) {
+    let yearsArray = [];
+    for (let i = 0; i < numberOfYears; i++) {
+      yearsArray.push(currentYear + i);
+    }
+    return yearsArray;
+  }
+
+
   let years=[new Date().getFullYear()]
 
   _transations.forEach(e=>{
@@ -99,6 +127,12 @@ useEffect(()=>{
 
   _bills_to_receive.forEach(e=>{
     if(!years.includes(new Date(e.payday).getFullYear()))  years.push(new Date(e.payday).getFullYear())
+  }) 
+
+  _investments.forEach(e=>{
+    let years_array=getNextYears(new Date(e.buyday).getFullYear(), parseInt(e.time))
+    years=[...years,...years_array.filter(i=>!years.includes(i))]
+    if(!years.includes(new Date(e.buyday).getFullYear()))  years.push(new Date(e.buyday).getFullYear())
   }) 
 
  
@@ -114,7 +148,7 @@ useEffect(()=>{
       dropdown:true,
       single:true,
       groups:[
-        {field:'_year',name:'contas',db_name:'accounts',items:years.map((i)=>({name:i.toString(),id:i.toString(),selected:i==new Date().getFullYear() ? true : false})),selected_ids:[years[years.length - 1].toString()]}
+        {field:'_year',name:'contas',db_name:'accounts',items:years.map((i)=>({name:i.toString(),id:i.toString(),selected:i==new Date().getFullYear() ? true : false})),selected_ids:[new Date().getFullYear().toString()]}
       ]
     },
   ]))
@@ -160,28 +194,21 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
  }
 
 
- 
-
-
   useEffect(()=>{
-     if(!_loaded.includes('categories')) return
-     let {data,datasets,labels}=_get_dre_stats(filterOptions.filter(i=>i.field=="_month"),period)
+     let {data,datasets,labels}=_get_dre_stats(filterOptions.filter(i=>i.field=="_month" || i.field=="_year"),period)
      setData(data)
      setChartDataSets(datasets)
      setChartLabels(labels)
-
-
   },[_loaded,filterOptions])
- 
 
-  useEffect(()=>{
-    _get('categories')
-   },[])
+
+  
+ 
 
   return (
     <>
     
-        <DefaultLayout details={{name:'Dermostração de resutados'}}>
+        <DefaultLayout details={{name:'Dermostração de resutados'}} _isLoading={!initialized}>
         
     
         <div className="flex flex-wrap bg-white p-3 mb-2 shadow z-10 rounded-[0.3rem]">
@@ -193,7 +220,7 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
                 {/**<DatePickerRange open={datePickerPeriodOptions.open} options={datePickerPeriodOptions} setFilterOPtions={setDatePickerPeriodOptions}/>**/ }   
 
                 {filterOptions.map((i,_i)=>(
-                        <Filter key={_i} filterOptions={filterOptions}  setFilterOPtions={setFilterOPtions} open={i.open} options={i}/>
+                        <Filter shownFilters={filterOptions} key={_i} filterOptions={filterOptions}  setFilterOPtions={setFilterOPtions} open={i.open} options={i}/>
                 ))}
         </div>
 
@@ -218,8 +245,8 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
                      <div className="flex items-center">
                             <div  onClick={()=>{
                                 print_exportExcel('print')
-                              }}  className="mr-4 cursor-pointer flex opacity-70">
-                                <LocalPrintshopOutlinedIcon/>
+                              }}  className="mr-4 cursor-pointer flex">
+                               <LocalPrintshopOutlinedIcon sx={{color:colors.app_black[400]}}/>
                               </div>
                               {currentMenu!=0 && <div  onClick={()=>{
                                 print_exportExcel('excel')

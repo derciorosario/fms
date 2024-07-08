@@ -11,6 +11,7 @@
         "register": "Registro",
         "settings": "Configurações",
         "investments": "Investimentos",
+        "loans": "Empréstimos",
         "finacialReconciliation": "Conciliação finançeira",
         "reports": "Relatórios",
         "companies": "Empresas",
@@ -92,6 +93,7 @@
       }
     },
     "common": {
+      "add_new":"+ Adicionar novo",
       "save": "Save",
       "cancel": "Cancel",
       "delete": "Delete",

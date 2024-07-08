@@ -13,52 +13,67 @@ import Autocomplete from '@mui/material/Autocomplete'
 import toast from 'react-hot-toast';
 import { useData  } from '../../contexts/DataContext';
 import {useParams, useNavigate,useLocation} from 'react-router-dom';
-import PouchDB from 'pouchdb';
 import FormLayout from '../../layout/DefaultFormLayout';
+import { v4 as uuidv4 } from 'uuid';
+import { useAuth } from '../../contexts/AuthContext';
 
        
        
        function App({isPopUp}) {
 
-         const {navigate}=useNavigate()
+         const navigate=useNavigate()
 
           const { id } = useParams()
 
           const {pathname} = useLocation()
 
-          console.log({pathname})
-
-          const db={
-            clients:new PouchDB('clients'),
-            suppliers:new PouchDB('suppliers'),
-            investors:new PouchDB('investors')
-          } 
+          const {db} = useAuth()
 
           const [items,setItems]=React.useState([])
-
-          const {makeRequest,_add,_update,_loaded,_setOpenDialogRes,_setOpenCreatePopUp,_openDialogRes} = useData();
-          
+          const [initialized,setInitialized]=React.useState()
+          const {_get,_add,_update,_loaded,_setOpenDialogRes,_setOpenCreatePopUp,_openDialogRes} = useData();
+          const data=useData()
           
           
           let page=pathname.includes('/client') || (_openDialogRes?.details?.client) ? 'clients' : pathname.includes('/supplier') || _openDialogRes?.details?.supplier ? 'suppliers' :'investors';
 
+         
           
-          
+          useEffect(()=>{
+            if(!id || id==formData.id || isPopUp || !db.managers) return 
+
+               (async()=>{
+               
+                     let item =  await db[page].find({selector: {id}})
+                     item=item.docs[0]
+                     if(item){
+                     setFormData(item)
+                     }else{
+                     toast.error('Item não encontrado')
+                     navigate(`/${page}`)
+                     }
+               })()
+
+          },[pathname,db])
+
 
           useEffect(()=>{
-            if(!id || id==formData.id) return
+            if(_loaded.includes(page)){
+                setInitialized(true)
+            }else{
+                setInitialized(false)
+            }
+           },[_loaded,pathname])
+          
+           useEffect(()=>{
+              if(!_loaded.includes(page))  _get(page)    
+           },[db])
 
-            (async()=>{
-              try {
-                let item=await db[page].get(id)
-                setFormData(item)
-              } catch (error) {
-                console.log(error)
-              }
-            })()
+           useEffect(()=>{
+                  setItems(data[`_${page}`])
+           },[pathname])
 
-          },[pathname])
-
+         
 
        
           const [showPassword, setShowPassword] = React.useState(false);
@@ -78,13 +93,6 @@ import FormLayout from '../../layout/DefaultFormLayout';
 
           const [formData, setFormData] = React.useState(initial_form);
 
-          useEffect(()=>{
-            (async()=>{
-                let docs=await db[page].allDocs({ include_docs: true })
-                setItems(docs.rows.map(i=>i.doc).filter(i=>!i.deleted))
-            })()
-          },[formData])
-        
        
           let required_fields=['name']
        
@@ -103,9 +111,11 @@ import FormLayout from '../../layout/DefaultFormLayout';
        
        
          async function SubmitForm(){
+
+             console.log({items})
               
               if(valid){
-                  if(items.some(i=>i.email==formData.email && i._id!=id && i.email) || items.some(i=>i.name?.toLowerCase()==formData.name?.toLowerCase() && i._id!=id && i.last_name?.toLowerCase()==formData.last_name?.toLowerCase())){
+                  if(items.some(i=>i.email==formData.email && i.id!=id && i.email) || items.some(i=>i.name?.toLowerCase()==formData.name?.toLowerCase() && i.id!=id && i.last_name?.toLowerCase()==formData.last_name?.toLowerCase())){
                      toast.error('Usuário ou email já existe')
                      return
                   }
@@ -115,7 +125,7 @@ import FormLayout from '../../layout/DefaultFormLayout';
                         toast.success('Actualizado com sucesso')
                      }else{
                        
-                        let new_item={...formData,id:Math.random().toString(),_id:Math.random().toString()}
+                        let new_item={...formData,id:uuidv4()}
                         let res=await _add(page,[new_item])
 
                         if(res.ok){
@@ -150,13 +160,10 @@ import FormLayout from '../../layout/DefaultFormLayout';
            setValid(v)
           },[formData])
        
-          
-          console.log({isPopUp,page})
-        
-        
+       
          return (
            <>
-              <FormLayout isPopUp={isPopUp} maxWidth={isPopUp ? '700px' : null} name={ `${id!="create" && !isPopUp ? 'Actualizar ' : 'Novo '} ${page=="clients" ? "Cliente" : page=="suppliers" ? "Fornecedor" : "Investidor"}`} formTitle={id!="create" && !isPopUp ? 'Actualizar' : `Adicionar  ${page=="clients" ? "Cliente" : page=="suppliers" ? "Fornecedor" : "Investidor"}` }>
+              <FormLayout loading={!initialized || loading} isPopUp={isPopUp} maxWidth={isPopUp ? '700px' : null} name={ `${id && !isPopUp ? 'Actualizar ' : 'Novo '} ${page=="clients" ? "Cliente" : page=="suppliers" ? "Fornecedor" : "Investidor"}`} formTitle={id!="create" && !isPopUp ? 'Actualizar' : `Adicionar  ${page=="clients" ? "Cliente" : page=="suppliers" ? "Fornecedor" : "Investidor"}` }>
                   
                   <FormLayout.Section>
 

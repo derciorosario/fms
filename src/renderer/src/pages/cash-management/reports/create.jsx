@@ -21,7 +21,7 @@ import 'dayjs/locale/en-gb';
 import PouchDB from 'pouchdb';
 import moment from 'moment';
 import {useLocation,useNavigate } from 'react-router-dom';
-       
+import { v4 as uuidv4 } from 'uuid';  
        function App() {
 
           let {pathname} = useLocation()
@@ -195,10 +195,9 @@ import {useLocation,useNavigate } from 'react-router-dom';
                        
                         if(formData.reference.name && !formData.reference.id && (formData.reference.type=="supplier" || formData.reference.type=="client")){
                           alert('adding new '+formData.reference.type)
-                          reference_id=Math.random().toString()
+                          reference_id=uuidv4()
                           _add(formData.reference.type+'s',[{
                             id:reference_id,
-                            _id:Math.random().toString(),
                             name:formData.reference.name,
                             last_name:'',
                             contacts:[],
@@ -213,10 +212,9 @@ import {useLocation,useNavigate } from 'react-router-dom';
                         let transation_account_id=formData.transation_account.id
                         if(formData.transation_account.name && !formData.transation_account.id){
                           alert('adding new a')
-                            transation_account_id=Math.random().toString()
+                            transation_account_id=uuidv4()
                            _add('accounts',[{
                             id:transation_account_id,
-                            _id:Math.random().toString(),
                             name:formData.transation_account.name,
                             description:'',
                             deleted:false
@@ -228,7 +226,7 @@ import {useLocation,useNavigate } from 'react-router-dom';
                       reference:{...formData.reference,id:reference_id},
                       transation_account:{...formData.transation_account,id:transation_account_id},
                       amount:parseFloat(formData.amount),
-                      id:Math.random(),_id:Math.random().toString()}])
+                      id:uuidv4()}])
                       setVerifiedInputs([])
                       toast.success('Transação adicionada')
                       setFormData(initial_form)

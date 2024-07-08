@@ -14,8 +14,7 @@ import { useNavigate,useLocation } from 'react-router-dom';
 import StatsTable from '../components/table';
 import DefaultButton from '../../../components/Buttons/default';
 import colors from '../../../assets/colors.json'
-import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver';
+import { useAuth } from '../../../contexts/AuthContext';
 
 function App() {
 
@@ -30,6 +29,21 @@ function App() {
     {name:' Análise simples'},
     {name:' Comparação de meses'}
   ]
+
+  
+  const {db} = useAuth()
+
+  const [initialized,setInitialized]=useState(false)
+
+  useEffect(()=>{
+    
+    if(!(required_data.some(i=>!_loaded.includes(i)))){
+        setInitialized(true)
+    }
+   },[_loaded])
+
+   let required_data=['investments','loans','bills_to_pay','account_categories','bills_to_receive','payment_methods','transations']
+
   
   const [filterOptions,setFilterOPtions]=useState([
     {
@@ -77,6 +91,11 @@ function App() {
    
 ])
 
+
+useEffect(()=>{
+  _get(required_data.filter(i=>!_loaded.includes(i)))
+
+},[db,filterOptions])
 
 
 
@@ -172,7 +191,6 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
 
   useEffect(()=>{
 
-     if(!_loaded.includes('categories')) return
      let {data,datasets,labels}=_get_cash_managment_stats(filterOptions,period)
      setData(data)
      setChartDataSets(datasets)
@@ -182,9 +200,6 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
   },[_loaded,filterOptions])
  
 
-  useEffect(()=>{
-    _get('categories')
-   },[])
 
    useEffect(()=>{
         if(currentMenu==2 && period=="d"){
@@ -206,7 +221,7 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
   return (
     <>
     
-        <DefaultLayout details={{name:'Relatórios de fluxo de caixa'}}>
+        <DefaultLayout details={{name:'Relatórios de fluxo de caixa'}} _isLoading={!initialized}>
 
         
     
@@ -216,7 +231,7 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
                    <DefaultButton text={'Actualizar'} no_bg={true} disabled={false}/>
                 </div>
                 {filterOptions.map((i,_i)=>(
-                        <Filter key={_i} filterOptions={filterOptions}  setFilterOPtions={setFilterOPtions} open={i.open} options={i}/>
+                        <Filter shownFilters={filterOptions} key={_i} filterOptions={filterOptions}  setFilterOPtions={setFilterOPtions} open={i.open} options={i}/>
                 ))}
         </div>
 
@@ -254,8 +269,8 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
                           
                           <div  onClick={()=>{
                             print_exportExcel('print')
-                           }}  className="mr-4 cursor-pointer flex opacity-70">
-                            <LocalPrintshopOutlinedIcon/>
+                           }}  className="mr-4 cursor-pointer flex">
+                            <LocalPrintshopOutlinedIcon sx={{color:colors.app_black[400]}}/>
                           </div>
                           {currentMenu!=0 && <div  onClick={()=>{
                             print_exportExcel('excel')

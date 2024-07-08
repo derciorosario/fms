@@ -13,20 +13,24 @@ export default function NotificationPopUp({show,setOpenPopUps}) {
         <span onClick={()=>setOpenPopUps({nots:false,search:false})} className="cursor-pointer hover:opacity-95"><CloseIcon sx={{width:20}}/></span>
     </div> 
 
-   <ul class="max-w-md divide-y divide-gray-200 dark:divide-gray-700 p-3 flex-1 overflow-auto">
+    <div className="h-full w-full flex items-center justify-center opacity-50 text-[14px]">
+           <span>Sem notificações</span>
+    </div>
+
+   <ul class="max-w-md divide-y divide-gray-200 p-3 flex-1 overflow-auto hidden">
      {Array.from({length:5},()=>null).map((_,i)=>(
         <li class="py-2 border-b">
         <div class="items-center rtl:space-x-reverse">
           
            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
+              <p class="text-sm font-medium text-gray-900 truncate">
                  Neil Sims
               </p>
-              <p class={`text-sm text-gray-500 ${0==0 ? '':'truncate'} dark:text-gray-400`}>
+              <p class={`text-sm text-gray-500 ${0==0 ? '':'truncate'}`}>
                  email@flowbite.com asdasdasd asdasdasda asdasd asdasdasd sadasdasd asdasdas
               </p>
            </div>
-           <div class="mt-2 inline-flex items-center text-[14px] opacity-75 font-medium text-gray-900 dark:text-white">
+           <div class="mt-2 inline-flex items-center text-[14px] opacity-75 font-medium text-gray-900">
               <CalendarToday sx={{width:16}}/> <span>20/32</span>
            </div>
         </div>

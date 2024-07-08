@@ -36,11 +36,7 @@ function get_fist_and_last_day_of(get){
             lastDayOfMonth.setMonth(firstDayOfMonth.getMonth() + 1);
             lastDayOfMonth.setDate(0);
             lastDayOfMonth.setHours(23, 59, 59, 999);
-
-            console.log("First Day of Month:", firstDayOfMonth.toISOString());
-console.log("Last Day of Month:", lastDayOfMonth.toISOString());
-
-          
+    
             return {start:firstDayOfMonth.toISOString(),end:lastDayOfMonth.toISOString()} 
 
         }else if(get=="this_week"){
@@ -218,7 +214,7 @@ function clear(){
    {currentDateType=="custom" && <button  onClick={()=>handleClickFilter()}
 
     id="dropdownDefault" data-dropdown-toggle="dropdown"
-    className={`${(options.startDate && options.startDate!=defaultDates.start || options.endDate && options.endDate!=defaultDates.end) ? ' text-app_black-500 border-app_orange-100' :' text-[#42526E] bg-gray-100'} border outline-none  font-medium rounded-lg text-sm px-2 text-center inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
+    className={`${(options.startDate && options.startDate!=defaultDates.start || options.endDate && options.endDate!=defaultDates.end) ? ' text-app_black-500 border-app_orange-100' :' text-[#42526E] bg-gray-100'} border outline-none  font-medium rounded-lg text-sm px-2 text-center inline-flex items-center`}
     type="button">
     <span className={`my-[4px] px-2 py-[2px] mr-2 bg-app_orange-200 flex rounded-[4px] text-white`}>{options.igual ? '=' :'!='}</span>
     {options.name}
@@ -229,7 +225,7 @@ function clear(){
     <span className={`px-2 py-[2px] ml-2 ${(options.startDate && options.startDate!=defaultDates.start || options.endDate && options.endDate!=defaultDates.end) ? '' :''} text-app_orange-400  flex rounded-[4px]`}>{startDate} {endDate && startDate && '-'} {endDate}</span>
   </button>}
 
- {currentDateType!="custom" && <button  className={`${0!=0 ? 'text-app_orange-400 bg-app_orange-50' :' text-[#42526E] bg-gray-100'} px-2 outline-none border font-medium rounded-lg text-sm  text-center  inline-flex items-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
+ {currentDateType!="custom" && <button  className={`${0!=0 ? 'text-app_orange-400 bg-app_orange-50' :' text-[#42526E] bg-gray-100'} px-2 outline-none border font-medium rounded-lg text-sm  text-center  inline-flex items-center`}
     >
      <span onClick={()=>GoTonexPreviousMonth('p')} className="border-r flex mr-1 py-[5px] hover:opacity-45"><KeyboardArrowLeftIcon/></span> 
      
@@ -243,7 +239,7 @@ function clear(){
 
   {/***Dropdown menu */}
 
-  <div id="dropdown" className={`${!open ? 'hidden' :''} z-10 absolute top-0 translate-y-[40px] right-0 w-72 p-3 bg-white rounded-lg shadow dark:bg-gray-700`}>
+  <div id="dropdown" className={`${!open ? 'hidden' :''} z-10 absolute top-0 translate-y-[40px] right-0 w-72 p-3 bg-white rounded-lg shadow`}>
      <div className="w-full">
     
      <div className="flex justify-between items-center mb-1">
@@ -252,7 +248,7 @@ function clear(){
   
 
      <div className="mb-2">
-             <button onClick={()=>setOpenIgualOptions(!openIgualOpions)} id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className={`bg-gray-200 border-[2px] text-zinc-500 w-full hover:bg-white focus:outline-none  font-medium rounded-[5px] text-sm  p-[5px] text-center  dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 flex justify-between items-center`} type="button">
+             <button onClick={()=>setOpenIgualOptions(!openIgualOpions)} id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className={`bg-gray-200 border-[2px] text-zinc-500 w-full hover:bg-white focus:outline-none  font-medium rounded-[5px] text-sm  p-[5px] text-center flex justify-between items-center`} type="button">
               <span>{options.name} {options.igual ? '= (igual a)' :'!= (diferente de)'}</span>
                  <svg className={`w-2.5 h-2.5 ms-3 ${openIgualOpions ? 'rotate-180' :'' }`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
@@ -260,13 +256,13 @@ function clear(){
             </button>
 
             <div className={`relative ${!openIgualOpions ? 'hidden' :'' }`}>
-                   <div id="dropdown" className="z-10 absolute bg-white divide-y divide-gray-100 rounded-lg shadow w-full dark:bg-gray-700">
-                        <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
+                   <div id="dropdown" className="z-10 absolute bg-white divide-y divide-gray-100 rounded-lg shadow w-full">
+                        <ul className="py-2 text-sm text-gray-700" aria-labelledby="dropdownDefaultButton">
                             <li>
-                                <a onClick={()=>selectIgualOrNot(true)} className={`block cursor-pointer px-4 py-2 ${!options.igual ? 'hover:bg-gray-100' :' text-app_orange-500 hover:bg-app_orange-100 bg-app_orange-50'}  dark:hover:bg-gray-600 dark:hover:text-white`}>{options.name} = (igual a)</a>
+                                <a onClick={()=>selectIgualOrNot(true)} className={`block cursor-pointer px-4 py-2 ${!options.igual ? 'hover:bg-gray-100' :' text-app_orange-500 hover:bg-app_orange-100 bg-app_orange-50'} `}>{options.name} = (igual a)</a>
                             </li>
                             <li>
-                            <a onClick={()=>selectIgualOrNot(false)} className={`block cursor-pointer px-4 py-2 ${options.igual ? 'hover:bg-gray-100' :' text-app_orange-500 hover:bg-app_orange-100 bg-app_orange-50'}  dark:hover:bg-gray-600 dark:hover:text-white`}>{options.name} != (diferente de)</a>
+                            <a onClick={()=>selectIgualOrNot(false)} className={`block cursor-pointer px-4 py-2 ${options.igual ? 'hover:bg-gray-100' :' text-app_orange-500 hover:bg-app_orange-100 bg-app_orange-50'} `}>{options.name} != (diferente de)</a>
                             </li>
                         </ul>
                     </div>
@@ -279,7 +275,7 @@ function clear(){
 
     {options.groups.map((g,_g)=>(
             <>
-            <h6 key={_g} className={`mb-3 ${options.groups.length==1 ? 'hidden' :''} border-b-[1px] text-sm font-medium text-gray-900 dark:text-white flex justify-between items-center`}>
+            <h6 key={_g} className={`mb-3 ${options.groups.length==1 ? 'hidden' :''} border-b-[1px] text-sm font-medium text-gray-900 flex justify-between items-center`}>
             <span>{options.name}</span>
             <svg className="w-5 hidden" aria-hidden="true" data-accordion-icon="" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                 <path fillRule="evenodd" clipRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z">
@@ -291,9 +287,9 @@ function clear(){
                   {g.items.filter((i,_i)=>i.name.toLowerCase().includes(options.search.toLowerCase())).map((i,_i)=>(
                         <li key={_i}  className="flex items-center">
                           <input onChange={()=>({})} name="date-picker" onClick={()=>check_and_uncheck(g.field,i)} id={`fitbit`+g.field+_i} type="radio" checked={i.selected && true} value=""
-                            className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
+                            className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500" />
 
-                          <label htmlFor={`fitbit`+g.field+_i} className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                          <label htmlFor={`fitbit`+g.field+_i} className="ml-2 text-sm font-medium text-gray-900">
                               {i.name}
                           </label>
                         </li>
@@ -304,8 +300,8 @@ function clear(){
 
 
             <div class={`${!g.dropdown ? 'hidden' :''} col-span-2 sm:col-span-1`}>
-                          <label for="category" class="hidden mb-2 text-sm font-medium text-gray-900 dark:text-white">Category</label>
-                          <select onChange={(e)=>check_and_uncheck(g.field,g.items[parseInt(e.target.value)])} id="category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                          <label for="category" class="hidden mb-2 text-sm font-medium text-gray-900">Category</label>
+                          <select onChange={(e)=>check_and_uncheck(g.field,g.items[parseInt(e.target.value)])} id="category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
                           {g.items.filter((i,_i)=>i.name.toLowerCase().includes(options.search.toLowerCase())).map((i,_i)=>(
                    
                               
@@ -343,7 +339,7 @@ function clear(){
             
             <div className="inset-y-0 start-0 flex items-center pointer-events-none">
               <svg
-                className="w-4 h-4 text-gray-500 dark:text-gray-400"
+                className="w-4 h-4 text-gray-500"
                 aria-hidden="true"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="currentColor"
@@ -370,7 +366,7 @@ function clear(){
           startDate={options.startDate}
           dateFormat="dd-MM-yyyy"
           endDate={options.endDate}
-          className={` ${!options.groups[0].selected_ids[0] ? 'bg-app_orange-50' : 'bg-gray-100'} text-gray-900 outline-none text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
+          className={` ${!options.groups[0].selected_ids[0] ? 'bg-app_orange-50' : 'bg-gray-100'} text-gray-900 outline-none text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5`}
           placeholderText="Data de inicio"
         />
       </div>
@@ -380,7 +376,7 @@ function clear(){
             
             <div className="inset-y-0 start-0 flex items-center pointer-events-none ">
               <svg
-                className="w-4 h-4 text-gray-500 dark:text-gray-400"
+                className="w-4 h-4 text-gray-500"
                 aria-hidden="true"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="currentColor"
@@ -408,7 +404,7 @@ function clear(){
           startDate={options.startDate}
           endDate={options.endDate}
           minDate={defaultDates.startDate}
-          className={` ${!options.groups[0].selected_ids[0] ? 'bg-app_orange-50' : 'bg-gray-100'} text-gray-900 text-sm outline-none rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
+          className={` ${!options.groups[0].selected_ids[0] ? 'bg-app_orange-50' : 'bg-gray-100'} text-gray-900 text-sm outline-none rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5`}
           placeholderText="Date de fim"
         />
       </div>

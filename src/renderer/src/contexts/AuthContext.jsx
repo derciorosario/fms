@@ -114,23 +114,27 @@ export const AuthProvider = ({ children }) => {
   }
 
 
-   async function _change_company(company_id){
-    let user_db=new PouchDB('user-'+user.id)
-    let _user=await  user_db.find({selector: { id:user.id }})
-    _user=_user.docs[0]
-    await user_db.put({..._user,selected_company:company_id})
+   async function _change_company(company_id,_user){
+    if(user){
+      let user_db=new PouchDB('user-'+user.id)
+      let _user=await  user_db.find({selector: { id:user.id }})
+      _user=_user.docs[0]
+      await user_db.put({..._user,selected_company:company_id})
+    }else{
+      update_user(_user)
+    }
     setChangingCompany(true)
     setTimeout(()=>window.location.href="/",500)
   }
 
 
-  const login =  async (userData, authToken) => {
-
-     if(localStorage.getItem('token')) localStorage.setItem('token', authToken);
+const login =  async (userData, authToken) => {
+      if(localStorage.getItem('token')) localStorage.setItem('token', authToken);
       setToken(authToken);
-     _change_company(userData.selected_company)
- 
-};
+      delete userData.__v
+      _change_company(userData.selected_company,userData)
+}
+
 
 
 
@@ -159,7 +163,7 @@ async function update_user(userData){
 
         if(_user){
            user_db.put({...userData,_rev:_user._rev})
-           setUser({...userData,_rev:_user._rev})
+           //setUser({...userData,_rev:_user._rev})
         }else{
            user_db.put(userData)
         }

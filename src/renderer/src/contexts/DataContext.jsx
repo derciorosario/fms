@@ -329,6 +329,8 @@ function initSync(dbName){
   const localDB = new PouchDB(dbName);
   const remoteDB = new PouchDB(`${COUCH_DB_CONNECTION}/${dbName}`);
 
+  console.log({dbName})
+
   let ref=localDB.sync(remoteDB, {
     live: false,
     retry: true,
@@ -345,14 +347,14 @@ function initSync(dbName){
     }
 
   }).on('paused', (err) => {
-    //console.log(`Replication paused in ${dbName}:`, err);
+    console.log(`Replication paused in ${dbName}:`, err);
   }).on('active', () => {
-   // console.log(`Replication active in ${dbName}`);
+   console.log(`Replication active in ${dbName}`);
     ///ref.cancel();
   }).on('denied', (err) => {
     console.error(`Replication denied in ${dbName}:`, err);
   }).on('complete', (info) => {
-    //console.log(`Replication complete in ${dbName}:`, info);
+    console.log(`Replication complete in ${dbName}:`, info);
     replicateNextDatabase(dbName)
     ref.cancel();
   }).on('error', (err) => {

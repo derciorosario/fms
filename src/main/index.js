@@ -42,7 +42,7 @@ function createWindow() {
     width: 900,
     height: 670,
     show: false,
-    autoHideMenuBar: false,
+    autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -53,12 +53,13 @@ function createWindow() {
   let upload_file_path = join(__dirname, './uploads');
 
   function create_upload_folder() {
+    /*
     if (!fs.existsSync(upload_file_path)) {
       fs.mkdirSync(upload_file_path, { recursive: true });
       return `Folder created at ${upload_file_path}`;
     } else {
       return `Folder already exists at ${upload_file_path}`;
-    }
+    }*/
   }
 
   mainWindow.on('ready-to-show', () => {
@@ -86,7 +87,6 @@ app.whenReady().then(() => {
   });
 
   ipcMain.on('ping', () => console.log('pong'));
-
 
   ipcMain.on('open-file-in-folder', (event, filePath) => {
     shell.showItemInFolder(filePath);

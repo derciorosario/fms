@@ -5,7 +5,7 @@ import PouchDB from 'pouchdb';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import io from 'socket.io-client';
-const socket = io('http://localhost:4000');
+const socket = io('https://server-fms.onrender.com');
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import PouchDBFind from 'pouchdb-find';

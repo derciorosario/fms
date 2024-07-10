@@ -43,7 +43,8 @@ import { v4 as uuidv4 } from 'uuid';
             nuit:'',
             notes:'',
             email:'',
-            address:''
+            address:'',
+            invite:uuidv4()
         }
 
           const [formData, setFormData] = React.useState(initial_form);
@@ -339,8 +340,8 @@ import { v4 as uuidv4 } from 'uuid';
 
         
           const handleCopyClick = (text) => {
-            navigator.clipboard.writeText(text).then(() => {
-              alert('Text copied to clipboard!');
+            navigator.clipboard.writeText('http://13.40.24.65:3001/#/confirm-invite?invite='+formData.invite).then(() => {
+              toast.success('Texto copiado!');
             }).catch(err => {
               alert('Failed to copy text: ', err);
             });
@@ -354,10 +355,11 @@ import { v4 as uuidv4 } from 'uuid';
                   <>
                      {formData.firstLogin && <span className="text-gray-400 font-light"><Info sx={{width:20}}/> Não poderá editar dados pessoais</span>}
 
-                     {/*** {!formData.firstLogin && <div onClick={()=>{
-                        handleCopyClick(APP_BASE_URL+'/confirm-invite?invite='+formData.id)
-                     }} className="px-6 text-gray-500 cursor-pointer table hover:opacity-80">Copiar convite</div>}
-                     */}
+                      {!formData.firstLogin && <div onClick={()=>{
+                         toast.error('clipboard não funciona no modo http')
+                         setTimeout(()=>window.open('http://13.40.24.65:3001/#/confirm-invite?invite='+formData.invite, "_blank"),1000)
+                       }} className="px-6 text-gray-500 cursor-pointer table hover:opacity-80">Copiar convite</div>}
+                     
 
                   </>
               )}>

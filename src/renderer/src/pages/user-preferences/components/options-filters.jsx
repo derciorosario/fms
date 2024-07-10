@@ -10,12 +10,13 @@ function FilterOptions({formData,setFormData}) {
 
 
   function check_and_uncheck(account){
-    let new_accounts=formData.settings.bills_not.accounts.includes(account) ? formData.settings.bills_not.accounts.filter(i=>i!=account) : [...formData.settings.bills_not.accounts,account]
+    let new_accounts=formData.settings?.bills_not?.accounts.includes(account) ? formData.settings?.bills_not?.accounts.filter(i=>i!=account) : [...formData.settings.bills_not.accounts,account]
   
-     setFormData({...formData,settings:{...formData.settings,bills_not:{...formData.settings.bills_not,accounts:new_accounts}}})
+     setFormData({...formData,settings:{...formData.settings,bills_not:{...formData.settings?.bills_not,accounts:new_accounts}}})
   }
 
   
+  console.log({d:formData.settings})
 
   return (
 
@@ -29,7 +30,7 @@ function FilterOptions({formData,setFormData}) {
         {data._account_categories.map((i,_i)=>(
 
                 <li onClick={()=>check_and_uncheck(i.id)} className="flex items-center" key={_i}>
-                        <input id="apple" type="checkbox" selected={formData.settings.bills_not.accounts.includes(i.id) ? true : false} value=""
+                        <input id="apple" type="checkbox" selected={formData.settings?.bills_not?.accounts.includes(i.id) ? true : false} value=""
                         className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500" />
 
                         <label for="apple" className="ml-2 text-sm font-medium text-gray-900">

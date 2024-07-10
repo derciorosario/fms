@@ -30,7 +30,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
           const [loading, setLoading] = React.useState(false);
           const [valid, setValid] = React.useState(false);
-          const {_add,_update,_investors,_get,_loaded} = useData();
+          const {_add,_update,_investors,_get,_loaded,_setRequiredData} = useData();
           const [accountCategorieOptions, setAccountCategorieOptions] = React.useState([]);
           const account_name = React.useRef(null);
           const [availableCredit,setAvailableCredit]=React.useState([])
@@ -69,8 +69,12 @@ import { useAuth } from '../../contexts/AuthContext';
               
             })()
 
-      },[db,pathname])
+      },[db,pathname,_setRequiredData])
 
+
+      useEffect(()=>{
+        _setRequiredData(required_data)
+       },[])
 
       useEffect(()=>{
         if(!(required_data.some(i=>!_loaded.includes(i)))){

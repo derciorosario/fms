@@ -26,13 +26,13 @@ import { v4 as uuidv4 } from 'uuid';
 
           const { id } = useParams()
 
-          const {db,user} = useAuth()
+          const {db,user,APP_BASE_URL} = useAuth()
 
           const [items,setItems]=React.useState([])
 
           const required_data=['managers']
 
-          const {_loaded,_get} = useData();
+          const {_loaded,_get,_setRequiredData} = useData();
           const data= useData()
         
 
@@ -79,7 +79,16 @@ import { v4 as uuidv4 } from 'uuid';
 
                })()
 
-          },[db,pathname])
+          },[db,pathname,_setRequiredData])
+
+
+          
+         useEffect(()=>{
+            _setRequiredData(required_data)
+         },[])
+         
+
+
 
 
          
@@ -193,21 +202,22 @@ import { v4 as uuidv4 } from 'uuid';
                       for (let i = 0; i < companies.length; i++) {
                         let company_name=user.companies_details.filter(f=>f.id==companies[i])[0].name
                         let company=new PouchDB('managers-'+companies[i])
-                        let manager = await company.find({selector: {email:formData.email}})
+                        let manager = await company.find({selector: {email:formData.email,deleted:false}})
                         manager=manager.docs[0]
+
                         if(id){
-                           if(manager.id==formData.id) {
-                               managers.push({...formData,companies,deleted:false,company_id:companies[i]})      
+                           if(manager) {
+                              console.log(manager)
+                               managers.push({...formData,id:manager.id,_id:manager._id,_rev:manager._rev,action:'update',companies,deleted:false,company_id:companies[i]})      
                            }else{
-                               toast.error('Email já foi usado em: '+company_name)
-                               email_used=true
+                               managers.push({...formData,action:'create_new',id:uuidv4(),_id:new Date().toISOString(),companies,company_id:companies[i]})  
                            }
                         }else{    
                            if(manager) {
                                toast.error('Email já foi usado em: '+company_name)
                                email_used=true
                            }else{
-                               managers.push({...formData,id:uuidv4(),_id:new Date().toISOString(),companies,company_id:companies[i]})
+                               managers.push({...formData,action:'create_new',id:uuidv4(),_id:new Date().toISOString(),companies,company_id:companies[i]})
                            }
                         }
                      }
@@ -217,13 +227,19 @@ import { v4 as uuidv4 } from 'uuid';
                      if(!email_used){
 
                         for (let i = 0; i < managers.length; i++) {
+
                            let company=new PouchDB('managers-'+managers[i].company_id)
                            delete managers[i].company_id
-                         if(id){
-                           await company.put(managers[i])    
-                         }else{
-                           company.put({...formData,id:uuidv4(),_id:new Date().toISOString(),companies,created_by:user.id})
-                         }
+                           if(managers[i].action=="update"){
+                              delete managers[i].action
+                              await company.put(managers[i])    
+                           }else{
+                              delete managers[i].action
+                              let form=JSON.parse(JSON.stringify(formData))
+                              delete form._rev
+                              company.put({...form,id:uuidv4(),_id:new Date().toISOString(),companies,created_by:user.id})
+                           }
+
                        }
 
                      }
@@ -320,6 +336,15 @@ import { v4 as uuidv4 } from 'uuid';
            setValid(v)
           },[formData,chipOptions])
        
+
+        
+          const handleCopyClick = (text) => {
+            navigator.clipboard.writeText(text).then(() => {
+              alert('Text copied to clipboard!');
+            }).catch(err => {
+              alert('Failed to copy text: ', err);
+            });
+          }
           
         
         
@@ -327,7 +352,13 @@ import { v4 as uuidv4 } from 'uuid';
            <>
               <FormLayout loading={!initialized} name={ `${id ? 'Actualizar Gestor' : 'Novo Gestor'}`} formTitle={id ? 'Actualizar' : 'Adicionar'}  topLeftContent={(
                   <>
-                     {formData.fistLogin && <span className="text-gray-400 font-light"><Info sx={{width:20}}/> Não poderá editar dados pessoais</span>}
+                     {formData.firstLogin && <span className="text-gray-400 font-light"><Info sx={{width:20}}/> Não poderá editar dados pessoais</span>}
+
+                     {/*** {!formData.firstLogin && <div onClick={()=>{
+                        handleCopyClick(APP_BASE_URL+'/confirm-invite?invite='+formData.id)
+                     }} className="px-6 text-gray-500 cursor-pointer table hover:opacity-80">Copiar convite</div>}
+                     */}
+
                   </>
               )}>
               
@@ -342,7 +373,7 @@ import { v4 as uuidv4 } from 'uuid';
                            label="Nome *"
                            placeholder="Digite o nome"
                            multiline
-                           disabled={formData.fistLogin || !canEdit ? true : false}
+                           disabled={formData.firstLogin || !canEdit ? true : false}
                            value={formData.name}
                            onBlur={()=>validate_feild('name')}
                            onChange={(e)=>setFormData({...formData,name:e.target.value})}
@@ -359,7 +390,7 @@ import { v4 as uuidv4 } from 'uuid';
                            label="Apelido *"
                            placeholder="Digite o apelido"
                            value={formData.last_name}
-                           disabled={formData.fistLogin || !canEdit ? true : false}
+                           disabled={formData.firstLogin || !canEdit ? true : false}
                            onBlur={()=>validate_feild('last_name')}
                            onChange={(e)=>setFormData({...formData,last_name:e.target.value})}
                            error={(!formData.last_name)  && verifiedInputs.includes('last_name') ? true : false}
@@ -376,7 +407,7 @@ import { v4 as uuidv4 } from 'uuid';
                            label="Email *"
                            placeholder="Digite o email"
                            multiline
-                           disabled={formData.fistLogin || !canEdit ? true : false}
+                           disabled={formData.firstLogin || !canEdit ? true : false}
                            value={formData.email}
                            onBlur={()=>validate_feild('email')}
                            onChange={(e)=>setFormData({...formData,email:e.target.value})}
@@ -396,7 +427,7 @@ import { v4 as uuidv4 } from 'uuid';
                                size="small"
                                options={formData.contacts}
                                getOptionLabel={(option) => option}
-                               disabled={formData.fistLogin || !canEdit ? true : false}
+                               disabled={formData.firstLogin || !canEdit ? true : false}
                                renderInput={(params) => (
                                   <TextField {...params} label="Contactos" placeholder="Digite os contactos" />
                                )}
@@ -433,7 +464,7 @@ import { v4 as uuidv4 } from 'uuid';
                            label="Endereço"
                            placeholder="Digite o endereço"
                            multiline
-                           disabled={formData.fistLogin || !canEdit ? true : false}
+                           disabled={formData.firstLogin || !canEdit ? true : false}
                            value={formData.address}
                            onChange={(e)=>setFormData({...formData,address:e.target.value})}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
@@ -446,7 +477,7 @@ import { v4 as uuidv4 } from 'uuid';
                            id="outlined-textarea"
                            label="Nuit"
                            placeholder="Digite o nuit"
-                           disabled={formData.fistLogin || !canEdit ? true : false}
+                           disabled={formData.firstLogin || !canEdit ? true : false}
                            multiline
                            value={formData.nuit}
                            onChange={(e)=>setFormData({...formData,nuit:e.target.value})}
@@ -497,7 +528,7 @@ import { v4 as uuidv4 } from 'uuid';
                                label="Observações"
                                multiline
                                rows={4}
-                               disabled={formData.fistLogin || !canEdit ? true : false}
+                               disabled={formData.firstLogin || !canEdit ? true : false}
                                onChange={(e)=>setFormData({...formData,notes:e.target.value})}
                                defaultValue=""
                                sx={{width:'100%'}}
@@ -514,11 +545,20 @@ import { v4 as uuidv4 } from 'uuid';
 
               </FormLayout.Section>
             </div>
+
+           
+
        
        
               <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading && initialized} valid={valid} id={id}/>
         
                </FormLayout>
+
+
+
+               
+
+
            </>
          )
        }

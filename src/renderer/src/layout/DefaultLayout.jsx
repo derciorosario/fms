@@ -14,10 +14,10 @@ const DefaultLayout = ({ children , details ,isPopUp,loading,_isLoading}) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const {changingCompany} = useAuth()
 
-  const {_openPopUps,_loading,_openCreatePopUp,_setOpenCreatePopUp} = useData()
+  const {_openPopUps,_loading,_openCreatePopUp,_setOpenCreatePopUp,initSyncStatus} = useData()
 
   
-  if(loading || _loading || changingCompany){
+  if(loading || _loading || changingCompany || (initSyncStatus!="completed" && initSyncStatus!="cancelled")){
      return (
 
          <PageLoader/>

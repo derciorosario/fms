@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate,Link } from 'react-router-dom';
+import { useNavigate,Link, useLocation, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth  } from '../../contexts/AuthContext';
 import { useData  } from '../../contexts/DataContext';
@@ -9,14 +9,18 @@ import { Alert, CircularProgress } from '@mui/material';
 function App() {
    const {login,user} = useAuth()
    const navigate=useNavigate()
-   const {makeRequest,_clearData} = useData();
+   const {makeRequest,_clearData, _sendFilter} = useData();
    const [email, setEmail]=React.useState('')
    const [password, setPassword]=React.useState('')
    const [companies, setCompanies]=React.useState([])
    const [loading, setLoading]=React.useState(false)
    const [loginRespose, setLoginResponse]=React.useState(null)
-   const [recoverPassword, setRecoverPassword]=React.useState(false)
+   const {pathname} = useLocation()
+   const [recoverPassword, setRecoverPassword]=React.useState(pathname.replaceAll('/','').startsWith('recover-password'))
    const [initialized,setinitialized]=React.useState(false)
+   const [registrationSuccess,setRegistrationSuccess]=React.useState('')
+   const [searchParams, setSearchParams] = useSearchParams();
+ 
 
    const handleKeyPress = (event) => {
     if (event.key == 'Enter') {
@@ -35,6 +39,19 @@ function App() {
       }
       setinitialized(true)
    },[user])
+
+
+   React.useEffect(()=>{
+
+    setRecoverPassword(pathname.replaceAll('/','').startsWith('recover-password'))
+
+    setRegistrationSuccess(window.location.hash.includes('login?registration-success'))
+
+    let res=_sendFilter(searchParams)
+    if(res.email) setEmail(res.email)
+
+   
+   },[pathname])
 
 
 
@@ -66,6 +83,8 @@ function App() {
    
    async function handleLogin(){
 
+        setRegistrationSuccess(false)
+
         setLoginResponse(null)
         toast.remove()
 
@@ -77,7 +96,6 @@ function App() {
             return
         }
 
-        //toast.loading('A entrar...')
         
         setLoading(true)
 
@@ -85,9 +103,8 @@ function App() {
             let response = await makeRequest({method:'post',url:recoverPassword ? 'auth/recover-password' : `auth/login`,data:{password,email}, error: ``},0);
             toast.remove()
             setLoading(false)
-            setEmail('')
+            if(!recoverPassword) setEmail('')
             setPassword('')
-            
 
             if(recoverPassword){
                 toast.success('Email enviado!')
@@ -154,17 +171,29 @@ if(!initialized) {
                       <SelectCompany res={handleChosenCompany} items={companies} show={companies.length!=0}/>
 
                         <section className="bg-white flex  md:h-screen">
+
+                            
+                        <div className="w-[50%] h-full bg-app_orange-200 flex items-center justify-center">
+
+                             <span>Some content here.</span>
+                                    
+                         </div>
+
+
                            <div className="flex items-center justify-center px-6 py-8 mx-auto ">
                             
                             <div className="w-full bg-white rounded-[0.3rem]  min-w-[390px]  xl:p-0">
                                 <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
                                     <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl flex items-center justify-between">
-                                         <span>{recoverPassword ? 'Recuperar senha' : 'Login'}</span> {(recoverPassword && !loading) && <span onClick={()=>setRecoverPassword(false)} className="cursor-pointer font-normal text-[14px] hover:opacity-80 underline">Voltar</span>}
+                                         <span>{recoverPassword ? 'Recuperar senha' : 'Login'}</span> {(recoverPassword && !loading) && <span onClick={()=>navigate('/login')} className="cursor-pointer font-normal text-[14px] hover:opacity-80 underline">Voltar</span>}
                                          {(loginRespose && !loading && !companies.length) && !recoverPassword && <span onClick={()=>setCompanies(loginRespose.user.companies_details)} className="flex text-black cursor-pointer hover:opacity-80 font-normal text-[14px] items-center justify-center underline">Selecionar empresa</span>}
                                         
                                     </h1>
                                     <div className="w-[350px]">
                                             {recoverPassword && <Alert severity="info">Informe seu email para receber uma nova senha caso esteja registrado.</Alert>}
+                                    </div>
+                                    <div className="w-[350px]">
+                                            {registrationSuccess && <Alert severity="success">Sua conta foi registrada com successo, faça o login</Alert>}
                                     </div>
                                     <div className="space-y-4 md:space-y-6" action="#">
                                         <div>
@@ -209,9 +238,6 @@ if(!initialized) {
                         </div>
 
 
-                        <div className="w-[50%] h-full bg-app_orange-200">
-                                    
-                        </div>
 
                                 
                         </section>

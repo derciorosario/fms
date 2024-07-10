@@ -10,7 +10,7 @@ import colors from '../../../assets/colors.json'
 import { useAuth } from '../../../contexts/AuthContext';
 function App() {
 
-  const {_get_dre_stats,_transations,_bills_to_pay,_bills_to_receive,_loaded,_get,_print_exportExcel,_investments} = useData();
+  const {_setRequiredData,_get_dre_stats,_transations,_bills_to_pay,_bills_to_receive,_loaded,_get,_print_exportExcel,_investments} = useData();
   const {pathname} = useLocation()
   const [search,setSearch]=React.useState('')
   const [data,setData]=React.useState([])
@@ -38,7 +38,10 @@ function App() {
 
    const {db} = useAuth()
 
- 
+   useEffect(()=>{
+    _setRequiredData(required_data)
+   },[])
+  
   
   const [filterOptions,setFilterOPtions]=useState([
     {

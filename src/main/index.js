@@ -156,6 +156,7 @@ app.whenReady().then(() => {
     });
   });
 
+  
 
   ipcMain.on('file-upload', (event, file) => {
     const fileStream = fs.createReadStream(join(file.path));

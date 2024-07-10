@@ -39,7 +39,7 @@ function BasicTable({page,_filtered_content,_setFilteredContent,res}) {
   const [search,setSearch]=React.useState('')
   const [watchFilterChanges,setWatchFilterChanges]=React.useState('')
   const [showDeleteDialog,setShowDeleteDialog]=React.useState(false)
-  const {db} = useAuth()
+  const {db,user,setUser} = useAuth()
 
   let initial_delete_linked={
     showDialog:false,
@@ -357,11 +357,9 @@ function confirmDeleteSecondItems(id){
 }
 
 
-
 useEffect(()=>{
 
   if(secondItemsToDelete.length || firstItemsToDelete.length || thirdItemsToDelete.length) return
-
   let from=page.replaceAll('-','_')
 
   let f=[]
@@ -376,6 +374,11 @@ useEffect(()=>{
     s=items.filter(i=>i.loan_id && !i.IsLoanDeleted && !i.paid).map(i=>i.id)
     t=items.filter(i=>(i.loan_id && !i.IsLoanDeleted && i.paid) || ((!i.loan_id || i.IsLoanDeleted) && i.paid)).map(i=>i.id)
 
+  }if(from=="companies"){
+
+    f=[]
+    s=items.map(i=>i.id)
+   
   }else if(from=="bills_to_receive"){
     t=items.filter(i=>(i.loan_id && !i.IsLoanDeleted && i.paid) || ((!i.loan_id || i.IsLoanDeleted) && i.paid)).map(i=>i.id)  
   }else if(from=="inflows"){
@@ -384,9 +387,9 @@ useEffect(()=>{
     s=items.filter(i=>i.loan_id && !i.IsLoanDeleted).map(i=>i.id)
 
   }else if(from=="managers"){
-    
-    f=items.filter(i=>!i.companies.length == 1).map(i=>i.id)
-    s=items.filter(i=>!i.companies.length > 1).map(i=>i.id)
+
+    f=items.filter(i=>i.companies.filter(f=>user.companies.includes(f)).length == 1).map(i=>i.id)
+    s=items.filter(i=>i.companies.filter(f=>user.companies.includes(f)).length > 1).map(i=>i.id)
 
   }else if(page=="loans"){
 
@@ -414,9 +417,6 @@ useEffect(()=>{
 
 },[itemsToDelete])
 
-console.log(deleteInfo)
-
-
 
 useEffect(()=>{
       let from=page.replaceAll('-','_')
@@ -427,7 +427,7 @@ useEffect(()=>{
       let buttons=initial_delete_linked.buttons
       
       if(deleteInfo.selected_items=="first"){
-            setShowDeleteDialog(true)
+                  setShowDeleteDialog(true)
       }else if(deleteInfo.selected_items=="second"){
 
                   setShowDeleteDialog(false)
@@ -437,6 +437,12 @@ useEffect(()=>{
                   }
                   if(from=="inflows"){
                     message=`${!mul && !firstItemsToDelete.length ? 'Esta' :(!firstItemsToDelete.length ? `As` : length) } ${mul && firstItemsToDelete.length ||  firstItemsToDelete.length && !mul ? 'das':''}  entrada${mul || (!mul && firstItemsToDelete.length) ? 's':''}  ${mul || (firstItemsToDelete.length && !mul) ? 'selecionadas':''} ${(!mul && firstItemsToDelete.length) && !(firstItemsToDelete.length && !mul) ? 'selecionada':''} ${mul ? 'foram':'foi'} gerada${mul ? 's':''} após a criação ${!mul ? 'de uma':'de'} entrada${mul ? 's':''} de empréstimo${mul ? 's':''}. ${mul && !firstItemsToDelete.length ? `(${length} itens selectionados)`:''}`
+                  }
+                  if(from=="managers"){
+                    message=`${!mul && !firstItemsToDelete.length ? 'Este' :(!firstItemsToDelete.length ? `Os` : length) } ${mul && firstItemsToDelete.length || firstItemsToDelete.length && !mul ? 'dos':''}  gestores${mul || (!mul && firstItemsToDelete.length) ? 's':''}  ${mul || (firstItemsToDelete.length && !mul) ? 'selecionados':''} ${(!mul && firstItemsToDelete.length) && !(firstItemsToDelete.length && !mul) ? 'selecionado':''} ${mul ? 'estão':'está'} em mais de 1 empresa. ${mul && !firstItemsToDelete.length ? `(${length} itens selectionados)`:''}`
+                   }
+                  if(from=="companies"){
+                    message=`Os dados sicronizados seram aguardos por 30 dias antes de serem definitivamente eliminados! Certifique - se de sincronisar antes de eliminar caso queira recuperar - los depois`
                   }
                   if(from=="loans"){
                     message=`${!mul && !firstItemsToDelete.length ? 'Este' :(!firstItemsToDelete.length ? `Os` : length) } ${mul && firstItemsToDelete.length ||  firstItemsToDelete.length && !mul ? 'dos':''}  empréstimo${mul || (!mul && firstItemsToDelete.length) ? 's':''}  ${mul || (firstItemsToDelete.length && !mul) ? 'selecionados':''} ${(!mul && firstItemsToDelete.length) && !(firstItemsToDelete.length && !mul) ? 'selecionado':''} ${mul ? 'possuem':'possui'} entrada${mul ? 's':''} ou saida${mul ? 's':''}. ${mul ? `(${length} itens selectionados)`:''}`
@@ -636,38 +642,38 @@ useEffect(()=>{
             
 
         }else if(page=="managers"){
-          alert('in development')
-
-            /* try{
-
-              let response = await makeRequest({item:'post',url:`api/company/delete/`+items[i]}),data:{c:formData,managers:data._managers.filter(i=>chipOptions.includes(i.name+" "+i.last_name)).map(i=>i.id)}, error: ``},0);
-             
-              if(!response) return
-               
-              delete response.__v
-              let user=await db.user.get('user')
-              let new_user_data={...user,companies:[...user.companies,response],_rev:user._rev}
-              await db.user.put(new_user_data)
-              setUser(new_user_data)
-    
-              if(id){
-                 _update('companies',[response])
-              }else{
-                 delete response.__v
-                 _add('companies',[response])
-    
-              }
 
 
-             }catch(e){
+          let cps=user.companies.filter(i=>i!=user.selected_company)
+          for (let i = 0; i < items.length; i++) {
+                for (let f = 0; f < cps.length; f++) {
+                  let c=new PouchDB('managers-'+cps[f])
+                  let manager = await c.find({selector: {id:items[i]}})
+                  manager=manager.docs[0]
+                  if(manager){
 
-             }*/
+                    await c.put({...manager,companies:manager.companies.filter(j=>j!=user.selected_company)})
+              
 
-             return
+                  }
+               }
+          }
 
-          
+        }else if(page=="companies"){
+
+          for (let i = 0; i < items.length; i++) {
+            let new_user_content={...user,
+            companies:user.companies.filter(f=>f!=items[i]),
+            companies_details:user.companies_details.filter(f=>f.id!=items[i])}
+            let user_db=new PouchDB('user-'+user.id)
+            let res=await user_db.put(new_user_content)
+            setUser({...new_user_content,_rev:res.rev})
+            
+          }
+          setFilterOPtions(filterOptions)
 
         }
+
 
        await _delete(items,page.replaceAll('-','_'))
 

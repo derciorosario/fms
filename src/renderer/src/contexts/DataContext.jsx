@@ -9,19 +9,18 @@ const socket = io('http://localhost:4000');
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import PouchDBFind from 'pouchdb-find';
-import toast from 'react-hot-toast';
-
 PouchDB.plugin(PouchDBFind);
 
-
 const DataContext = createContext();
-
+let DBUpdateID=Math.random()
+   
 export const DataProvider = ({ children }) => {
 
-    const {user,APP_BASE_URL,remoteDBs,db,token,setUser}=useAuth()
+    const {user,APP_BASE_URL,remoteDBs,db,token,setUser,COUCH_DB_CONNECTION, update_user_data_from_db}=useAuth()
 
     const [_required_data,_setRequiredData]=useState([])
-   
+
+    
     const { t } = useTranslation();
 
     let initial_filters={
@@ -33,6 +32,8 @@ export const DataProvider = ({ children }) => {
       bill_to_pay:'',
       accounts:[],
       bill_to_receive:'',
+      email:'',
+      invite:'',
       payment_type:[]
     }
     
@@ -92,24 +93,119 @@ export const DataProvider = ({ children }) => {
       return
     };
 
-
     const [online,setOnline]=useState(false)
-   
+    const [activeReplicationTo,setActiveReplicationTo]=useState([])
+    const [activeReplicationFrom,setActiveReplicationFrom]=useState()
+    const [ReplicationFromWaitingList,setReplicationFromWaitingList]=useState([])
+    const [initSynced,setInitSynced]=useState([])
+    const [initSyncStatus,setInitSyncStatus]=useState(null)
+    const [startReplicationTo,setStartReplicationTo]=useState(false)
+    
+
+    function _add_to_update_list(db){
+         setReplicationFromWaitingList(prev=>([...prev.filter(i=>i!=db),db]))
+    }
+
+
+    useEffect(()=>{
+
+
+        if(!activeReplicationFrom && ReplicationFromWaitingList.length){
+              replicate('from',ReplicationFromWaitingList[0])
+              let next=ReplicationFromWaitingList.filter((_,_i)=>_i!=0)
+              setReplicationFromWaitingList(next)
+              setActiveReplicationFrom(next)
+        }
+
+    },[ReplicationFromWaitingList,activeReplicationFrom])
+
+
+
+    function replicate(type,dbName,live){
+
+              const localDB = new PouchDB(dbName);
+              const remoteDB = new PouchDB(`${COUCH_DB_CONNECTION}/${dbName}`)
+
+              let ref=localDB.replicate[type](remoteDB, {
+                live: live ? live : false,
+                retry: true,
+              }).on('change', (info) => {
+                console.log(`Change detected and synced in ${dbName}:`, info);
+                dbName.includes('managers-')
+                let db=dbName.split('-')[0]
+                if(!live){
+                    _get(db)
+                }
+                if(db=="user"){
+                  socket.emit('update-database')
+                  update_user_data_from_db()
+                } 
+                
+                if(dbName.includes('managers-')){
+                  socket.emit('update-database')
+                }
+              }).on('paused', (err) => {
+                console.log(`Replication paused in ${dbName}:`, err);
+              }).on('active', () => {
+                console.log(`Replication active in ${dbName}`);
+              }).on('denied', (err) => {
+                console.error(`Replication denied in ${dbName}:`, err);
+              }).on('complete', (info) => {
+                console.log(`Replication complete in ${dbName}:`, info);
+                if(!live){
+                  ref.cancel()
+                  setActiveReplicationFrom(null)
+                }
+              }).on('error', (err) => {
+                console.error(`Replication error in ${dbName}:`, err);
+              })
+              
+    }
+
+
+
+    
     useEffect(() => {
+
+      localStorage.removeItem('connect-retries')
+
+      socket.on('db-update',(db)=>{
+            _add_to_update_list(db)
+      })
      
       socket.on('disconnect', (data) => {
            setOnline(false)
       });
       socket.on('connect', (data) => {
            setOnline(true)
+           localStorage.setItem('connect-retries',0)
+           socket.emit('update-database')
+      });
+
+      socket.on('connect_error', (err) => {
+
+         let connectRetries=localStorage.getItem('connect-retries') || 1
+
+         localStorage.setItem('connect-retries',parseInt(connectRetries) + 1)
+
+         if(parseInt(connectRetries) >= 2)setInitSyncStatus('cancelled')
+
+      });
+  
+      socket.on('reconnect_failed', () => {
+        console.log('Reconnection failed.');
       });
 
       return () => {
         socket.disconnect();
+        socket.off('connect');
+        socket.off('connect_error');
+        socket.off('reconnect_failed');
       };
 
     }, []);
 
+    
   
 
   
@@ -137,6 +233,16 @@ export const DataProvider = ({ children }) => {
   const [_all,setAll]=useState({})
 
 
+  function emitNewUpdateMessage(db){
+
+    socket.emit('db-update',{
+       time:new Date().toISOString(),
+       db,
+       update_id:DBUpdateID,
+       company:user.selected_company
+    })
+  }
+ 
 
   async function _get_all(from){
 
@@ -156,7 +262,6 @@ export const DataProvider = ({ children }) => {
     
     setAll({..._all,[from]:docs})  
     return docs
-
   }
 
 
@@ -177,6 +282,8 @@ export const DataProvider = ({ children }) => {
     {name:'settings',update:setSettings,db:db.settings,get:_settings},
   ]
 
+
+
   const _categories=[
     { name: 'Produtos', field: 'products_in', dre: 'inflows', type: 'in', color: 'rgb(0, 128, 0)', total: 0 },  
     { name: 'Serviços', field: 'services_in', dre: 'inflows', type: 'in', color: 'rgb(0, 255, 127)', total: 0 },  
@@ -191,47 +298,184 @@ export const DataProvider = ({ children }) => {
 ]
  
 
-const [updateSync,setUpdateSync]=useState(Math.random())
 
+function replicateNextDatabase(currentDB){
+
+        if(initSyncStatus=="cancelled") return
+
+
+        
+
+       
+        if(currentDB){
+             let next=remoteDBs.findIndex(i=>i==currentDB || i=='__'+currentDB) + 1  
+             if(next!=remoteDBs.length){
+                 initSync(remoteDBs[next])
+             }else{
+                 setTimeout(()=>setInitSyncStatus('completed'),1000)
+             }
+        }else{
+           initSync(remoteDBs[0])
+        } 
+}
+
+
+function initSync(dbName){
 
 
  
-  useEffect(() => {
+  dbName=dbName.startsWith('__') ? dbName.slice(2,dbName.length) : dbName
+  
+  const localDB = new PouchDB(dbName);
+  const remoteDB = new PouchDB(`${COUCH_DB_CONNECTION}/${dbName}`);
 
-     // if(!online) return
+  let ref=localDB.sync(remoteDB, {
+    live: false,
+    retry: true,
+  }).on('change', () => {
+    //console.log(`Change detected and synced in ${dbName}:`, info);
+    let db=dbName.split('-')[0]
+    if(_required_data.includes(db)){
+      _get(db)
+    }
+    if(db=="user")  update_user_data_from_db()
 
-      remoteDBs.forEach(i=>{
-        let _db=new PouchDB(i)
-        _db.sync(new PouchDB(`http://admin:secret@13.40.24.65:3000/${i}`), {
-          live: true,
-          retry: true
-        }).on('change', (info) => {
-          console.log('Change:'+i, info);
+    if(dbName.includes('managers-') || dbName.includes('user-')){
+        socket.emit('update-database')
+    }
 
-        }).on('paused', (err) => {
-          console.log('Replication paused:'+i);
-        }).on('active', () => {
-          console.log('Replication active:'+i);
-        }).on('denied', (err) => {
-          console.error('Replication denied:'+i, err);
-        }).on('complete', (info) => {
-          console.log('Replication complete:'+i, info);
-        }).on('error', (err) => {
-          console.error('Replication error:'+i, err);
-        });
+  }).on('paused', (err) => {
+    //console.log(`Replication paused in ${dbName}:`, err);
+  }).on('active', () => {
+   // console.log(`Replication active in ${dbName}`);
+    ///ref.cancel();
+  }).on('denied', (err) => {
+    console.error(`Replication denied in ${dbName}:`, err);
+  }).on('complete', (info) => {
+    //console.log(`Replication complete in ${dbName}:`, info);
+    replicateNextDatabase(dbName)
+    ref.cancel();
+  }).on('error', (err) => {
+    console.error(`Replication error in ${dbName}:`, err);
+  })
 
-      })
+  setInitSynced(prev=>([...prev,{name:dbName,ref}]))
 
-  }, [online,db,updateSync])
+    
+}
 
-  useEffect(()=>{
 
-      setInterval(() => {
-          setUpdateSync(Math.random()) 
-      }, 10000);
 
-   },[])
+
+useEffect(()=>{
+    if(!remoteDBs.length || !online || initSyncStatus) return
+
+     replicateNextDatabase()
+     setInitSyncStatus('started')
+
+},[db,online])
+
+
+const [mainReplicationStarted,setMainReplicationStarted]=useState(false)
+
+
+useEffect(()=>{
+
+    if(!user || mainReplicationStarted || !(initSyncStatus=="completed" || initSyncStatus=="cancelled")) return 
+
+    replicate('from','user-'+user.id,true)
+
+    setMainReplicationStarted(true)
+
+},[user,initSyncStatus])
+
+
+
+
+console.log({remoteDBs})
+
+
+
+
+useEffect(()=>{
+
+
+    if(startReplicationTo) return
+   
+   
+    if(initSyncStatus=="completed" || initSyncStatus=="cancelled"){
+         remoteDBs.forEach(dbName=>{
+
+              dbName=dbName.startsWith('__') ? dbName.slice(2,dbName.length) : dbName
+
+              const localDB = new PouchDB(dbName);
+              const remoteDB = new PouchDB(`${COUCH_DB_CONNECTION}/${dbName}`)
+
+              let ref=localDB.replicate.to(remoteDB, {
+                live: true,
+                retry: true,
+              }).on('change', () => {
+                //console.log(`Change detected and synced in ${dbName}:`, info);
+
+                if(dbName!="user") emitNewUpdateMessage(dbName)
+                if(dbName.includes('managers-') || dbName.includes('user-')){
+                    socket.emit('update-database')
+                }
+
+              }).on('paused', (err) => {
+                //console.log(`Replication paused in ${dbName}:`, err);
+              }).on('active', () => {
+                //console.log(`Replication active in ${dbName}`);
+              }).on('denied', (err) => {
+                console.error(`Replication denied in ${dbName}:`, err);
+              }).on('complete', (info) => {
+                //console.log(`Replication complete in ${dbName}:`, info);
+              }).on('error', (err) => {
+                console.error(`Replication error in ${dbName}:`, err);
+              })
+
+              setActiveReplicationTo(prev=>([...prev,{name:dbName,ref}]))
+              
+         })
+         setStartReplicationTo(true)
+    }
+
+
+
+
+
+    
+  
+    
+
+},[initSyncStatus])
+
+
+
+
+
+
+
+  
  
+
+
+
+
+   useEffect(()=>{
+         if(!user) return
+
+
+         socket.emit('user-info',{
+            email:user.email,
+            id:user.id,
+            update_id:DBUpdateID,
+            companies:user.companies,
+            selected_company:user.selected_company
+         })
+
+   },[user,online])
+
 
   useEffect(()=>{
    if(_loaded.length || !user) return
@@ -2111,6 +2355,8 @@ if(filterOptions){
 
 
   const value = {
+    initSyncStatus,
+    initSynced,
     makeRequest,
     _openPopUps,
     _today,
@@ -2119,6 +2365,7 @@ if(filterOptions){
     _openCreatePopUp,
     _setOpenCreatePopUp,
     _add,
+    setInitSyncStatus,
     _get,
     _update,
     _delete,
@@ -2177,6 +2424,7 @@ if(filterOptions){
     _setOpenDialogRes,
     _print_exportExcel,
     _exportToExcel,
+    replicate,
     dbs,
     online
   };

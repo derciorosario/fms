@@ -84,6 +84,16 @@ import DefaultUpload from '../../../components/Files/default-upload';
           return futureDate.diff(currentDate, 'days'); 
          }
 
+
+         const [paydayHelper,setPaydayHelper]=React.useState('custom')
+         const [loading, setLoading] = React.useState(false);
+         const [valid, setValid] = React.useState(false);
+         const {makeRequest,_add,_update,_loaded,_initial_form,_get,_setRequiredData} = useData();
+         const [accountCategorieOptions, setAccountCategorieOptions] = React.useState([]);
+         const account_name = React.useRef(null);
+         const [accountCategories,setAccountCategories]=React.useState([])
+         const [referenceOptions,setReferenceOptions]=React.useState([])
+         const [showMoreOptions,setShowMoreOptions]=React.useState(false)
           
        
           useEffect(()=>{
@@ -106,21 +116,13 @@ import DefaultUpload from '../../../components/Files/default-upload';
                   
                 })()
 
-          },[db,pathname])
+          },[db,pathname,_setRequiredData])
 
        
 
 
 
-          const [paydayHelper,setPaydayHelper]=React.useState('custom')
-          const [loading, setLoading] = React.useState(false);
-          const [valid, setValid] = React.useState(false);
-          const {makeRequest,_add,_update,_loaded,_initial_form,_get} = useData();
-          const [accountCategorieOptions, setAccountCategorieOptions] = React.useState([]);
-          const account_name = React.useRef(null);
-          const [accountCategories,setAccountCategories]=React.useState([])
-          const [referenceOptions,setReferenceOptions]=React.useState([])
-          const [showMoreOptions,setShowMoreOptions]=React.useState(false)
+        
          
           const [deletePayments,setDeletePayments]=React.useState({
             showDialog:false,
@@ -128,6 +130,10 @@ import DefaultUpload from '../../../components/Files/default-upload';
             message:'',
             buttons:[]
           })
+
+          useEffect(()=>{
+            _setRequiredData(required_data)
+           },[])
 
 
           useEffect(()=>{
@@ -158,6 +164,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
            useEffect(()=>{
             setCountFormUpdates(prev=>prev + 1)
           },[formData])
+
 
 
 

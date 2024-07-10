@@ -26,10 +26,14 @@ import { useAuth } from '../../../contexts/AuthContext';
           const [items,setItems]=React.useState([])
           const [initialized,setInitialized]=React.useState()
           const required_data=['account_categories']
+          const [loading, setLoading] = React.useState(false);
+          const [valid, setValid] = React.useState(false);
+          const {_setRequiredData,_account_categories,_add,_get,_update,_loaded,_categories,_setOpenDialogRes,_setOpenCreatePopUp,_openDialogRes} = useData();
+          
           
 
           useEffect(()=>{
-            if(!id || !db.account_categories || formData.id==id) return 
+            if(!id || !db.account_categories || formData.id==id || isPopUp) return 
 
                (async()=>{
 
@@ -45,12 +49,15 @@ import { useAuth } from '../../../contexts/AuthContext';
 
                })()
 
-          },[db,pathname])
+          },[db,pathname,_setRequiredData])
 
-          const [loading, setLoading] = React.useState(false);
-          const [valid, setValid] = React.useState(false);
-          const {_account_categories,_add,_get,_update,_loaded,_categories,_setOpenDialogRes,_setOpenCreatePopUp,_openDialogRes} = useData();
+          useEffect(()=>{
+            _setRequiredData(required_data)
+           },[])
+
           
+
+         
             let initial_form={
                name:'',
                notes:'',

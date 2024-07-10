@@ -196,8 +196,10 @@ function App() {
         <Route path="/reset" element={<ProtectedRoute redirectTo="/reset"> <Home/></ProtectedRoute>} />
     
         <Route path="/login" element={ <Login/>} />
+        <Route path="/recover-password" element={ <Login/>} />
         <Route path="/admin" element={ <Admin/>} />
         <Route path="/new-company" element={ <FirstStart/>} />
+        <Route path="/confirm-invite" element={ <FirstStart/>} />
         <Route path="/logout" element={<ProtectedRoute redirectTo="/logout">  </ProtectedRoute>} />
 
       </Routes>

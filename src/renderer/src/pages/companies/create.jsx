@@ -28,7 +28,7 @@ import UploadCompanylogo from '../setup/compnents/upload-company-logo';
 
           const required_data=['managers']
           
-          const {makeRequest,_add,_update,_loaded,_get,_get_all,_all,_all_loaded} = useData();
+          const {makeRequest,_add,_update,_loaded,_get,_get_all,_all,_all_loaded,replicate} = useData();
           const data=useData()       
           const [isFilial,setIsFilial]=useState(false)
           const [filialDetails,setFilialDetails]=useState({name:''})
@@ -61,13 +61,25 @@ import UploadCompanylogo from '../setup/compnents/upload-company-logo';
           React.useEffect(()=>{
             if(!initialized && formData || !_all.managers) return
 
+            let managers=[]
+
              if(id){
 
-                setChipOptions(_all.managers.filter(i=>i.companies.includes(formData.id)).map(i=>i.name+" "+i.last_name))
+              
+              _all.managers.forEach(i=>{
+                 if(i.companies.includes(formData.id) && !managers.some(f=>f.email==i.email)) managers.push(i)
+                
+              })
+
+              setChipOptions(managers.map(i=>i.email))
 
              }
 
-             setChipNames(_all.managers.filter(i=>i.created_by==user.id).map(i=>i.name+" "+i.last_name))
+             _all.managers.forEach(i=>{
+              if(i.created_by==user.id && !managers.some(f=>f.email==i.email))  managers.push(i)
+             })
+
+             setChipNames(managers.map(i=>i.email))
            
                
           },[initialized,_all])
@@ -132,15 +144,16 @@ import UploadCompanylogo from '../setup/compnents/upload-company-logo';
                     let user_db=new PouchDB('user-'+user.id)
                     let new_user_content={...user,companies_details:[...user.companies_details.filter(i=>i.id!=formData.id),formData]}
                     let res=await user_db.put(new_user_content)
+
                     setUser({...new_user_content,_rev:res.rev})
+                    
 
-
-                    let selected_managers_ids=_all.managers.filter(i=>chipOptions.includes(i.name+" "+i.last_name)).map(i=>i.id)
+                    let selected_managers_ids=_all.managers.filter(i=>chipOptions.includes(i.email)).map(i=>i.id)
                     let olds=_all.managers.filter(i=>i.companies.includes(formData.id))
                     let removed_m=_all.managers.filter(i=>i.companies.includes(formData.id) && !selected_managers_ids.includes(i.id))
                     let new_m=_all.managers.filter(i=>selected_managers_ids.includes(i.id) && !olds.some(f=>f.id==i.id))
                     
-                   
+                    
 
                     for (let i = 0; i < removed_m.length; i++) {
                         let cps=removed_m[i].companies
@@ -153,14 +166,19 @@ import UploadCompanylogo from '../setup/compnents/upload-company-logo';
                        }
                     }
 
+                    console.log({olds,new_m,removed_m})
+
+
 
                   for (let i = 0; i < new_m.length; i++) {
                         let new_c=new PouchDB(`managers-`+formData.id)
                         delete new_m[i].company_id
                         delete new_m[i]._rev
-                        await new_c.put({...new_m[i],companies:[...new_m[i].companies,formData.id]})
+                        delete new_m[i]._id
+                        await new_c.put({...new_m[i],_id:uuidv4(),companies:[...new_m[i].companies,formData.id]})
 
                       
+                  
                         let cps=new_m[i].companies
                         for (let f = 0; f < cps.length; f++) {
                           let c=new PouchDB(`managers-`+cps[f])
@@ -173,12 +191,13 @@ import UploadCompanylogo from '../setup/compnents/upload-company-logo';
                   }
 
 
-                  }else{
 
+
+              }else{
                     let company_id=uuidv4()
                     let company=new PouchDB('managers-'+company_id)
-                    let managers=_all.managers.filter(i=>chipOptions.includes(i.name+" "+i.last_name))
-
+                    replicate('from','managers-'+company_id,true)
+                    let managers=_all.managers.filter(i=>chipOptions.includes(i.email))
 
                     for (let i = 0; i < managers.length; i++) {
                          delete managers[i]._rev
@@ -204,11 +223,12 @@ import UploadCompanylogo from '../setup/compnents/upload-company-logo';
                       delete new_company.headquarter_id
                     }
 
-                    let new_user_content={...user,companies_details:[...user.companies_details,{
+                    let new_user_content={...user,
+                      companies:[...user.companies,company_id],
+                      companies_details:[...user.companies_details,{
                       ...formData,
                       logo,
                       id:company_id,
-                      companies:[...user.companies,company_id],
                       admin_id:user.id,
                       _id:new Date().toISOString()
                     }]}
@@ -236,7 +256,7 @@ import UploadCompanylogo from '../setup/compnents/upload-company-logo';
                   setLoading(true)
                   toast.loading(`${id ? 'A actualizar...' :'A enviar...'}`)
                   try{
-                     let response = await makeRequest({method:'post',url:`api/company/`+(id ? "update" : "create"),data:{c:formData,managers:data._managers.filter(i=>chipOptions.includes(i.name+" "+i.last_name)).map(i=>i.id)}, error: ``},0);
+                     let response = await makeRequest({method:'post',url:`api/company/`+(id ? "update" : "create"),data:{c:formData,managers:data._managers.filter(i=>chipOptions.includes(i.email)).map(i=>i.id)}, error: ``},0);
                      toast.remove()
                      toast.success('Empresa '+(id ? "actualizada" : "criada"))
 

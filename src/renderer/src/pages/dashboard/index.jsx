@@ -13,7 +13,7 @@ import colors from '../../assets/colors.json'
 function App() {
  
 
-  const {_get_cash_managment_stats,_loaded,_get_stat,_cn,_categories,_get} = useData();
+  const {_get_cash_managment_stats,_loaded,_get_stat,_cn,_categories,_get,_setRequiredData} = useData();
   const {db} = useAuth();
 
   let required_data=['bills_to_pay','account_categories','bills_to_receive','payment_methods','transations']
@@ -48,6 +48,10 @@ useEffect(()=>{
  useEffect(()=>{
       _get(required_data.filter(i=>!_loaded.includes(i)))    
  },[db])
+
+ useEffect(()=>{
+  _setRequiredData(required_data)
+ },[])
 
   let {user}=useAuth()
 
@@ -164,7 +168,7 @@ useEffect(()=>{
   <tbody>
 
       {_get_stat('upcomming_payments')[i].map((f,_f)=>(
-             <tr key={_f} class="bg-white shadow-sm px-1 hover:text-gray-900 cursor-pointer" onClick={()=>navigate('/'+(i=="inflows" ? "bills-to-receive" : "bills-to-pay")+"/"+f._id)}>
+             <tr key={_f} class="bg-white shadow-sm px-1 hover:text-gray-900 cursor-pointer" onClick={()=>navigate('/'+(i=="inflows" ? "bills-to-receive" : "bills-to-pay")+"/"+f.id)}>
              <th scope="row" class="px-6 py-4 truncate font-medium text-gray-900 whitespace-nowrap">
                  <span  className="max-w-300"> {_categories.filter(i=>i.field==f.account_origin)[0].name}</span>
              </th>

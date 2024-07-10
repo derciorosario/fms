@@ -17,7 +17,7 @@ function FirstUsePerson({formData,setFormData}) {
         </div>
 
         <div class="md:col-span-5">
-            <label for="email">Email <span className="font-[12px] text-gray-400">(opcional)</span></label>
+            <label for="email">Email </label>
             <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
                   <input onChange={(e)=>setFormData({...formData,company:{...formData.company,email:e.target.value.replaceAll(' ','')}})} value={formData.company.email} name="state"  placeholder="" class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
                   {(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.company.email.trim())) && <VerifiedIcon/> }
@@ -25,15 +25,15 @@ function FirstUsePerson({formData,setFormData}) {
         </div>
 
         <div class="md:col-span-3">
-            <label for="address">Nuit <span className="font-[12px] text-gray-400">(opcional)</span></label>
+            <label for="address">Nuit </label>
             <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
-                  <input onChange={(e)=>setFormData({...formData,company:{...formData.company,nuit:e.target.value.toString().length  <= 9 ?  e.target.value : formData.company.nuit}})} value={formData.company.nuit}  id="state"  class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
-                  {formData.company.nuit.length == 9  && <VerifiedIcon/> }
+                  <input onChange={(e)=>setFormData({...formData,company:{...formData.company,nuit:e.target.value.toString().length  <= 9 && !isNaN(e.target.value) ?  e.target.value : formData.company.nuit}})} value={formData.company.nuit}  id="state"  class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
+                  {formData.company.nuit.length == 9   && <VerifiedIcon/> }
            </div>
         </div>
 
         <div class="md:col-span-2">
-            <label for="state">Contacto <span className="font-[12px] text-gray-400">(opcional)</span></label>
+            <label for="state">Contacto </label>
             <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
                   <input onChange={(e)=>setFormData({...formData,company:{...formData.company,contact:e.target.value.toString().length  <= 9 ?  e.target.value : formData.company.contact}})} value={formData.company.contact} name="state" id="state" type="number" placeholder="8XXXXXXXX" class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
                   {formData.company.contact.length == 9 && <VerifiedIcon/> }
@@ -41,7 +41,7 @@ function FirstUsePerson({formData,setFormData}) {
         </div>
        
         <div class="md:col-span-3">
-            <label for="address">Enderenço <span className="font-[12px] text-gray-400">(opcional)</span></label>
+            <label for="address">Enderenço </label>
             <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
                   <input onChange={(e)=>setFormData({...formData,company:{...formData.company,address:e.target.value}})} value={formData.company.address} name="state" id="state"  class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
                   {formData.company.address.length >= 3 && <VerifiedIcon/> }
@@ -49,7 +49,7 @@ function FirstUsePerson({formData,setFormData}) {
         </div>
 
         <div class="md:col-span-2">
-            <label for="state">Provincia / Cidade <span className="font-[12px] text-gray-400">(opcional)</span></label>
+            <label for="state">Provincia / Cidade </label>
             <div class="h-10 bg-gray-50  flex border border-gray-200 rounded items-center mt-1">
             <select onChange={(e)=>setFormData({...formData,company:{...formData.company,state:e.target.value}})} value={formData.company.state} className="w-full h-full px-2">
                         <option selected value="" disabled>Selecione</option>

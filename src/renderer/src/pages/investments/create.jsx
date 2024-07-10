@@ -49,7 +49,9 @@ import { useAuth } from '../../contexts/AuthContext';
 
           const [loading, setLoading] = React.useState(false);
           const [valid, setValid] = React.useState(false);
-          const {_loaded,_add,_update,_calculateInvestmentCost} = useData();
+          const {_loaded,_add,_update,_calculateInvestmentCost,_setRequiredData} = useData();
+
+          let required_data=['investiments']
 
 
           useEffect(()=>{
@@ -69,7 +71,11 @@ import { useAuth } from '../../contexts/AuthContext';
 
                })()
 
-          },[db,pathname])
+          },[db,pathname,setRequiredData])
+
+          useEffect(()=>{
+            _setRequiredData(required_data)
+           },[])
 
           useEffect(()=>{
             if(!formData.id && id){

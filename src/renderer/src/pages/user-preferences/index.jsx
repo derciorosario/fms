@@ -34,9 +34,16 @@ function App() {
  const [showPassword, setShowPassword] = React.useState(false);
  const [loading, setLoading] = React.useState(false);
  const [valid, setValid] = React.useState(false);
- const {makeRequest,_add,_update,_loaded,_scrollToSection,_showPopUp} = useData();
+ const {makeRequest,_add,_update,_loaded,_scrollToSection,_showPopUp,_setRequiredData} = useData();
  const [formData, setFormData] = React.useState({contacts:[''],settings:{}});
  const [settingsDetails, setSettingsDetails]=React.useState({})
+
+ let required_data=['settings']
+
+ useEffect(()=>{
+  _setRequiredData(required_data)
+},[])
+
  
  useEffect(()=>{
 
@@ -55,7 +62,7 @@ function App() {
     
   })()
      
- },[db])
+ },[db,_setRequiredData])
 
  let required_fields=['name','last_name']
 

@@ -18,7 +18,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 
 function App() {
 
-  const {_print_exportExcel,_get_cash_managment_stats,_transations,_bills_to_pay,_bills_to_receive,_loaded,_get} = useData();
+  const {_setRequiredData,_print_exportExcel,_get_cash_managment_stats,_transations,_bills_to_pay,_bills_to_receive,_loaded,_get} = useData();
   const {pathname} = useLocation()
   const [data,setData]=React.useState([])
   const [currentMenu,setCurrentMenu]=React.useState(0)
@@ -44,6 +44,9 @@ function App() {
 
    let required_data=['investments','loans','bills_to_pay','account_categories','bills_to_receive','payment_methods','transations']
 
+   useEffect(()=>{
+    _setRequiredData(required_data)
+   },[])
   
   const [filterOptions,setFilterOPtions]=useState([
     {

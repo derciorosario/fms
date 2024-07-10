@@ -42,7 +42,6 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
   },[])
 
   
-
   
   React.useEffect(()=>{
       let params_names=Object.keys(data._filters).filter(i=>(typeof data._filters[i] == 'string' && data._filters[i]) || (typeof data._filters[i] == 'object' && data._filters[i].length))
@@ -283,6 +282,10 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
 
      setSettings(_settings)
      data._get(_settings.required_data)
+
+     
+    data._setRequiredData(_settings.required_data)
+    
     
  },[])
 
@@ -1117,7 +1120,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
               <EditOutlinedIcon/>
           </span>
 
-          <span className="hidden" onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
+          <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
               <DeleteOutlineOutlinedIcon/>
           </span>
           
@@ -1232,7 +1235,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
                 <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/company/'+params.row.id)}>
                   <EditOutlinedIcon/>
               </span>
-              <span className="hidden" onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
+              <span className={`${params.row.id==user.selected_company ? 'hidden':''}`} onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
                   <DeleteOutlineOutlinedIcon/>
               </span>
               

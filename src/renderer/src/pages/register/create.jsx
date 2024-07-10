@@ -31,13 +31,12 @@ import { useAuth } from '../../contexts/AuthContext';
 
           const [items,setItems]=React.useState([])
           const [initialized,setInitialized]=React.useState()
-          const {_get,_add,_update,_loaded,_setOpenDialogRes,_setOpenCreatePopUp,_openDialogRes} = useData();
+          const {_get,_add,_update,_loaded,_setOpenDialogRes,_setOpenCreatePopUp,_openDialogRes,_setRequiredData} = useData();
           const data=useData()
-          
-          
+
+        
           let page=pathname.includes('/client') || (_openDialogRes?.details?.client) ? 'clients' : pathname.includes('/supplier') || _openDialogRes?.details?.supplier ? 'suppliers' :'investors';
 
-         
           
           useEffect(()=>{
             if(!id || id==formData.id || isPopUp || !db.managers) return 
@@ -54,7 +53,12 @@ import { useAuth } from '../../contexts/AuthContext';
                      }
                })()
 
-          },[pathname,db])
+          },[pathname,db,_setRequiredData])
+
+
+          useEffect(()=>{
+            _setRequiredData(page)
+           },[pathname])
 
 
           useEffect(()=>{
@@ -111,8 +115,6 @@ import { useAuth } from '../../contexts/AuthContext';
        
        
          async function SubmitForm(){
-
-             console.log({items})
               
               if(valid){
                   if(items.some(i=>i.email==formData.email && i.id!=id && i.email) || items.some(i=>i.name?.toLowerCase()==formData.name?.toLowerCase() && i.id!=id && i.last_name?.toLowerCase()==formData.last_name?.toLowerCase())){
@@ -147,8 +149,6 @@ import { useAuth } from '../../contexts/AuthContext';
                toast.error('Preencha todos os campos obrigatórios')
               }
           }
-
-          console.log({id})
 
           useEffect(()=>{
             let v=true

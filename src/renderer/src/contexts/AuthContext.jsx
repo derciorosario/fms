@@ -6,6 +6,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   let APP_BASE_URL='https://server-fms.onrender.com' //'http://localhost:4000'  //https://server-fms.onrender.com
+  let COUCH_DB_CONNECTION='http://admin:secret@13.40.24.65:3000' //'http://root:secret@localhost:5984' //'http://admin:secret@13.40.24.65:3000'
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
@@ -20,28 +21,40 @@ export const AuthProvider = ({ children }) => {
 
 
 
-  
-  useEffect(()=>{
-    (async()=>{
 
-      try {
-        let u=new PouchDB('user')
-        let {id}=await u.get('user')
-        db.user=new PouchDB('user-'+id)
-        db.user.createIndex({index: { fields: ['id'] }})
-        let user=await  db.user.find({selector: { id }})
-        user=user.docs[0]
+  
+
+  async function  update_user_data_from_db(){
+
+    try {
+      let u=new PouchDB('user')
+      let {id}=await u.get('user')
+      db.user=new PouchDB('user-'+id)
+      db.user.createIndex({index: { fields: ['id'] }})
+      let user=await  db.user.find({selector: { id }})
+      user=user.docs[0]
+
+      if(user){
+
         setloadingLocalUser(true)
         setLoading(false)
         setUser(user)
         setToken(user.token_value)
         setAuth(true)
-       
-      } catch (error) {
-        console.log(error)
-        setloadingLocalUser(false)
+
       }
-    })()
+     
+     
+    } catch (error) {
+      console.log(error)
+      setloadingLocalUser(false)
+    }
+
+  }
+
+  
+  useEffect(()=>{
+     update_user_data_from_db()
   },[])
 
   useEffect(()=>{
@@ -63,25 +76,36 @@ export const AuthProvider = ({ children }) => {
   function update_dbs(){
 
       let db_names=[
-         {name:'managers',db_name:'managers-'+user.selected_company},
+
+         {name:'managers',db_name:'managers-'+user.selected_company}, //+'-user-'+user.companies_details.filter(i=>i.id==user.selected_company)[0].admin_id},
          {name:'bills_to_pay',db_name:'bills_to_pay-'+user.selected_company},
          {name:'account_categories',db_name:'account_categories-'+user.selected_company},
          {name:'bills_to_receive',db_name:'bills_to_receive-'+user.selected_company},
          {name:'payment_methods',db_name:'payment_methods-'+user.selected_company},
          {name:'transations',db_name:'transations-'+user.selected_company},
-         {name:'account_categories',db_name:'account_categories-'+user.selected_company},
          {name:'loans',db_name:'loans-'+user.selected_company},
-         {name:'clients',db_name:'clients-'+user.selected_company},
          {name:'investors',db_name:'investors-'+user.selected_company},
          {name:'suppliers',db_name:'suppliers-'+user.selected_company},
          {name:'investments',db_name:'investments-'+user.selected_company},
-         {name:'settings',db_name:'settings-'+user.id+'-'+user.selected_company}
+         {name:'settings',db_name:'settings-'+user.id+'-'+user.selected_company},
+         {name:'clients',db_name:'clients-'+user.selected_company},
 
       ]
 
-      setRemoteDBs(db_names.map(i=>i.db_name))
+
+      let temp_dbs=['__user-'+user.id]
+
+      console.log({c:user.companies,s:user.selected_company})
+
+      temp_dbs=[...temp_dbs,...user.companies.filter(i=>i!=user.selected_company).map(i=>'__managers-'+i)]
+
+      setRemoteDBs([...db_names.map(i=>i.db_name),...temp_dbs])
 
       let _db={}
+
+      
+
+
       db_names.forEach(i=>{
          _db[i.name]=new PouchDB(i.db_name)
          register_db(i.db_name)
@@ -92,30 +116,23 @@ export const AuthProvider = ({ children }) => {
 
    async function _change_company(company_id){
     let user_db=new PouchDB('user-'+user.id)
-    await user_db.put({...user,selected_company:company_id})
+    let _user=await  user_db.find({selector: { id:user.id }})
+    _user=_user.docs[0]
+    await user_db.put({..._user,selected_company:company_id})
     setChangingCompany(true)
-    setTimeout(()=>window.location.reload(),500)
+    setTimeout(()=>window.location.href="/",500)
   }
 
 
   const login =  async (userData, authToken) => {
 
-    if(user?.selected_company==userData.selected_company){
-      return {ok:true}
-    }  
-
-    try{
-      await update_user(userData)
-      if(localStorage.getItem('token')) localStorage.setItem('token', authToken);
-      setUser(userData);
+     if(localStorage.getItem('token')) localStorage.setItem('token', authToken);
       setToken(authToken);
-      return {ok:true}
-    }catch(e){
-      await reset()
-      return {ok:false,error:e}
-    }
+     _change_company(userData.selected_company)
  
 };
+
+
 
 
 async function update_user(userData){
@@ -125,6 +142,7 @@ async function update_user(userData){
   try{
 
         let u=new PouchDB('user')
+        
         let docs=await u.allDocs({ include_docs: true })
         let user=docs.rows.map(i=>i.doc)[0]
 
@@ -141,6 +159,7 @@ async function update_user(userData){
 
         if(_user){
            user_db.put({...userData,_rev:_user._rev})
+           setUser({...userData,_rev:_user._rev})
         }else{
            user_db.put(userData)
         }
@@ -306,7 +325,7 @@ async function update_user(userData){
    
 
   return (
-    <AuthContext.Provider value={{changingCompany,remoteDBs,_change_company,db,APP_BASE_URL,user,update_user,setDestroying,destroying,login, logout, isAuthenticated , loading, setUser, setLoading, token,auth}}>
+    <AuthContext.Provider value={{ update_user_data_from_db,changingCompany,remoteDBs,setRemoteDBs,_change_company,db,APP_BASE_URL,COUCH_DB_CONNECTION,user,update_user,setDestroying,destroying,login, logout, isAuthenticated , loading, setUser, setLoading, token,auth}}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import VerifiedIcon from '../compnents/valid-icon';
 
-function FirstUsePerson({formData,setFormData,useExistingAccount}) {
+function FirstUsePerson({formData,setFormData,useExistingAccount,IsRegister}) {
 
 
   return (
@@ -26,7 +26,7 @@ function FirstUsePerson({formData,setFormData,useExistingAccount}) {
         <div class={`${useExistingAccount ? 'md:col-span-3':'md:col-span-5'}`}>
             <label for="email">Email</label>
             <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
-                  <input onChange={(e)=>setFormData({...formData,personal:{...formData.personal,email:e.target.value.replaceAll(' ','')}})} value={formData.personal.email} name="state"  placeholder={`${useExistingAccount ?'Email registrado':''}`} class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
+                  <input disabled={IsRegister} onChange={(e)=>setFormData({...formData,personal:{...formData.personal,email:e.target.value.replaceAll(' ','')}})} value={formData.personal.email} name="state"  placeholder={`${useExistingAccount ?'Email registrado':''}`} style={{opacity:IsRegister ? '0.4':'1'}} class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
                   {(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.personal.email.trim())) && <VerifiedIcon/> }
            </div>
         </div>

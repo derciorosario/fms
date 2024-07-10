@@ -36,7 +36,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 
           const required_data=['payment_methods']
 
-          const {_get,_loaded,_payment_methods,_add,_update,_cn_op,_scrollToSection,_openDialogRes,_setOpenDialogRes,_setOpenCreatePopUp} = useData();
+          const {_setRequiredData,_get,_loaded,_payment_methods,_add,_update,_cn_op,_scrollToSection,_openDialogRes,_setOpenDialogRes,_setOpenCreatePopUp} = useData();
           
           
           
@@ -57,7 +57,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 
           useEffect(()=>{
 
-            if(!id || !db.payment_methods || formData.id==id) return 
+            if(!id || !db.payment_methods || formData.id==id || isPopUp) return 
                (async()=>{
                      let item =  await db.payment_methods.find({selector: {id}})
                      item=item.docs[0]
@@ -68,7 +68,12 @@ import { useAuth } from '../../../contexts/AuthContext';
                       navigate(`/payment_methods`)
                      }
                })()
-          },[db,pathname])
+          },[db,pathname,_setRequiredData])
+
+          useEffect(()=>{
+            _setRequiredData(required_data)
+         },[])
+         
 
 
 
@@ -114,7 +119,7 @@ import { useAuth } from '../../../contexts/AuthContext';
                           let new_id=uuidv4()
                           let new_item={...formData,id:new_id}
                           let res=await _add('payment_methods',[new_item])
-                          
+
                           if(res.ok){
                             _setOpenDialogRes({..._openDialogRes,item:new_item,page:'payment_methods'})
                           }

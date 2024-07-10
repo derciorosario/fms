@@ -132,7 +132,11 @@ import DefaultUpload from '../../../components/Files/default-upload';
                       }
                 })()
 
-          },[pathname,data._loaded])
+          },[pathname,data._loaded,data._setRequiredData])
+
+          useEffect(()=>{
+            data._setRequiredData(required_data)
+           },[])
 
           useEffect(()=>{
              _get(required_data.filter(i=>!data._loaded.includes(i)))
@@ -632,7 +636,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                 setFormData(_initial_form.transations)
                                 handleLoaded()
                                 navigate(`/cash-management/${type == "in" ? "out" : "in"}flow/create`)
-                              }} className={`flex bg-gray-400 hover:opacity-80 border-b-app_orange-400 focus:outline-none text-white  font-medium  rounded-[0.3rem] text-[13px] px-3 py-[6px] text-center`}>
+                              }} className={`flex bg-gray-400 hover:opacity-80 border-b-app_orange-400 focus:outline-none text-white  border-b font-medium  rounded-[0.3rem] text-[13px] px-3 py-[6px] text-center`}>
                           {type=="out" ? 'Adicionar entrada':'Adicionar saída'}
                     </button>
                  </div>

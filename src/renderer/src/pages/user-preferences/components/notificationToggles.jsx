@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Checkbox, Switch } from '@mui/material';
 import { useData } from '../../../contexts/DataContext';
 
-function NotificationToggles({activeAndDisable,email,whatsapp,field}) {
+function NotificationToggles({activeAndDisable,email,whatsapp,field,initialized}) {
  const { t } = useTranslation();
  const [page,setPage]=React.useState('notifications')
   const data = useData()
@@ -17,13 +17,24 @@ function NotificationToggles({activeAndDisable,email,whatsapp,field}) {
 
   
  
+  if(!initialized){
+      return (
+          <>
+
+            <div className="flex justify-end">
+                 <div className="flex border-r skeleton-bg h-[17px] rounded-[4px] w-[110px]"></div>
+            </div>
+             
+          </>
+      )
+  }
 
   return (
 
     <>
                   <div className="mt-4 flex items-start sm:justify-end">
                             <div className="flex  gap-2">
-                                <label for="push" className="relative inline-flex cursor-pointer items-center hidden">
+                                <label for="push" className="relative cursor-pointer items-center hidden">
                                 <Switch
                                 disabled={0===1 ? true : false}
                                 inputProps={{ 'aria-label': 'controlled' }}

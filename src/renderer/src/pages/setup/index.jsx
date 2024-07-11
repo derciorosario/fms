@@ -37,6 +37,12 @@ function FirstUse() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate =  useNavigate()
   
+
+  const [upload,setUpload]=React.useState({
+    uploading:false,
+    file:{},
+    progress:0
+  })
   
 
   let initial_form={
@@ -183,11 +189,17 @@ async function get_invite_info(id){
         }else{
              get_invite_info(res.invite)
              setinvite(res.invite)
-        }
-
-        
+        }  
        
   },[pathname])
+
+
+
+  useEffect(()=>{
+   
+    setFormData({...formData,company:{...formData.company,logo:upload.file}})
+   
+ },[upload])
 
 
 
@@ -383,7 +395,7 @@ async function get_invite_info(id){
             <div class="grid gap-4 gap-y-2 text-sm grid-cols-1 md:grid-cols-5">
    
             {(currentPage == 0 && !(!invite && IsRegister) && (inviteStatus!="invalid" &&  inviteStatus!="used" && inviteStatus!="started")) && <FirstUsePerson IsRegister={IsRegister} useExistingAccount={useExistingAccount} formData={formData} setFormData={setFormData}/>}
-            {currentPage == 1 && <FirstUseCompany formData={formData} setFormData={setFormData}/>}
+            {currentPage == 1 && <FirstUseCompany upload={upload} setUpload={setUpload} formData={formData} setFormData={setFormData}/>}
             {currentPage == 2 && <FirstUseLincense login={login} errors={errors} setErrors={setErrors} formData={formData} setFormData={setFormData}/>}
 
       

@@ -6,15 +6,11 @@ import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useData } from '../../../contexts/DataContext';
-function UploadCompanylogo({formData,setFormData}) {
+function MainUploader({upload,setUpload,CustomUploader}) {
    
-     const data= useData()
+         const data= useData()
 
-        const [upload,setUpload]=React.useState({
-            uploading:false,
-            file:{},
-            progress:0
-        })
+      
         const fileInputRef_1 = React.useRef(null);
 
         function clearFileInputs(){
@@ -53,8 +49,8 @@ const handleFileChange = async (event) => {
           }
         });
 
-        setUpload(prev=>({...prev,uploading:false}))
-        setFormData({...formData,company:{...formData.company,logo:{...file,generated_name:res.data,exists:true}}})
+        setUpload(prev=>({...prev,uploading:false,file:{...upload.file,...file,generated_name:res.data,exists:true}}))
+        //setFormData({...formData,company:{...formData.company,logo:{...file,generated_name:res.data,exists:true}}})
         clearFileInputs()
 
       }catch (err) {
@@ -83,23 +79,43 @@ const handleFileChange = async (event) => {
     
   }
 
+  if(CustomUploader){
+
+
+    return(
+
+      <>
+        <label className="relative">
+            <CustomUploader/>
+      
+            <input type="file" onChange={handleFileChange} className="w-full h-full absolute opacity-0 left-0 top-0"/>
+        </label>
+     </>
+
+    )
+
+      
+
+  }
+
 
   return (
     <>
 
                  
         <div class="col-span-full mt-6">
+
           <label for="photo" class="block text-sm font-medium leading-6 text-gray-900">Logotipo <span className="font-[12px] text-gray-400">(opcional)</span></label>
            <div class="mt-2 flex items-center gap-x-3">
-           <div style={{backgroundRepeat:'no-repeat',backgroundSize:"contain",backgroundPosition:"center",backgroundImage:`url("${data.APP_BASE_URL+"/file/"+formData.company?.logo?.generated_name?.replaceAll(' ','%20')}")`}} className="w-[60px] h-[60px] border overflow-hidden rounded-full bg-gray-200 flex items-center justify-center">
-              {!formData.company?.logo?.generated_name &&  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z"/></svg>}
+           <div style={{backgroundRepeat:'no-repeat',backgroundSize:"contain",backgroundPosition:"center",backgroundImage:`url("${data.APP_BASE_URL+"/file/"+upload.file.generated_name?.replaceAll(' ','%20')}")`}} className="w-[60px] h-[60px] border overflow-hidden rounded-full bg-gray-200 flex items-center justify-center">
+              {!upload.file.generated_name &&  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z"/></svg>}
            </div>
             <label className="flex relative items-center">
                 <input accept=".png,.jpg" ref={fileInputRef_1} type="file" onChange={handleFileChange} className="w-full h-full absolute opacity-0 left-0 top-0"/> 
-                {!upload.uploading && <button type="button" class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">{formData.company?.logo?.generated_name ? 'Alterar' :' Selecionar imagem'} </button>}
+                {!upload.uploading && <button type="button" class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">{upload.file.generated_name ? 'Alterar' :' Selecionar imagem'} </button>}
                 {upload.uploading && <LinearWithValueLabel progress={upload.progress}/>}
              </label>
-             {formData.company?.logo?.generated_name && <span onClick={()=> setFormData({...formData,company:{...formData?.company,logo:{}}})} className="ml-1 cursor-pointer opacity-80 hover:opacity-100">Remover</span>}
+             {upload.file.generated_name && <span onClick={()=> setUpload({...upload,file:{}})} className="ml-1 cursor-pointer opacity-80 hover:opacity-100">Remover</span>}
             
            </div>
         </div>
@@ -110,5 +126,5 @@ const handleFileChange = async (event) => {
 
 }
 
-export default UploadCompanylogo
+export default MainUploader
 

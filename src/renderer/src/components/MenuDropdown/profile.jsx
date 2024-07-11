@@ -15,11 +15,13 @@ import { useAuth } from '../../contexts/AuthContext';
 import {Person} from '@mui/icons-material'
 import {useLocation,useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useData } from '../../contexts/DataContext';
 
 
 export default function AccountMenu() {
   const {user,logout}=useAuth()
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const data=useData()
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -48,10 +50,18 @@ export default function AccountMenu() {
             aria-haspopup="true"
             aria-expanded={open ? 'true' : undefined}
           >
+            {data._settings[0]?.settings?.file ? <>
+
+             <div style={{backgroundRepeat:'no-repeat',backgroundSize:"contain",backgroundPosition:"center",backgroundImage:`url("${data.APP_BASE_URL+"/file/"+data._settings[0]?.settings?.file?.generated_name?.replaceAll(' ','%20')}")`}} className="w-[35px] h-[35px] rounded-full bg-slate-400">
+                
+             </div>
+                    
+            </>:<>
             <Avatar sx={{ width: 32, height: 32 }}>
                <Person/>
                <span className="hidden">{user.name.charAt().toUpperCase()}</span>
             </Avatar>
+            </>}
           </IconButton>
         </Tooltip>
       </Box>
@@ -91,7 +101,7 @@ export default function AccountMenu() {
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
         <MenuItem onClick={()=>handleClose('/user-preferences')}>
-          <Avatar /> Perfil
+           Perfil
         </MenuItem>
         <Divider />
         {/**<MenuItem onClick={handleClose}>

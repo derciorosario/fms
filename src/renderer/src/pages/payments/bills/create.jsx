@@ -88,7 +88,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
          const [paydayHelper,setPaydayHelper]=React.useState('custom')
          const [loading, setLoading] = React.useState(false);
          const [valid, setValid] = React.useState(false);
-         const {makeRequest,_add,_update,_loaded,_initial_form,_get,_setRequiredData} = useData();
+         const {makeRequest,_add,_update,_loaded,_initial_form,_get,_setRequiredData,_required_data} = useData();
          const [accountCategorieOptions, setAccountCategorieOptions] = React.useState([]);
          const account_name = React.useRef(null);
          const [accountCategories,setAccountCategories]=React.useState([])
@@ -116,7 +116,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                   
                 })()
 
-          },[db,pathname,_setRequiredData])
+          },[db,pathname,_required_data])
 
        
 

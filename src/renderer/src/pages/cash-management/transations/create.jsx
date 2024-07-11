@@ -45,7 +45,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
           let required_data=['bills_to_pay','account_categories','bills_to_receive','payment_methods','clients','investors','suppliers','transations']
 
           
-          const {_account_categories,_get,_clients,_suppliers,_investors,_payment_methods,_bills_to_pay,_bills_to_receive,_transations,_categories,_scrollToSection,_initial_form,_cn_n,_cn,_openDialogRes,_setOpenDialogRes}= useData()
+          const {_account_categories,_get,_clients,_suppliers,_investors,_payment_methods,_bills_to_pay,_bills_to_receive,_transations,_categories,_scrollToSection,_initial_form,_cn_n,_cn,_openDialogRes,_setOpenDialogRes,_required_data}= useData()
           const data = useData()
           const {user,db} = useAuth()
           const { id } = useParams()
@@ -132,7 +132,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                       }
                 })()
 
-          },[pathname,data._loaded,data._setRequiredData])
+          },[pathname,data._loaded,data._required_data])
 
           useEffect(()=>{
             data._setRequiredData(required_data)

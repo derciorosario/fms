@@ -12,8 +12,7 @@ import colors from '../../assets/colors.json'
 
 function App() {
  
-
-  const {_get_cash_managment_stats,_loaded,_get_stat,_cn,_categories,_get,_setRequiredData} = useData();
+  const {_required_data,_get_cash_managment_stats,_loaded,_get_stat,_cn,_categories,_get,_setRequiredData} = useData();
   const {db} = useAuth();
 
   let required_data=['bills_to_pay','account_categories','bills_to_receive','payment_methods','transations']
@@ -37,13 +36,13 @@ function App() {
   const navigate = useNavigate()
 
 
-useEffect(()=>{
-  const {datasets:d_cm,labels:l_cm} = _get_cash_managment_stats([filterOptions.filter(i=>i.id=="monthy_cm")[0]],'m')
-  setDataChartCM({datasets:d_cm,labels:l_cm})
-  if(!(required_data.some(i=>!_loaded.includes(i)))){
-      setInitialized(true)
-  }
- },[_loaded,filterOptions])
+  useEffect(()=>{
+    const {datasets:d_cm,labels:l_cm} = _get_cash_managment_stats([filterOptions.filter(i=>i.id=="monthy_cm")[0]],'m')
+    setDataChartCM({datasets:d_cm,labels:l_cm})
+    if(!(required_data.some(i=>!_loaded.includes(i)))){
+        setInitialized(true)
+    }
+  },[_loaded,filterOptions])
 
  useEffect(()=>{
       _get(required_data.filter(i=>!_loaded.includes(i)))    

@@ -80,7 +80,7 @@ import { v4 as uuidv4 } from 'uuid';
 
                })()
 
-          },[db,pathname,_setRequiredData])
+          },[db,pathname,data._required_data])
 
 
           
@@ -357,8 +357,8 @@ import { v4 as uuidv4 } from 'uuid';
 
                       {!formData.firstLogin && <div onClick={()=>{
                          toast.error('clipboard não funciona no modo http')
-                         setTimeout(()=>window.open('http://13.40.24.65:3001/#/confirm-invite?invite='+formData.invite, "_blank"),1000)
-                       }} className="px-6 text-gray-500 cursor-pointer table hover:opacity-80">Copiar convite</div>}
+                         setTimeout(()=>window.open('http://13.40.24.65:3001/#/confirm-invite?invite='+formData.invite, "_blank"),4000)
+                       }} className="px-6 text-app_orange-400 underline cursor-pointer table hover:opacity-80">Copiar convite</div>}
                      
 
                   </>

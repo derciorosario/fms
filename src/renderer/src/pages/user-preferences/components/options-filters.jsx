@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 import { useData } from '../../../contexts/DataContext';
 import { useAuth } from '../../../contexts/AuthContext';
 
-function FilterOptions({formData,setFormData}) {
+function FilterOptions({formData,setFormData,initialized}) {
 
   const data=useData()
-  const {user}=useAuth()
-
-
+ 
 
   function check_and_uncheck(account){
     let new_accounts=formData.settings?.bills_not?.accounts.includes(account) ? formData.settings?.bills_not?.accounts.filter(i=>i!=account) : [...formData.settings.bills_not.accounts,account]
@@ -16,8 +14,6 @@ function FilterOptions({formData,setFormData}) {
   }
 
   
-  console.log({d:formData.settings})
-
   return (
 
     <div className={`${data._openPopUps.not_bill_accounts ? 'flex' :'hidden'} items-center justify-center py-1 absolute left-0 top-full`}>
@@ -30,10 +26,10 @@ function FilterOptions({formData,setFormData}) {
         {data._account_categories.map((i,_i)=>(
 
                 <li onClick={()=>check_and_uncheck(i.id)} className="flex items-center" key={_i}>
-                        <input id="apple" type="checkbox" selected={formData.settings?.bills_not?.accounts.includes(i.id) ? true : false} value=""
+                        <input id="apple" type="checkbox" checked={formData.settings?.bills_not?.accounts.includes(i.id) ? true : false} value=""
                         className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500" />
 
-                        <label for="apple" className="ml-2 text-sm font-medium text-gray-900">
+                        <label for="apple" className="ml-2 text-sm font-normal text-gray-900">
                            {i.name}
                         </label>
                 </li>
@@ -41,7 +37,7 @@ function FilterOptions({formData,setFormData}) {
         ))}
     </ul>}
 
-     {data._account_categories.length==0 && <span className="text-gray-300">Nenhuma conta disponivel</span>}
+     {data._account_categories.length==0 && <span className="text-gray-300 font-normal">Nenhuma conta disponivel</span>}
   </div>
 </div>
 

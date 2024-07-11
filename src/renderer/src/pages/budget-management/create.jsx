@@ -131,7 +131,7 @@ import PouchDB from 'pouchdb';
                         _update('budget',[{...formData}])
                         toast.success('Orçamento actualizado')
                      }else{
-                        _add('budget',[{...formData,id:uuidv4(),_id:uuidv4()}])
+                        _add('budget',[{...formData,id:uuidv4()}])
                         setVerifiedInputs([])
                         toast.success('Orçamento adicionado')
                         setFormData(initial_form)

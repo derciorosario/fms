@@ -12,7 +12,7 @@ import FormLayout from '../../layout/DefaultFormLayout';
 import MultipleSelectChip from '../../components/TextField/chipInput';
 import { Switch } from '@mui/material';
 import { v4 as uuidv4 } from 'uuid';     
-import UploadCompanylogo from '../setup/compnents/upload-company-logo';
+import MainUploader from '../setup/compnents/upload-company-logo';
       
   
        
@@ -48,17 +48,30 @@ import UploadCompanylogo from '../setup/compnents/upload-company-logo';
               nuit:'',
               address:'',
               contacts:[],
-              company:{logo:{}},
+              logo:{},
               email:'',
               createdAt:new Date().toISOString()
             }
 
+             
+            const [upload,setUpload]=React.useState({
+              uploading:false,
+              file:{},
+              progress:0
+            })
 
-          const [formData, setFormData] = React.useState(initial_form);
+
+
+           const [formData, setFormData] = React.useState(initial_form);
+
+
+           useEffect(()=>{
+             if(initialized) setFormData({...formData,logo:upload.file})
+          },[upload,initialized])
 
 
         
-          React.useEffect(()=>{
+            React.useEffect(()=>{
             if(!initialized && formData || !_all.managers) return
 
             let managers=[]
@@ -113,6 +126,7 @@ import UploadCompanylogo from '../setup/compnents/upload-company-logo';
                       let item=user.companies_details.filter(i=>i.id==id)[0]
                       if(item){
                           setFormData({...formData,...item})
+                          setUpload({...upload,file:item.logo ? item.logo : {}})
                       }else{
                           toast.error('Item não encontrado')
                           navigate(`/managers`)
@@ -132,6 +146,8 @@ import UploadCompanylogo from '../setup/compnents/upload-company-logo';
              setVerifiedInputs(field!='all' ? [...verifiedInputs,field] : required_fields)
           }
        
+
+          console.log({formData})
        
 
           async function SubmitForm(){
@@ -216,7 +232,6 @@ import UploadCompanylogo from '../setup/compnents/upload-company-logo';
 
                   
                     let new_company=JSON.parse(JSON.stringify(formData))
-                    let logo=formData.company.logo
                     delete new_company.company
 
                     if(!formData.headquarter_id) {
@@ -227,7 +242,6 @@ import UploadCompanylogo from '../setup/compnents/upload-company-logo';
                       companies:[...user.companies,company_id],
                       companies_details:[...user.companies_details,{
                       ...formData,
-                      logo,
                       id:company_id,
                       admin_id:user.id,
                       _id:new Date().toISOString()
@@ -527,7 +541,7 @@ import UploadCompanylogo from '../setup/compnents/upload-company-logo';
 
               
               <div className="ml-7 mb-4">
-                 <UploadCompanylogo formData={formData} setFormData={setFormData}/>
+                 <MainUploader upload={upload} setUpload={setUpload}/>
               </div>
               <br/>
 

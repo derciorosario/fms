@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import VerifiedIcon from '../compnents/valid-icon';
-import UploadCompanylogo from '../compnents/upload-company-logo';
+import MainUploader from '../compnents/upload-company-logo';
 
-function FirstUsePerson({formData,setFormData}) {
+function FirstUsePerson({formData,setFormData,setUpload,upload}) {
 
 
   return (
@@ -82,7 +82,7 @@ function FirstUsePerson({formData,setFormData}) {
 
 
 
-       <UploadCompanylogo formData={formData} setFormData={setFormData}/>
+       <MainUploader setUpload={setUpload} upload={upload} formData={formData} setFormData={setFormData}/>
        
 
        

@@ -9,8 +9,8 @@ const socket = io('https://server-fms.onrender.com');
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import PouchDBFind from 'pouchdb-find';
-PouchDB.plugin(PouchDBFind);
 
+PouchDB.plugin(PouchDBFind);
 const DataContext = createContext();
 let DBUpdateID=Math.random()
    

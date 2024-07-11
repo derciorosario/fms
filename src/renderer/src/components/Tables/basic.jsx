@@ -831,6 +831,19 @@ useEffect(()=>{
   filname=`plano de contas`
   }
 
+    
+  if(page=="investments"){
+    _d=_filtered_content.map(item => ({
+      'ID':item.id,
+      'Nome / Descrição':item.description,
+      'Custo':data._cn(item.amount),
+      'Valor da depreciação':data._cn(parseFloat(item.depreciation).toFixed(2)),
+      'Data de compra':item.buyday.split('T')[0],
+      'Data de criação':item.createdAt.split('T')[0],
+  }))
+  filname=`Investimentos`
+  }
+
   
 
 

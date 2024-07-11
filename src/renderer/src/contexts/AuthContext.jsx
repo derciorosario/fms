@@ -3,8 +3,8 @@ import toast from 'react-hot-toast';
 import PouchDB from 'pouchdb';
 const AuthContext = createContext();
 
-
 export const AuthProvider = ({ children }) => {
+  
   let APP_BASE_URL='https://server-fms.onrender.com' //'http://localhost:4000'  //https://server-fms.onrender.com
   let COUCH_DB_CONNECTION='http://admin:secret@13.40.24.65:3000' //'http://root:secret@localhost:5984' //'http://admin:secret@13.40.24.65:3000'
   const [user, setUser] = useState(null);

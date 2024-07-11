@@ -36,7 +36,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 
           const required_data=['payment_methods']
 
-          const {_setRequiredData,_get,_loaded,_payment_methods,_add,_update,_cn_op,_scrollToSection,_openDialogRes,_setOpenDialogRes,_setOpenCreatePopUp} = useData();
+          const {_required_data,_setRequiredData,_get,_loaded,_payment_methods,_add,_update,_cn_op,_scrollToSection,_openDialogRes,_setOpenDialogRes,_setOpenCreatePopUp} = useData();
           
           
           
@@ -68,7 +68,7 @@ import { useAuth } from '../../../contexts/AuthContext';
                       navigate(`/payment_methods`)
                      }
                })()
-          },[db,pathname,_setRequiredData])
+          },[db,pathname,_required_data])
 
           useEffect(()=>{
             _setRequiredData(required_data)

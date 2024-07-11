@@ -5,7 +5,7 @@ import UserPreferencesLayout from '../../layout/UserPreferencesLayout';
 import NotificationToggles from './components/notificationToggles';
 import {CameraAltRounded, Edit} from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import { Button, Switch } from '@mui/material';
+import { Button, CircularProgress, Switch } from '@mui/material';
 import { useData } from '../../contexts/DataContext';
 import FormLayout from '../../layout/DefaultFormLayout';
 import PouchDB from 'pouchdb';
@@ -22,26 +22,28 @@ import ExpandMoreOutlined from '@mui/icons-material/ExpandMoreOutlined';
 import DefaultButton from '../../components/Buttons/default';
 import colors from '../../assets/colors.json'
 import FilterOptions from './components/options-filters';
+import MainUploader from '../setup/compnents/upload-company-logo';
 
 function App() {
  const { t } = useTranslation();
  const [page,setPage]=React.useState('profile')
  const [editMode,setEditMode]=React.useState(false)
- const {user,update_user,setUser,db} = useAuth()
- const {_settings} = useData()
+ const {user,db} = useAuth()
  const [showAccounts,setAccounts]=useState(false)
 
  const [showPassword, setShowPassword] = React.useState(false);
  const [loading, setLoading] = React.useState(false);
  const [valid, setValid] = React.useState(false);
- const {makeRequest,_add,_update,_loaded,_scrollToSection,_showPopUp,_setRequiredData} = useData();
+ const {_required_data,_update,_loaded,_scrollToSection,_showPopUp,_setRequiredData,_get} = useData();
+ const data = useData();
  const [formData, setFormData] = React.useState({contacts:[''],settings:{}});
  const [settingsDetails, setSettingsDetails]=React.useState({})
+ const [initialized,setInitialized]=useState(false)
 
- let required_data=['settings']
+ let required_data=['settings','account_categories']
 
  useEffect(()=>{
-  _setRequiredData(required_data)
+   _setRequiredData(required_data)
 },[])
 
  
@@ -56,13 +58,29 @@ function App() {
         set=set.rows.map(i=>i.doc)[0]
         setSettingsDetails(set)
         setFormData({...formData,settings:set.settings})
-        
+        setUpload({...upload,file:set.settings.file ? set.settings.file : {}})
+      
+
 
     }
     
   })()
      
- },[db,_setRequiredData])
+ },[db,_required_data])
+
+ useEffect(()=>{
+      _get(required_data.filter(i=>!_loaded.includes(i)))    
+ },[db])
+ 
+ 
+
+
+ useEffect(()=>{
+ if(!(required_data.some(i=>!_loaded.includes(i)))){
+      setInitialized(true)
+  }
+ },[_loaded])
+
 
  let required_fields=['name','last_name']
 
@@ -83,7 +101,7 @@ function App() {
       if(valid){
            try{
 
-            await _update('settings',[{...settingsDetails,settings:formData.settings}])
+            await _update('settings',[{...settingsDetails,settings:{...formData.settings,file:upload.file}}])
             toast.success('Actualizado com sucesso!')
               
            }catch(e){
@@ -94,6 +112,14 @@ function App() {
       }
  }
 
+
+
+ 
+ const [upload,setUpload]=React.useState({
+  uploading:false,
+  file:{},
+  progress:0
+})
 
  /*
 async function SubmitForm(){
@@ -177,6 +203,8 @@ async function SubmitForm(){
   }
 
 
+
+ 
   return (
 
     <>
@@ -185,14 +213,24 @@ async function SubmitForm(){
            {page=="profile"  ? <>
                
                <div className="py-6">
-                    <div className=" bg-app_orange-200 w-full rounded h-[150px] shadow-sm flex items-end justify-center mb-[100px]">
-                           
-                           
-                           <div className="flex items-center justify-center size-36 rounded-full bg-white shadow-sm translate-y-[50%] ">
-                                <CameraAltRounded sx={{color:colors.app_orange[400]}}/>
+
+                 
+ 
+               <div className=" bg-app_orange-200 w-full rounded h-[150px] shadow-sm flex items-end justify-center mb-[100px]">         
+                  
+                    <MainUploader upload={upload} setUpload={setUpload} CustomUploader={()=>(
+    
+                           <div  style={{backgroundRepeat:'no-repeat',backgroundSize:"contain",backgroundPosition:"center",backgroundImage:`url("${data.APP_BASE_URL+"/file/"+upload.file.generated_name?.replaceAll(' ','%20')}")`}} className="flex items-center justify-center size-36 rounded-full bg-white shadow-sm translate-y-[50%] ">
+                                {!upload.file.generated_name && <CameraAltRounded sx={{color:colors.app_orange[400]}}/>}
+                                {upload.uploading &&  <CircularProgress variant="determinate" style={{color:colors.app_orange[500]}} value={upload.progress / 100 * 100} /> }
                            </div>
-                           
-                    </div>
+                        
+                    )}/>
+
+              </div>
+
+
+                    
 
                     <div className="flex justify-center flex-col items-center">
                          <span className="font-semibold text-[19px] mb-1">{user.name}</span>
@@ -460,7 +498,7 @@ async function SubmitForm(){
                                     <h2 className="text-lg font-semibold leading-4 text-slate-700">{t('userPreferences.notifications.alerts')}</h2>
                                     <p className="font- text-slate-600">{t('userPreferences.notifications.alertsText')}</p>
                                     </div>
-                                    <NotificationToggles field="alerts" email={formData.settings?.alerts?.email} whatsapp={formData.settings?.alerts?.whatsapp} activeAndDisable={activeAndDisable}/>
+                                    <NotificationToggles initialized={initialized} field="alerts" email={formData.settings?.alerts?.email} whatsapp={formData.settings?.alerts?.whatsapp} activeAndDisable={activeAndDisable}/>
                                 </div>
             
                                 <div className="grid border-b py-6 sm:grid-cols-2">
@@ -468,45 +506,67 @@ async function SubmitForm(){
                                     <h2 className="text-lg font-semibold leading-4 text-slate-700">{t('userPreferences.notifications.reminders')}</h2>
                                     <p className="font- text-slate-600">{t('userPreferences.notifications.remindersText')}</p>
 
-                                    <div className=" mt-8 w-full">
+                                    <div className=" mt-8 w-full flex items-center">
                                          <span className="mr-3 font-light">Periodo de notificações</span>
-                                         <select onChange={(e)=>{
 
-                                            setFormData({...formData,settings:{...formData.settings,bills_not:{...formData.settings?.bills_not,days:e.target.value}}})
 
-                                         }} id="category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 p-2.5">
-                                              <option value={1} selected={Boolean(formData.settings?.bills_not?.days==1)}>1 dia antes</option>
-                                              <option vlaue={2} selected={Boolean(formData.settings?.bills_not?.days==7)}>Dentro de 7 dias</option>
-                                              <option value={3} selected={Boolean(formData.settings?.bills_not?.days==15)}>Dentro de 15 dias</option>
-                                         </select>
+                                        {!initialized ? <>
+
+                                          <div className="table border-r skeleton-bg h-[17px] rounded-[4px] w-[110px]"></div>
+                                        
+                                        </>:<>
+
+                                        <select onChange={(e)=>{
+
+                                                  setFormData({...formData,settings:{...formData.settings,bills_not:{...formData.settings?.bills_not,days:e.target.value}}})
+
+                                                  }} id="category" class="bg-gray-50 border border-gray-300 text-gray-900 font-normal text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 p-2.5">
+                                                    <option value={1} selected={Boolean(formData.settings?.bills_not?.days==1)}>1 dia antes</option>
+                                                    <option vlaue={2} selected={Boolean(formData.settings?.bills_not?.days==7)}>Dentro de 7 dias</option>
+                                                    <option value={3} selected={Boolean(formData.settings?.bills_not?.days==15)}>Dentro de 15 dias</option>
+                                                  </select>
+                                        </>}
+
+                                        
+
+                                         
                                     </div>
+
+
                                     <div className="mt-3 w-full flex items-center">
-                                     <span className="mr-3 font-light">Selecionar contas a notificar</span>
-                                    
-                                      <div className="_not_bill_accounts">
+                                     
+                                       <span className="mr-3 font-light">Selecionar contas a notificar</span>
+
+                                          {!initialized ? <>
+
+                                              <div className="table border-r skeleton-bg h-[17px] rounded-[4px] w-[110px]"></div>
+
+                                              </>:<>
+                                              <div className="_not_bill_accounts">
                                         <button onClick={()=>_showPopUp('not_bill_accounts')}  className={`flex relative items-center bg-gray-50 border border-gray-300 text-gray-900 text-sm  focus:outline-none font-medium  rounded-lg text-[13px] px-3 py-[3px] text-center`}>
                                             <FilterOptions formData={formData} setFormData={setFormData} show={showAccounts}/>
-                                        <span className="text-gray-900 ml-1 rounded-[0.3rem] flex p-1 items-center font-light">{formData.settings?.bills_not?.accounts?.length==0 ? 'Todas' : `${formData.settings?.bills_not?.accounts?.length} selecionado${formData.settings?.bills_not?.accounts?.length!=1 ? 's' :''}` } <ExpandMoreOutlined style={{width:16}}/></span>
+                                        <span className="text-gray-900 ml-1 rounded-[0.3rem] flex p-1 items-center font-normal">{formData.settings?.bills_not?.accounts?.length==0 ? 'Todas' : `${formData.settings?.bills_not?.accounts?.length} selecionado${formData.settings?.bills_not?.accounts?.length!=1 ? 's' :''}` } <ExpandMoreOutlined style={{width:16}}/></span>
                                         </button>
                                       </div>
-                                    </div>
+                                              </>}
+                                      </div>
 
                                     </div>
-                                    <NotificationToggles field={'reminder'} email={formData.settings?.reminder?.email} whatsapp={formData.settings?.reminder?.whatsapp} activeAndDisable={activeAndDisable}/>
+                                    <NotificationToggles initialized={initialized} field={'reminder'} email={formData.settings?.reminder?.email} whatsapp={formData.settings?.reminder?.whatsapp} activeAndDisable={activeAndDisable}/>
                                 </div>
                                 <div className="grid border-b py-6 sm:grid-cols-2">
                                     <div className="">
                                     <h2 className="text-lg font-semibold leading-4 text-slate-700">{t('userPreferences.notifications.updates')}</h2>
                                     <p className="font- text-slate-600">{t('userPreferences.notifications.updatesText')}</p>
                                     </div> 
-                                    <NotificationToggles field={'updates'} email={formData.settings?.updates?.email} whatsapp={formData.settings?.updates?.whatsapp} activeAndDisable={activeAndDisable}/>
+                                    <NotificationToggles initialized={initialized} field={'updates'} email={formData.settings?.updates?.email} whatsapp={formData.settings?.updates?.whatsapp} activeAndDisable={activeAndDisable}/>
                                 </div>
             
             
             
                      </div>
                      <div className="py-4">
-                      <DefaultButton goTo={SubmitForm} text={loading ? 'A actualizar...' :'Actualizar'} disabled={false}/>
+                      <DefaultButton goTo={SubmitForm} loading={!initialized} text={loading ? 'A actualizar...' :'Actualizar'} disabled={false}/>
                     </div>
            </>}
 

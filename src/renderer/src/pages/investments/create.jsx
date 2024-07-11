@@ -71,7 +71,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
                })()
 
-          },[db,pathname,setRequiredData])
+          },[db,pathname])
 
           useEffect(()=>{
             _setRequiredData(required_data)

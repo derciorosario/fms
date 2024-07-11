@@ -31,7 +31,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
           const [items,setItems]=React.useState([])
           const [initialized,setInitialized]=React.useState()
-          const {_get,_add,_update,_loaded,_setOpenDialogRes,_setOpenCreatePopUp,_openDialogRes,_setRequiredData} = useData();
+          const {_get,_add,_update,_loaded,_setOpenDialogRes,_setOpenCreatePopUp,_openDialogRes,_setRequiredData,_required_data} = useData();
           const data=useData()
 
         
@@ -53,7 +53,7 @@ import { useAuth } from '../../contexts/AuthContext';
                      }
                })()
 
-          },[pathname,db,_setRequiredData])
+          },[pathname,db,_required_data])
 
 
           useEffect(()=>{

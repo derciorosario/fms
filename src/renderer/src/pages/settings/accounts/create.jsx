@@ -28,7 +28,7 @@ import { useAuth } from '../../../contexts/AuthContext';
           const required_data=['account_categories']
           const [loading, setLoading] = React.useState(false);
           const [valid, setValid] = React.useState(false);
-          const {_setRequiredData,_account_categories,_add,_get,_update,_loaded,_categories,_setOpenDialogRes,_setOpenCreatePopUp,_openDialogRes} = useData();
+          const {_required_data,_setRequiredData,_account_categories,_add,_get,_update,_loaded,_categories,_setOpenDialogRes,_setOpenCreatePopUp,_openDialogRes} = useData();
           
           
 
@@ -49,7 +49,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 
                })()
 
-          },[db,pathname,_setRequiredData])
+          },[db,pathname,_required_data])
 
           useEffect(()=>{
             _setRequiredData(required_data)

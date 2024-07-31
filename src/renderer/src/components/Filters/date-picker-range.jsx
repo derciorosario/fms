@@ -7,6 +7,7 @@ import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown';
 import { useSearchParams, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 
 export default function DatePickerRange({open,options,setFilterOPtions}) {
@@ -17,6 +18,8 @@ const [defaultDates,setDefaultDates]=React.useState({end:'',start:''})
 const [openIgualOpions,setOpenIgualOptions]=React.useState(false)
 const [currentDateType,setCurrentDateType]=React.useState('monthly')
 const [searchParams, setSearchParams] = useSearchParams();
+
+const {user} =  useAuth()
 
 
 const handleOutsideClick = (event) => {
@@ -131,16 +134,20 @@ function selectIgualOrNot(value){
       let data_from=data[options.field]
       
       if((!options.endDate || !options.startDate) && data_from.length!=0){
-          let start=new Date(data_from[0].createdAt.split('T')[0])
+
+          let see_bill_transations=searchParams.get('see_bill_transations')
+           let start=new Date(see_bill_transations ? see_bill_transations : data_from[0].createdAt.split('T')[0])
           let end=new Date(data_from[data_from.length - 1].createdAt.split('T')[0])
           setFilterOPtions({...options,startDate:start,endDate:end})
           setDefaultDates({end,start})
+
+      
       }
  },[data[options.field]])
 
 
 
- function sendDateFilters(periodFilters){
+ async function sendDateFilters(periodFilters){
       let new_params={}
 
       new_params.end_date=periodFilters.endDate ? periodFilters.endDate : '',
@@ -154,8 +161,8 @@ function selectIgualOrNot(value){
   
    if((currentDateType=="monthly") && options.startDate){
 
+    
       if(options.startDate.getMonth()==new Date().getMonth()){
-        console.log('hi')
         check_and_uncheck('period',options.groups[0].items.filter(i=>i.id=="this_month")[0])
       }else{
         check_and_uncheck('period',{})

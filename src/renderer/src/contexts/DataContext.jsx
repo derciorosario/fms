@@ -1,24 +1,30 @@
-import { createContext, useContext, useState ,useEffect} from 'react';
+import { createContext, useContext, useState ,useEffect, act} from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import PouchDB from 'pouchdb';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import io from 'socket.io-client';
-const socket = io('https://server-fms.onrender.com');
+const socket = io('http://localhost:4000');
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import PouchDBFind from 'pouchdb-find';
+import toast from 'react-hot-toast';
 
 PouchDB.plugin(PouchDBFind);
 const DataContext = createContext();
 let DBUpdateID=Math.random()
+
+let app_db=new PouchDB('app')
    
 export const DataProvider = ({ children }) => {
 
-    const {user,APP_BASE_URL,remoteDBs,db,token,setUser,COUCH_DB_CONNECTION, update_user_data_from_db}=useAuth()
+    const {user,APP_BASE_URL,remoteDBs,db,FRONT_URL,token,setUser,COUCH_DB_CONNECTION, update_user_data_from_db}=useAuth()
 
     const [_required_data,_setRequiredData]=useState([])
+
+
+    
 
     
     const { t } = useTranslation();
@@ -34,6 +40,8 @@ export const DataProvider = ({ children }) => {
       bill_to_receive:'',
       email:'',
       invite:'',
+      company:'',
+      see_bill_transations:'',
       payment_type:[]
     }
     
@@ -100,6 +108,9 @@ export const DataProvider = ({ children }) => {
     const [initSynced,setInitSynced]=useState([])
     const [initSyncStatus,setInitSyncStatus]=useState(null)
     const [startReplicationTo,setStartReplicationTo]=useState(false)
+    const [notsUpdater,setNotsUpdater]=useState(uuidv4())
+    const [not_seen_nots,setNotSeenNots]=useState(false)
+    const [_app,setApp]=useState({})
     
 
     function _add_to_update_list(db){
@@ -120,6 +131,26 @@ export const DataProvider = ({ children }) => {
     },[ReplicationFromWaitingList,activeReplicationFrom])
 
 
+    useEffect(()=>{
+      (async()=>{
+
+         let default_app_v1={_id:uuidv4(),id:uuidv4(),v:1,developer:{contact:'258856462304',email:'derciorosario55@gmail.com'}}
+      
+          let d=await app_db.allDocs({ include_docs: true })
+          d=d.rows.map(i=>i.doc)
+
+          if(!d[0]){
+               await app_db.put(default_app_v1)
+               setApp(default_app_v1)
+          }else{
+               setApp(d[0])
+          }
+
+         
+      })()
+  },[])
+
+
 
     function replicate(type,dbName,live){
 
@@ -130,7 +161,7 @@ export const DataProvider = ({ children }) => {
                 live: live ? live : false,
                 retry: true,
               }).on('change', (info) => {
-                console.log(`Change detected and synced in ${dbName}:`, info);
+               console.log(`Change detected and synced in ${dbName}:`, info);
                 dbName.includes('managers-')
                 let db=dbName.split('-')[0]
                 if(!live){
@@ -157,11 +188,10 @@ export const DataProvider = ({ children }) => {
                   setActiveReplicationFrom(null)
                 }
               }).on('error', (err) => {
-                console.error(`Replication error in ${dbName}:`, err);
+              //  console.error(`Replication error in ${dbName}:`, err);
               })
               
     }
-
 
 
     
@@ -171,6 +201,33 @@ export const DataProvider = ({ children }) => {
 
       socket.on('db-update',(db)=>{
             _add_to_update_list(db)
+      })
+
+      socket.on('remove-company',async(company_id)=>{
+
+    
+
+            let u=new PouchDB('user')
+            let docs=await u.allDocs({ include_docs: true })
+            let user=docs.rows.map(i=>i.doc)[0]
+            let user_db=new PouchDB('user-'+user.id)
+            user_db.createIndex({index: { fields: ['id'] }})
+            let _user=await user_db.find({selector: { id:user.id }})
+            user=_user.docs[0]
+           
+            let new_user_content={...user,companies:user.companies.filter(i=>i!=company_id),companies_details:[...user.companies_details.filter(i=>i.id!=company_id)]}
+            await user_db.put(new_user_content)
+            setUser({...new_user_content,_rev:user.rev})
+
+            if(user.selected_company==company_id){
+               toast.error('Usuário removido')
+               window.location.href="/#/login"
+            }
+           
+      })
+
+      socket.on('update-nots',()=>{
+          setNotsUpdater(uuidv4())
       })
      
       socket.on('disconnect', (data) => {
@@ -214,6 +271,7 @@ export const DataProvider = ({ children }) => {
   const [_clients,setClients]=useState([])
   const [_suppliers,setSuppliers]=useState([])
   const [_investors,setInvestors]=useState([])
+  const [_notifications,setNotifications]=useState([])
   const [_account_categories,setAccountCategories]=useState([])
   const [_bills_to_pay,setABillsToPay]=useState([])
   const [_bills_to_receive,setABillsToReceive]=useState([])
@@ -241,6 +299,10 @@ export const DataProvider = ({ children }) => {
        update_id:DBUpdateID,
        company:user.selected_company
     })
+  }
+
+  function updateRemote(){
+    socket.emit('update-database')
   }
  
 
@@ -280,6 +342,7 @@ export const DataProvider = ({ children }) => {
     {name:'transations',edit_name:'transations',update:setTransations,db:db.transations,get:_transations,n:t('common.dbItems.transations')},
     {name:'budget',update:setBudget,db:db.budget,get:_budget},
     {name:'settings',update:setSettings,db:db.settings,get:_settings},
+    {name:'notifications',update:setNotifications,db:db.notification,get:_notifications},
   ]
 
 
@@ -329,7 +392,6 @@ function initSync(dbName){
   const localDB = new PouchDB(dbName);
   const remoteDB = new PouchDB(`${COUCH_DB_CONNECTION}/${dbName}`);
 
-  console.log({dbName})
 
   let ref=localDB.sync(remoteDB, {
     live: false,
@@ -347,18 +409,18 @@ function initSync(dbName){
     }
 
   }).on('paused', (err) => {
-    console.log(`Replication paused in ${dbName}:`, err);
+   // console.log(`Replication paused in ${dbName}:`, err);
   }).on('active', () => {
-   console.log(`Replication active in ${dbName}`);
+   //console.log(`Replication active in ${dbName}`);
     ///ref.cancel();
   }).on('denied', (err) => {
     console.error(`Replication denied in ${dbName}:`, err);
   }).on('complete', (info) => {
-    console.log(`Replication complete in ${dbName}:`, info);
+    //console.log(`Replication complete in ${dbName}:`, info);
     replicateNextDatabase(dbName)
     ref.cancel();
   }).on('error', (err) => {
-    console.error(`Replication error in ${dbName}:`, err);
+   // console.error(`Replication error in ${dbName}:`, err);
   })
 
   setInitSynced(prev=>([...prev,{name:dbName,ref}]))
@@ -394,9 +456,6 @@ useEffect(()=>{
 
 
 
-console.log({remoteDBs})
-
-
 
 
 useEffect(()=>{
@@ -406,7 +465,10 @@ useEffect(()=>{
    
    
     if(initSyncStatus=="completed" || initSyncStatus=="cancelled"){
+         
          remoteDBs.forEach(dbName=>{
+
+             //console.log({dbName})
 
               dbName=dbName.startsWith('__') ? dbName.slice(2,dbName.length) : dbName
 
@@ -417,7 +479,7 @@ useEffect(()=>{
                 live: true,
                 retry: true,
               }).on('change', () => {
-                //console.log(`Change detected and synced in ${dbName}:`, info);
+                console.log(`Change - detected and synced in ${dbName}:`, info);
 
                 if(dbName!="user") emitNewUpdateMessage(dbName)
                 if(dbName.includes('managers-') || dbName.includes('user-')){
@@ -425,15 +487,16 @@ useEffect(()=>{
                 }
 
               }).on('paused', (err) => {
-                //console.log(`Replication paused in ${dbName}:`, err);
+                console.log(`Replication paused in ${dbName}:`, err);
+                if(dbName!="user" && err) emitNewUpdateMessage(dbName)
               }).on('active', () => {
-                //console.log(`Replication active in ${dbName}`);
+               console.log(`Replication active in ${dbName}`);
               }).on('denied', (err) => {
-                console.error(`Replication denied in ${dbName}:`, err);
+               console.error(`Replication denied in ${dbName}:`, err);
               }).on('complete', (info) => {
-                //console.log(`Replication complete in ${dbName}:`, info);
+                console.log(`Replication complete in ${dbName}:`, info);
               }).on('error', (err) => {
-                console.error(`Replication error in ${dbName}:`, err);
+                //console.error(`Replication error in ${dbName}:`, err);
               })
 
               setActiveReplicationTo(prev=>([...prev,{name:dbName,ref}]))
@@ -465,7 +528,8 @@ useEffect(()=>{
 
 
    useEffect(()=>{
-         if(!user) return
+
+      if(!user) return
 
 
          socket.emit('user-info',{
@@ -476,7 +540,59 @@ useEffect(()=>{
             selected_company:user.selected_company
          })
 
+
+         if(online && (initSyncStatus=="completed" || initSyncStatus=="cancelled")){
+              remoteDBs.forEach(dbName=>{
+                _add_to_update_list(dbName)
+              })
+         }
+
+
+         remove_user(user)
+        
+
    },[user,online])
+
+
+
+   async function remove_user(user){
+
+      if(!user) return
+
+      if(!user.companies.includes(user.selected_company) || !user.companies.length){
+
+       // console.log(user.companies,user.selected_company)
+
+        
+
+            if(!user.selected_company) return
+
+            let new_companies=user.companies.filter(i=>i!=user.selected_company)
+            let user_db=new PouchDB('user-'+user.id)
+
+            console.log({new_companies})
+
+            if(new_companies.length){
+
+              let new_user_content={...user,companies:new_companies,companies_details:[...user.companies_details.filter(i=>i.id!=user.selected_company)],selected_company:null}
+              await user_db.put(new_user_content)
+              setUser({...new_user_content,_rev:res.rev})
+
+            }else{
+               user_db.destroy()
+               setUser(null)
+            }
+
+         
+          
+            toast.error('Usuário removido')
+            window.location.href="/#/login"
+            window.location.reload()
+
+         
+     }
+
+   }
 
 
   useEffect(()=>{
@@ -574,7 +690,7 @@ function _showCreatePopUp(page,from,details){
 
  let _initial_form={
     transations:{
-      id:'',
+      id:uuidv4(),
       type:'',
       description:'',
       deleted:false,
@@ -681,6 +797,222 @@ function _showCreatePopUp(page,from,details){
 
     return _data
    
+  }
+
+
+
+
+   const [uploadedToClound,setUploadedToClound]=useState([])
+   const [filesToUploadStatus, setFilesToUploadStatus]=useState('not_started')
+   const [filesToUploadUpdater, setFilesToUploadUpdater]=useState()
+   const [filesToUploadIndexUpdater, setFilesToUploadIndexUpdater]=useState()
+
+
+    function f_to_upload(clear){
+            if(clear){
+              localStorage.setItem('files-to-upload',JSON.stringify([]))
+            }else{
+              return  JSON.parse(localStorage.getItem('files-to-upload') ? localStorage.getItem('files-to-upload') : "[]")
+            }
+            
+    }
+
+    function f_to_upload_current(set){
+        if(set!=undefined || set==0){
+          localStorage.setItem('files-to-upload-index',set)
+          setFilesToUploadIndexUpdater(uuidv4())
+          if(set==-1){
+            f_to_upload('clear')
+            setFilesToUploadStatus('stopped')
+          }
+        }else{
+          return !localStorage.getItem('files-to-upload-index') ? null : parseInt(localStorage.getItem('files-to-upload-index'))
+        }
+       
+    }
+
+    async function search_stored_files(){
+      let file_db=new PouchDB('stored_files')
+      let docs=await  file_db.allDocs({ include_docs: true })
+      docs=docs.rows.map(i=>i.doc)
+      console.log({docs})
+      setFilesToUploadUpdater(uuidv4())  
+      localStorage.setItem('files-to-upload',JSON.stringify([...f_to_upload(),...docs.filter(i=>!i.uploaded)]))
+    }
+
+    useEffect(()=>{
+           f_to_upload_current(-1)
+           search_stored_files()
+           f_to_upload('clear')
+      
+    },[])
+
+
+
+  async  function uploadToCloud(file){
+
+        const formData = new FormData();
+        let _file=JSON.parse(JSON.stringify(file))
+        delete _file.base64
+        delete _file.exists
+        delete _file.save_doc
+        formData.append('file', JSON.stringify(_file));  
+        formData.append('base64', file.base64); 
+        formData.append('user', localStorage.getItem('__user')); 
+        
+        
+        try{
+            let res=await makeRequest({method:'post',url:`api/upload-to-cloud`,data:formData, error: ``},0);
+
+             console.log(res.status)
+            if(res.status==200){
+
+              setUploadedToClound(prev=>([...prev,_file.id]))
+
+              
+              console.log('uploaded')
+
+              if(file.save_doc){
+                let item =  await db[file.from].find({selector: {id:file.from_id}})
+                item=item.docs[0]
+                await _update(file.from,[{...item,files:[_file]}])
+             }
+
+              let file_db=new PouchDB('stored_files')
+              let f=await file_db.get(file._id)
+              await file_db.remove(f)
+  
+              if(f_to_upload()[f_to_upload_current() + 1]){
+                  f_to_upload_current(f_to_upload_current() + 1)
+              }else{
+                  f_to_upload_current(-1)
+              }
+
+             
+
+
+            }else if(res.status==409){
+
+              let file_db=new PouchDB('stored_files')
+              let f=await file_db.get(file._id)
+              await file_db.remove(f)
+
+            }else{
+                setTimeout(()=>filesToUploadIndexUpdater,3000)
+            }
+           
+
+    
+        }catch(e){
+          if(e.code=="ERR_NETWORK"){
+            
+          }else{
+            if(f_to_upload()[f_to_upload_current() + 1]){
+                f_to_upload_current(f_to_upload_current() + 1)
+            }else{
+                f_to_upload_current(-1)
+            } 
+          }
+
+          console.log(e)
+        }
+        
+    }
+
+    useEffect(()=>{
+
+      if(!window.electron) return
+
+      window.electron.ipcRenderer.on('read-file',async(event,res)=>{
+          
+          if(res.exists){
+               uploadToCloud(res)
+               if(res._id){
+                     try{
+
+                      let file_db=new PouchDB('stored_files')
+                      let f=await file_db.get(file._id)
+                      await file_db.remove(f)
+
+                     }catch(e){}
+               }
+          }else{
+
+            if(f_to_upload()[f_to_upload_current() + 1]){
+                 f_to_upload_current(f_to_upload_current() + 1)
+            }else{
+                 f_to_upload_current(-1)
+            }
+            
+          }
+      })
+    },[])
+
+
+    useEffect(()=>{
+
+    
+      if(!f_to_upload().length  || !filesToUploadUpdater || !user || !online || (initSyncStatus!="completed" && initSyncStatus!="cancelled")) return
+      localStorage.setItem('__user',JSON.stringify({id:user.id,selected_company:user.selected_company}))
+
+
+      if(f_to_upload_current()==-1){
+           f_to_upload_current(0)
+           setFilesToUploadStatus('started')
+      }
+
+ 
+    },[filesToUploadUpdater,user,online,initSyncStatus])
+
+
+    useEffect(()=>{
+      if(filesToUploadStatus!="started" && online){
+          search_stored_files()
+      }
+    },[online])
+    
+
+
+    useEffect(()=>{
+
+      if(f_to_upload_current()==-1  || !filesToUploadIndexUpdater || !window.electron || !f_to_upload().length) return
+
+      window.electron.ipcRenderer.send('read-file',f_to_upload()[f_to_upload_current()])
+
+    },[filesToUploadIndexUpdater])
+
+
+   
+
+
+
+  async function store_uploaded_file_info(file,action){
+
+     if(!file) return
+
+     let file_db=new PouchDB('stored_files')
+
+     if(action!="get"){
+
+      let f=await  file_db.find({selector: { from_id:file.from_id }})
+      f=f.docs[0]
+
+
+      if(f){
+        await file_db.put({...f,...file,id:f.id,_rev:f._rev})
+        search_stored_files()
+      }else{
+        await file_db.put({...file,_id:uuidv4()})
+        search_stored_files()
+      }
+        
+     }else{
+      let f=await  file_db.find({selector: { from_id:file.from_id}})
+      return f.docs[0]
+    }
+
+    return
+
   }
 
 
@@ -816,7 +1148,7 @@ function get_stat_data(filterOptions,period){
      
     }
 
-    let p_length=period=="m" ? 12 : 31
+    let p_length=period=="m" ? 12 : 32
     let projected=Array.from({ length: p_length }, () => [])
     let projected_budget=Array.from({ length: p_length }, () => [])
     let done=Array.from({ length: p_length }, () => [])
@@ -1659,8 +1991,8 @@ function exportToExcelArray(data,fileName){
 
 
 const [_printData,setPrintData]=useState({data:[],type:null/**array or object */})
-const _print = (data,type) =>{
-       setPrintData({data,type})
+const _print = (data,type,from) =>{
+       setPrintData({data,type,from})
        setTimeout(()=> window.print(),100)
      
 }
@@ -1668,7 +2000,7 @@ const _print = (data,type) =>{
 
 
 
-function _print_exportExcel(data,type,currentMenu,period,project_only,month,title){
+function _print_exportExcel(data,type,currentMenu,period,project_only,month,title,from){
 
   let _d=[]              
   let months=['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'].filter((_,_i)=>currentMenu!=1 || _i==month)
@@ -1785,7 +2117,7 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
     _d.unshift([title])
     exportToExcelArray(_d,`Relatorio ${period=="m" ? 'mensal' :'diário'} de fluxo de caixa - ${_convertDateToWords(_today(),null,'all')}  ${new Date().getHours()}_${new Date().getMinutes()}`)
   }else{
-    _print(currentMenu==0 ? [] : _d,'array')
+    _print(currentMenu==0 ? [] : _d,'array',from)
   }  
 }
 
@@ -1809,12 +2141,6 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
 
         }
 
-        /*if(name=="cash_account_balance"){
-             let main_id=_accounts.filter(i=>i.main)[0]?.id
-             if(!main_id) return 0
-             return  _transations.filter(i=>i.transation_account.id==main_id).map(item => (item.type=="out" ? - (item.amount) : item.amount)).reduce((acc, curr) => acc + curr, 0)
-   
-        }*/
 
         if(name=="bills_to_pay"){
            let today=_bills_to_pay.filter(i=>i.payday.split('T')[0]==new Date().toISOString().split('T')[0] && i.status!="paid").map(item => (item.type=="out" ? - (item.amount - parseFloat(item.paid ? item.paid : 0)) : (parseFloat(item.amount) - parseFloat(item.paid ? item.paid : 0)))).reduce((acc, curr) => acc + curr, 0)
@@ -2365,6 +2691,7 @@ if(filterOptions){
     _showPopUp,
     _closeAllPopUps,
     _openCreatePopUp,
+    updateRemote,
     _setOpenCreatePopUp,
     _add,
     setInitSyncStatus,
@@ -2387,6 +2714,9 @@ if(filterOptions){
     _bills_to_receive,
     _accounts,
     _transations,
+    _notifications,
+    not_seen_nots,
+    setNotSeenNots,
     _sort_by_date,
     _filtered_content,
     _setFilteredContent,
@@ -2420,14 +2750,21 @@ if(filterOptions){
     _initial_form,
     _loading,
     _openDialogRes,
+    FRONT_URL,
     _calculateInvestmentCost,
     deleteAllDocuments,
     APP_BASE_URL,
+    notsUpdater,
     _setOpenDialogRes,
     _print_exportExcel,
     _exportToExcel,
+    uploadedToClound,
     replicate,
+    daysBetween,
     dbs,
+    _app,
+    _add_to_update_list,
+    store_uploaded_file_info,
     online
   };
 
@@ -2440,7 +2777,7 @@ if(filterOptions){
      let response 
      let headers={
       'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
      }
 
      if(options.method=="post") {
@@ -2456,6 +2793,10 @@ if(filterOptions){
       console.error('Error fetching data:', error);
 
       if (maxRetries > 0) {
+            if(online) {
+              updateRemote()
+              console.log('--updating...')
+            }
             await new Promise(resolve => setTimeout(resolve, retryDelay)); 
             return makeRequest(options, maxRetries - 1, retryDelay); 
       } else {

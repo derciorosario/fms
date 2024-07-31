@@ -104,6 +104,8 @@ import FirstStart from './pages/setup/index'
 
 import UserPreferences from './pages/user-preferences/index'
 
+import NotFound from './pages/404/index';
+
 
 function App() {
 
@@ -196,12 +198,12 @@ function App() {
         <Route path="/reset" element={<ProtectedRoute redirectTo="/reset"> <Home/></ProtectedRoute>} />
     
         <Route path="/login" element={ <Login/>} />
-      <Route path="/recover-password" element={ <Login/>} />
+        <Route path="/recover-password" element={ <Login/>} />
         <Route path="/admin" element={ <Admin/>} />
         <Route path="/new-company" element={ <FirstStart/>} />
         <Route path="/confirm-invite" element={ <FirstStart/>} />
         <Route path="/logout" element={<ProtectedRoute redirectTo="/logout">  </ProtectedRoute>} />
-
+        <Route path="*" element={<NotFound />} />
       </Routes>
 
     </HashRouter>

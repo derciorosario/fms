@@ -39,7 +39,7 @@ io.on('connection', (socket) => {
 let mainWindow;
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 900,
+    width: 1200,
     height: 670,
     show: false,
     autoHideMenuBar: true,
@@ -50,16 +50,38 @@ function createWindow() {
     }
   });
 
-  let upload_file_path = join(__dirname, './uploads');
+
+  let upload_file_path = join(app.getPath('userData'), '/uploads');
+  let download_file_path = join(app.getPath('userData'), '/downloads');
+  let basePath=app.getPath('userData') //__dirname
+  //let upload_file_path = join(__dirname, '/uploads');
+  //let download_file_path = join(__dirname, '/downloads');
+
+
+
+
+  async function copyFile(source, destination) {
+    try {
+        await fs.copyFile(source, destination);
+        return
+    } catch (err) {
+       console.log(err)
+       return
+    }
+}
+
 
   function create_upload_folder() {
-    /*
+
+    
     if (!fs.existsSync(upload_file_path)) {
-      fs.mkdirSync(upload_file_path, { recursive: true });
-      return `Folder created at ${upload_file_path}`;
-    } else {
-      return `Folder already exists at ${upload_file_path}`;
-    }*/
+     fs.mkdirSync(upload_file_path, { recursive: true });
+    }
+
+    if (!fs.existsSync(download_file_path)) {
+      fs.mkdirSync(download_file_path, { recursive: true });
+    }
+
   }
 
   mainWindow.on('ready-to-show', () => {
@@ -88,41 +110,77 @@ app.whenReady().then(() => {
 
   ipcMain.on('ping', () => console.log('pong'));
 
-  ipcMain.on('open-file-in-folder', (event, filePath) => {
-    shell.showItemInFolder(filePath);
-  });
 
+  
 
-  ipcMain.on('open-file', (event, filePath) => {
-    shell.openPath(filePath).then((error) => {
-      if (error) {
-        console.error('Failed to open file:', error);
+  ipcMain.on('open-file-in-folder',async (event, filename) => {
+    fs.access(join(basePath, '/uploads/'+filename.replaceAll('%20', ' ')), fs.constants.F_OK, (err1) => {
+      if(!err1){
+        shell.showItemInFolder(join(basePath, '/uploads/'+filename.replaceAll('%20', ' ')));
+      }else{
+        mainWindow.webContents.send('file-exists-result', !err1);      
       }
-    });
+    })
+    
   });
 
-  ipcMain.on('check-file-exists', (event, filePath) => {
-    fs.access(filePath, fs.constants.F_OK, (err) => {
-      mainWindow.webContents.send('file-exists-result', !err);
-    });
+ 
+
+  ipcMain.on('open-file',async (event, filename) => {
+    fs.access(join(basePath, '/uploads/'+filename.replaceAll('%20', ' ')), fs.constants.F_OK, (err1) => {
+      if(!err1){
+        shell.openPath(join(basePath, '/uploads/'+filename.replaceAll('%20', ' ')))
+      }else{
+       mainWindow.webContents.send('file-exists-result', !err1);
+      }
+    })
   });
 
 
-  const uploadsDir = path.join(__dirname, 'uploads');
-  ipcMain.on('download-file', async (event, url) => {
-    const dest = path.join(uploadsDir, path.basename(url));
+
+  ipcMain.on('check-file-exists',async (event, filename) => {
+     fs.access(join(basePath, '/uploads/'+filename.replaceAll('%20', ' ')), fs.constants.F_OK, (err1) => {
+         mainWindow.webContents.send('file-exists-result', !err1);
+    })
+   
+  });
+
+
+ //const uploadsDir = path.join(app.getPath('userData'), '/uploads');
+ //const uploadsDir = path.join(__dirname, '/uploads')
+
+ ipcMain.on('read-file', async (event, file) => {
+ 
+  try {
+    const filePath = path.join(basePath, '/uploads', file.generated_name.replaceAll('%20', ' '));
+
+    // Check file existence
+    await fs.promises.access(filePath, fs.constants.F_OK);
+
+    // Read file content
+    const data = await fs.promises.readFile(filePath);
+
+    // Send data to renderer
+    mainWindow.webContents.send('read-file', {...file, base64: data.toString('base64'), exists: true });
+  } catch (error) {
+    console.error('Error reading file:', error); // Log the actual error
+    mainWindow.webContents.send('read-file', { error: true, ...file });
+  }
+});
+
+ 
+  ipcMain.on('download-file', async (event, f) => {
+    const dest = path.join(uploadsDir, path.basename(f.dest));
 
     const file = fs.createWriteStream(dest);
-    const protocol = url.startsWith('https') ? https : http;
+    const protocol = f.dest.startsWith('https') ? https : http;
+    
   
-    console.log('download-file', url);
-  
-    protocol.get(url, (response) => {
+    protocol.get(f.dest, (response) => {
       const totalBytes = parseInt(response.headers['content-length'], 10);
       let receivedBytes = 0;
   
       response.pipe(file);
-  
       response.on('data', (chunk) => {
         receivedBytes += chunk.length;
         const progress = (receivedBytes / totalBytes) * 100;
@@ -131,7 +189,20 @@ app.whenReady().then(() => {
   
       file.on('finish', () => {
         file.close(() => {
-          mainWindow.webContents.send('download-complete', dest);
+          const oldFileName=path.basename(f.dest)
+          const newFileName = oldFileName.replaceAll('%20', ' ');
+          const oldPath = path.join(uploadsDir, oldFileName);
+          const newPath = path.join(uploadsDir, newFileName);
+          setTimeout(() => {
+            fs.rename(oldPath, newPath, (err) => {
+              if (err) {
+                console.error('Error renaming file:', err);
+              } else {
+                console.log('File renamed successfully!');
+              }
+            });
+          }, 1000)
+          mainWindow.webContents.send('download-complete', {...f.file});
         });
       });
   
@@ -158,7 +229,17 @@ app.whenReady().then(() => {
 
   
 
-  ipcMain.on('file-upload', (event, file) => {
+  ipcMain.on('file-upload',async (event, file) => {
+
+    console.log({v:app.getPath('userData')})
+     //join(file.path),join(app.getPath('userData'), '/uploads/')
+   /* fs.copyFile(join(file.path),join(__dirname, '/uploads/'), (err) => {
+      if (err) throw err;
+      console.log('File was copied to destination');
+    });*/
+
+    
+
     const fileStream = fs.createReadStream(join(file.path));
     const fileSize = fs.statSync(file.path).size;
     let uploadedSize = 0;
@@ -170,10 +251,15 @@ app.whenReady().then(() => {
     });
 
     fileStream.on('end', () => {
+       delete file.path
        mainWindow.webContents.send('upload-complete', file); // Optionally notify upload complete
     });
-
-    fileStream.pipe(fs.createWriteStream(join(__dirname, './uploads/' + file.generated_name)));
+    //join(app.getPath('userData')
+    fileStream.pipe(fs.createWriteStream(join(basePath, '/uploads/' + file.generated_name)));
+  
+  
+  
+  
   });
 
   createWindow();

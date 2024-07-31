@@ -17,8 +17,10 @@ import {useParams, useNavigate, useLocation} from 'react-router-dom';
 import PouchDB from 'pouchdb';
 import FormLayout from '../../../layout/DefaultFormLayout';
 import MultipleSelectChip from '../../../components/TextField/chipInput';
-import { Info } from '@mui/icons-material';
-import { v4 as uuidv4 } from 'uuid';     
+import { ArrowRightOutlined, Close, ContentCopy, Info } from '@mui/icons-material';
+import { v4 as uuidv4 } from 'uuid';  
+import colors from '../../../assets/colors.json'   
+import { Alert, CircularProgress } from '@mui/material';
        
        function App() {
 
@@ -59,6 +61,13 @@ import { v4 as uuidv4 } from 'uuid';
           const [loaded, setLoaded] = React.useState([]);
           const [initialized, setInitialized] = React.useState(false);
           const [canEdit,setCanEdit] = React.useState(true)
+          const [inviteLoader,setInviteLoader] = React.useState(true)
+          const [showInviteD,setShowD] = React.useState(false)
+          const [savedInvite,setSavedInvite] = React.useState()
+          const [inviteRes,setInviteRes] = React.useState(null)
+          const [prevEmail,setPrevEmail] = React.useState('')
+
+
          
 
 
@@ -72,6 +81,7 @@ import { v4 as uuidv4 } from 'uuid';
                      item=item.docs[0]
                      if(item){
                      setFormData(item)
+                     setPrevEmail(item.email)
                      handleLoaded('form','add')
                      }else{
                       toast.error('Item não encontrado')
@@ -174,11 +184,16 @@ import { v4 as uuidv4 } from 'uuid';
 
             let email_used=false
 
+           
+
             if(valid){
-               
+
                let companies=user.companies_details.filter(i=>chipOptions.includes(i.name)).map(i=>i.id)
                
-               try{     
+               try{  
+                  
+                 
+      
 
                      if(id){
 
@@ -186,16 +201,42 @@ import { v4 as uuidv4 } from 'uuid';
                            last_companies=last_companies.docs[0].companies
                            let removed_from=last_companies.filter(i=>!companies.includes(i))
 
+                          
                            for (let i = 0; i < removed_from.length; i++) {
                               let company=new PouchDB('managers-'+removed_from[i])
                               let manager = await company.find({selector: {email:formData.email}})
                               manager=manager.docs[0]
                               await company.put({...formData,deleted:true,_rev:manager._rev})
+                              data._add_to_update_list('managers-'+removed_from[i])
                            
                            }
 
-                      }
 
+
+                           if(user.email==prevEmail || formData.created_by==user.id){
+                       
+                              for (let i = 0; i < last_companies.length; i++) {
+                                 let company=new PouchDB('managers-'+last_companies[i])
+                                 let manager = await company.find({selector: {email:formData.email}})
+                                 manager=manager.docs[0]
+                                 console.log({manager})
+                                 await company.put({...formData,_rev:manager._rev})
+                                 data._add_to_update_list('managers-'+last_companies[i])
+                              
+                              }
+
+                              if(user.email==prevEmail){
+
+                                 toast.success('Usuário '+(id ? "actualizado" : "criado"))
+                                 setLoading(false)
+                                 return
+
+                              }
+   
+                              
+                           }
+
+                      }
 
                       let managers=[]
                       
@@ -227,10 +268,13 @@ import { v4 as uuidv4 } from 'uuid';
 
                      if(!email_used){
 
+
                         for (let i = 0; i < managers.length; i++) {
 
+                           let company_id=JSON.parse(JSON.stringify(managers[i].company_id))
                            let company=new PouchDB('managers-'+managers[i].company_id)
                            delete managers[i].company_id
+
                            if(managers[i].action=="update"){
                               delete managers[i].action
                               await company.put(managers[i])    
@@ -238,8 +282,11 @@ import { v4 as uuidv4 } from 'uuid';
                               delete managers[i].action
                               let form=JSON.parse(JSON.stringify(formData))
                               delete form._rev
-                              company.put({...form,id:uuidv4(),_id:new Date().toISOString(),companies,created_by:user.id})
+                              await company.put({...form,id:uuidv4(),_id:new Date().toISOString(),companies,created_by:user.id})
                            }
+
+                            data.replicate('from','managers-'+company_id,false)
+                            data._add_to_update_list('managers-'+company_id)
 
                        }
 
@@ -248,7 +295,58 @@ import { v4 as uuidv4 } from 'uuid';
                     
                     
                      setLoading(false)
-                     if(!email_used) toast.success('Usuário '+(id ? "actualizado" : "criado"))
+                     if(!email_used) {
+                        toast.success('Usuário '+(id ? "actualizado" : "criado"))
+
+
+
+                           if(!id){
+
+                                 setSavedInvite(formData.invite)
+
+                                 setInviteRes(null)
+                                 setShowD(true)
+
+                                 if(!data.online){
+                                    setInviteRes(false)
+                                    setInviteLoader(false)
+                                    return
+                                 }
+
+                                 try{
+
+                                    let res=await data.makeRequest({method:'post',url:`api/check-invite/`,data:{
+
+                                       email:formData.email,
+                                       invite:formData.invite
+
+                                    }, error: ``},8);
+
+                                    if(res.first_login){
+
+                                       setInviteRes(null)
+                                       setInviteLoader(false)
+                                       setShowD(false)
+                                       toast('Convite validado')
+
+                                    }else{
+
+                                       if(inviteRes==null) setInviteRes(true)
+                                       setInviteLoader(false)
+
+                                    }
+                                   
+
+                                 }catch(e){
+                                       setInviteRes(false)
+                                       setInviteLoader(false)
+                                       setShowD(true)
+                                 }
+                        }
+                     }
+
+
+                     
 
               }catch(e){
                      setLoading(false)
@@ -268,61 +366,7 @@ import { v4 as uuidv4 } from 'uuid';
       }
 
 
-          /*
-         async function SubmitForm(){
-              if(valid){
-                  setLoading(true)
-                  toast.loading(`${id ? 'A actualizar...' :'A enviar...'}`)
-                  try{
-                     let response = await makeRequest({method:'post',url:`api/user/`+(id ? "update" : "create"),data:{
-                        ...formData,companies:data._companies.filter(i=>chipOptions.includes(i.name)).map(i=>i.id)
-                     }, error: ``},0);
-                     toast.remove()
-                     toast.success('Usuário '+(id ? "actualizado" : "criado"))
-
-                     if(id){
-                        _update('managers',[response])
-                     }else{
-                        _add('managers',[response])
-                        setVerifiedInputs([])
-                        setFormData(initial_form)
-                        setChipOptions([])
-                     }
-                     setLoading(false)
-                 }catch(e){
-                  toast.remove()
-                   if(e.response){
-                         if(e.response.status==409){
-                             toast.error('Email ou nome já existe')
-                         }
-                         if(e.response.status==400){
-                             toast.error('Dados invalidos')
-                         }
-                         if(e.response.status==404){
-                           toast.error('Item não encontrado')
-                         }
-                         if(e.response.status==500){
-                           toast.error('Erro interno do servidor, contacte seu administrador')
-                         }
-                       
-                         
-                   }else if(e.code=='ERR_NETWORK'){
-                        toast.error('Verifique sua internet e tente novamente')
-                   }else{
-                        console.log(e)
-                        toast.error('Erro inesperado!')
-                   }
-                   setLoading(false)
-                 }
-                 
-              }else{
-               toast.error('Preencha todos os campos obrigatórios')
-              }
-          }*/
-
-
-
-
+       
           useEffect(()=>{
             let v=true
             Object.keys(formData).forEach(f=>{
@@ -331,7 +375,7 @@ import { v4 as uuidv4 } from 'uuid';
                }
            })
 
-            if(!chipOptions.length || !canEdit || formData.email==user.email) v=false
+            if(!chipOptions.length || ((!canEdit || formData.email==user.email) && prevEmail!=user.email)) v=false
 
 
            setValid(v)
@@ -340,7 +384,7 @@ import { v4 as uuidv4 } from 'uuid';
 
         
           const handleCopyClick = (text) => {
-            navigator.clipboard.writeText('http://13.40.24.65:3001/#/confirm-invite?invite='+formData.invite).then(() => {
+            navigator.clipboard.writeText(data.FRONT_URL+'/#/confirm-invite?invite='+(savedInvite ? savedInvite : formData.invite)).then(() => {
               toast.success('Texto copiado!');
             }).catch(err => {
               alert('Failed to copy text: ', err);
@@ -351,14 +395,78 @@ import { v4 as uuidv4 } from 'uuid';
         
          return (
            <>
+
+                <div className={`bg-[rgba(0,0,0,0.4)]  ${!showInviteD ? 'translate-y-[10%] opacity-0 pointer-events-none' :'' } transition duration-75 ease-in-out h-[100vh] w-full fixed z-20 flex items-center justify-center`}>
+                     
+                     { inviteRes != null && <div className="flex w-full h-full absolute left-0 top-0" onClick={()=>{
+                        setInviteRes(null)
+                        setInviteLoader(false)
+                        setShowD(false)
+                     }}></div>}
+                   
+                     {inviteRes != null && <div className="flex absolute top-6 left-6 cursor-pointer hover:opacity-65" onClick={()=>{
+                        setInviteRes(null)
+                        setInviteLoader(false)
+                        setShowD(false)
+                     }}>
+                         <div className="mr-2 shadow-sm  bg-app_orange-400 flex items-center justify-center rounded-sm">
+                             <Close sx={{color:'#fff'}}/>
+                         </div>
+                         <span className="text-white">Fechar</span>
+                     </div>}
+
+                     <div className="flex items-center mt-3 mb-3 p-3 rounded-[0.3rem] bg-white relative z-10">
+                            {inviteLoader && <div className="flex items-center">
+                               <span className="flex scale-75 mr-2"><CircularProgress style={{color:colors.app_orange[500]}} value={10} /></span>
+                               <span>A validar convite...</span>
+                            </div> } 
+
+                            {inviteRes != null && <div>
+                                 {inviteRes == false && <div className="max-w-[400px] min-w-[400px]">
+                                    <Alert severity="warning">Não foi possivel validar o convite. O link poderá ser criado assim que conectar a internet!</Alert>        
+                                 </div>}
+
+                                 {inviteRes == true && <div className="max-w-[400px] min-w-[400px]">
+                                    <Alert security="info">Link validado.</Alert>        
+                                 </div>}
+
+                                 {<div className="flex items-center mt-5">
+                                       <button className="bg-app_orange-400  text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{
+                                                handleCopyClick()
+                                                setShowD(false)  
+                                       }}><span> <ContentCopy/></span>Copiar link</button> 
+
+
+                                       <div onClick={()=>{
+                                             window.open(data.FRONT_URL+'/#/confirm-invite?invite='+(savedInvite ? savedInvite : formData.invite), "_blank")
+                                       }} className="px-4 text-app_orange-400 underline cursor-pointer table hover:opacity-80"><ArrowRightOutlined/> Aceder ao link</div>
+                                 </div>}
+
+
+                           </div> }
+                     </div>
+              
+             
+                   </div>
+
+
               <FormLayout loading={!initialized} name={ `${id ? 'Actualizar Gestor' : 'Novo Gestor'}`} formTitle={id ? 'Actualizar' : 'Adicionar'}  topLeftContent={(
                   <>
-                     {formData.firstLogin && <span className="text-gray-400 font-light"><Info sx={{width:20}}/> Não poderá editar dados pessoais</span>}
+                     {(formData.firstLogin && prevEmail!=user.email && formData.created_by!=user.id) && <span className="text-gray-400 font-light"><Info sx={{width:20}}/> Não poderá editar dados pessoais</span>}
 
-                      {!formData.firstLogin && <div onClick={()=>{
-                         toast.error('clipboard não funciona no modo http')
-                         setTimeout(()=>window.open('http://13.40.24.65:3001/#/confirm-invite?invite='+formData.invite, "_blank"),4000)
-                       }} className="px-6 text-app_orange-400 underline cursor-pointer table hover:opacity-80">Copiar convite</div>}
+                      {(!formData.firstLogin && id) && <div className="flex items-center">
+
+                        <div onClick={()=>{
+                         handleCopyClick()
+                       }} className="px-2 text-app_orange-400 underline cursor-pointer table hover:opacity-80"><ContentCopy/> Copiar convite</div>
+
+ 
+                        <div onClick={()=>{
+                         window.open(data.FRONT_URL+'/#/confirm-invite?invite='+(savedInvite ? savedInvite : formData.invite), "_blank")
+                       }} className="px-2 text-app_orange-400 underline cursor-pointer table hover:opacity-80"><ArrowRightOutlined/> Aceder ao link</div>
+
+
+                      </div>}
                      
 
                   </>
@@ -375,7 +483,7 @@ import { v4 as uuidv4 } from 'uuid';
                            label="Nome *"
                            placeholder="Digite o nome"
                            multiline
-                           disabled={formData.firstLogin || !canEdit ? true : false}
+                           disabled={(formData.firstLogin || !canEdit) && prevEmail!=user.email && formData.created_by!=user.id ? true : false}
                            value={formData.name}
                            onBlur={()=>validate_feild('name')}
                            onChange={(e)=>setFormData({...formData,name:e.target.value})}
@@ -392,7 +500,7 @@ import { v4 as uuidv4 } from 'uuid';
                            label="Apelido *"
                            placeholder="Digite o apelido"
                            value={formData.last_name}
-                           disabled={formData.firstLogin || !canEdit ? true : false}
+                           disabled={(formData.firstLogin || !canEdit) && prevEmail!=user.email && formData.created_by!=user.id ? true : false}
                            onBlur={()=>validate_feild('last_name')}
                            onChange={(e)=>setFormData({...formData,last_name:e.target.value})}
                            error={(!formData.last_name)  && verifiedInputs.includes('last_name') ? true : false}
@@ -413,8 +521,8 @@ import { v4 as uuidv4 } from 'uuid';
                            value={formData.email}
                            onBlur={()=>validate_feild('email')}
                            onChange={(e)=>setFormData({...formData,email:e.target.value})}
-                           error={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') || formData.email==user.email ? true : false}
-                           helperText={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') ? "Email inválido":formData.email==user.email ? 'Não pode adicionar seu email':''}
+                           error={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') || formData.email==user.email && !formData.firstLogin ? true : false}
+                           helperText={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') ? "Email inválido":formData.email==user.email && !formData.firstLogin ? 'Não pode adicionar seu email':''}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -429,7 +537,7 @@ import { v4 as uuidv4 } from 'uuid';
                                size="small"
                                options={formData.contacts}
                                getOptionLabel={(option) => option}
-                               disabled={formData.firstLogin || !canEdit ? true : false}
+                               disabled={(formData.firstLogin || !canEdit) && prevEmail!=user.email && formData.created_by!=user.id ? true : false}
                                renderInput={(params) => (
                                   <TextField {...params} label="Contactos" placeholder="Digite os contactos" />
                                )}
@@ -448,7 +556,7 @@ import { v4 as uuidv4 } from 'uuid';
                               <TextField
                                  id="outlined-textarea"
                                  label="Contacto"
-                                 disabled={(user.id!=formData.admin_id && id) || canEdit ? true : false}
+                                 disabled={(formData.firstLogin || !canEdit) && prevEmail!=user.email && formData.created_by!=user.id ? true : false}
                                  placeholder="Digite o Contacto"
                                  multiline
                                  value={i}
@@ -466,7 +574,7 @@ import { v4 as uuidv4 } from 'uuid';
                            label="Endereço"
                            placeholder="Digite o endereço"
                            multiline
-                           disabled={formData.firstLogin || !canEdit ? true : false}
+                           disabled={(formData.firstLogin || !canEdit) && prevEmail!=user.email && formData.created_by!=user.id ? true : false}
                            value={formData.address}
                            onChange={(e)=>setFormData({...formData,address:e.target.value})}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
@@ -479,7 +587,7 @@ import { v4 as uuidv4 } from 'uuid';
                            id="outlined-textarea"
                            label="Nuit"
                            placeholder="Digite o nuit"
-                           disabled={formData.firstLogin || !canEdit ? true : false}
+                           disabled={(formData.firstLogin || !canEdit) && prevEmail!=user.email && formData.created_by!=user.id ? true : false}
                            multiline
                            value={formData.nuit}
                            onChange={(e)=>setFormData({...formData,nuit:e.target.value})}

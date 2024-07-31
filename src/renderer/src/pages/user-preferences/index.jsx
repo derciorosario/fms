@@ -3,9 +3,9 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import UserPreferencesLayout from '../../layout/UserPreferencesLayout';
 import NotificationToggles from './components/notificationToggles';
-import {CameraAltRounded, Edit} from '@mui/icons-material';
+import {CameraAltRounded, Edit, Info} from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import { Button, CircularProgress, Switch } from '@mui/material';
+import { Alert, Button, CircularProgress, Switch } from '@mui/material';
 import { useData } from '../../contexts/DataContext';
 import FormLayout from '../../layout/DefaultFormLayout';
 import PouchDB from 'pouchdb';
@@ -23,12 +23,13 @@ import DefaultButton from '../../components/Buttons/default';
 import colors from '../../assets/colors.json'
 import FilterOptions from './components/options-filters';
 import MainUploader from '../setup/compnents/upload-company-logo';
+import bcrypt from 'bcryptjs';
 
 function App() {
  const { t } = useTranslation();
  const [page,setPage]=React.useState('profile')
  const [editMode,setEditMode]=React.useState(false)
- const {user,db} = useAuth()
+ const {user,db,startover} = useAuth()
  const [showAccounts,setAccounts]=useState(false)
 
  const [showPassword, setShowPassword] = React.useState(false);
@@ -39,6 +40,11 @@ function App() {
  const [formData, setFormData] = React.useState({contacts:[''],settings:{}});
  const [settingsDetails, setSettingsDetails]=React.useState({})
  const [initialized,setInitialized]=useState(false)
+
+ const [userForm,setUserForm]=useState({contacts:['']})
+ const [showResetInputs,setShowResetInputs]=useState(false)
+ const [resetPassword,setResetPassword]=useState('')
+
 
  let required_data=['settings','account_categories']
 
@@ -58,10 +64,8 @@ function App() {
         set=set.rows.map(i=>i.doc)[0]
         setSettingsDetails(set)
         setFormData({...formData,settings:set.settings})
-        setUpload({...upload,file:set.settings.file ? set.settings.file : {}})
+        
       
-
-
     }
     
   })()
@@ -71,7 +75,20 @@ function App() {
  useEffect(()=>{
       _get(required_data.filter(i=>!_loaded.includes(i)))    
  },[db])
- 
+
+ useEffect(()=>{
+    if(!user) return
+    let u=JSON.parse(JSON.stringify(user)) 
+    delete u.companies
+    delete u.companies_details
+    setUserForm(u)
+    setUpload({...upload,file:user.logo ? user.logo : {}})
+},[user])
+
+
+console.log({formData})
+
+
  
 
 
@@ -101,7 +118,7 @@ function App() {
       if(valid){
            try{
 
-            await _update('settings',[{...settingsDetails,settings:{...formData.settings,file:upload.file}}])
+            await _update('settings',[{...settingsDetails,settings:{...formData.settings}}])
             toast.success('Actualizado com sucesso!')
               
            }catch(e){
@@ -111,9 +128,6 @@ function App() {
            }
       }
  }
-
-
-
  
  const [upload,setUpload]=React.useState({
   uploading:false,
@@ -121,21 +135,26 @@ function App() {
   progress:0
 })
 
- /*
-async function SubmitForm(){
+
+
+
+ 
+async function SubmitUserForm(){
 
      if(valid){
          setLoading(true)
          toast.loading(`A actualizar...`)
 
          try{
-            await makeRequest({method:'post',url:`api/user/profile/update`,data:formData, error: ``},0);
+            await data.makeRequest({method:'post',url:`api/user/profile/update`,data:{...userForm,logo:upload.file}, error: ``},0);
             toast.remove()
             toast.success('Perfil actualizado')
             setLoading(false)
-            await update_user(formData)
-            _update('settings',[formData.companies])
-            setUser(formData)
+            /*await update_user(userForm)
+            _update('settings',[userForm.companies])
+            setUser(userForm)*/
+
+            setUserForm({...userForm,new_password:'',last_password:''})
              
         }catch(e){
          toast.remove()
@@ -173,20 +192,20 @@ async function SubmitForm(){
      }
  }
 
-*/
+
   useEffect(()=>{
     let v=true
-    Object.keys(formData).forEach(f=>{
-        if((!formData[f].length && required_fields.includes(f))){
+    Object.keys(userForm).forEach(f=>{
+        if((!userForm[f].length && required_fields.includes(f))){
             v=false
         }
 
-        if(formData.change_password && (!formData.last_password || !formData.new_password)){
+        if(userForm.change_password && (!userForm.last_password || !userForm.new_password)){
           v=false
         }
     })
     setValid(v)
-  },[formData])
+  },[userForm])
 
 
   function activeAndDisable(field,not_type){
@@ -195,6 +214,22 @@ async function SubmitForm(){
   }
 
 
+
+  async function reset(){
+   
+    if(!resetPassword){
+        return
+    }
+
+    let check=await bcrypt.compare(resetPassword, user.password)
+    if(!check){
+      toast('Senha incorrecta!')
+      return
+    }
+
+    
+    startover()
+  }
      
         
   function editProfile(){
@@ -208,6 +243,7 @@ async function SubmitForm(){
   return (
 
     <>
+          
           <UserPreferencesLayout page={page} setPage={setPage}>
 
            {page=="profile"  ? <>
@@ -228,17 +264,15 @@ async function SubmitForm(){
                     )}/>
 
               </div>
-
-
                     
 
                     <div className="flex justify-center flex-col items-center">
-                         <span className="font-semibold text-[19px] mb-1">{user.name}</span>
-                         <span>{user.last_name}</span>
+                         <span className="font-semibold text-[19px] mb-1">{user.name} {user.last_name} </span>
+                         <span>{user.email}</span>
                     </div>
 
 
-                    {!editMode && 0==9 && <div className="flex justify-center mt-4" >
+                    {!editMode  && <div className="flex justify-center mt-4" >
                        <DefaultButton goTo={editProfile} text={'Editar perfil'} no_bg={true} disabled={false}/>
                     </div>}
 
@@ -250,7 +284,9 @@ async function SubmitForm(){
 
                     <div className="p-[15px] opacity-75 flex justify-between items-center">
                         <span className="font-medium text-[18px]">{t('userPreferences.notifications.alerts')}</span>
-                        
+                       {!data.online && <div className="opacity-65">
+                           <Info sx={{width:20}}/> <label>You need internet connect to update</label> 
+                        </div>}
                     </div>
 
                         <span className="flex border-t border-zinc-200 w-[98%] mx-auto mb-4"></span>
@@ -265,13 +301,13 @@ async function SubmitForm(){
                            label="Nome *"
                            placeholder="Digite o nome"
                            multiline
-                           value={formData.name}
+                           value={userForm.name}
                            onBlur={()=>validate_feild('name')}
-                           onChange={(e)=>setFormData({...formData,name:e.target.value})}
-                           error={(!formData.name) && verifiedInputs.includes('name') ? true : false}
-                           helperText={!formData.name && verifiedInputs.includes('name') ? "Nome obrigatório" :''}
+                           onChange={(e)=>setUserForm({...userForm,name:e.target.value})}
+                           error={(!userForm.name) && verifiedInputs.includes('name') ? true : false}
+                           helperText={!userForm.name && verifiedInputs.includes('name') ? "Nome obrigatório" :''}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
-                           '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
+                           '& .MuiFormLuserFormled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
                         </div>
        
@@ -279,12 +315,12 @@ async function SubmitForm(){
                         <TextField
                            id="outlined-textarea"
                            label="Apelido *"
-                           placeholder="Digite o apelido"
-                           value={formData.last_name}
+                           placeholder="Digite o nome"
+                           value={userForm.last_name}
                            onBlur={()=>validate_feild('last_name')}
-                           onChange={(e)=>setFormData({...formData,last_name:e.target.value})}
-                           error={(!formData.last_name)  && verifiedInputs.includes('last_name') ? true : false}
-                           helperText={verifiedInputs.includes('last_name') && !formData.last_name ? "Apelido obrigatório" :''}
+                           onChange={(e)=>setUserForm({...userForm,last_name:e.target.value})}
+                           error={(!userForm.last_name)  && verifiedInputs.includes('last_name') ? true : false}
+                           helperText={verifiedInputs.includes('last_name') && !userForm.last_name ? "Apelido obrigatório" :''}
                            multiline
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
@@ -297,7 +333,7 @@ async function SubmitForm(){
                            label="Email *"
                            multiline
                            disabled={true}
-                           value={formData.email}
+                           value={userForm.email}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -310,15 +346,15 @@ async function SubmitForm(){
                                multiple
                                id="size-small-outlined-multi"
                                size="small"
-                               options={formData.contacts}
+                               options={userForm.contacts}
                                getOptionLabel={(option) => option}
                                renderInput={(params) => (
                                   <TextField {...params} label="Contactos" placeholder="Digite os contactos" />
                                )}
-                               value={formData.contacts}
+                               value={userForm.contacts}
                                sx={{width:'100%',marginRight:1,'& .MuiAutocomplete-endAdornment':{display:'none'}}}
                             />
-                             <Button onClick={()=>formData.contacts}  variant="outlined" style={{height:39,width:30}}>
+                             <Button onClick={()=>userForm.contacts}  variant="outlined" style={{height:39,width:30}}>
                                +
                             </Button>
                             </div>
@@ -330,8 +366,8 @@ async function SubmitForm(){
                            label="Contacto"
                            placeholder="Digite o Contacto"
                            multiline
-                           value={formData.contacts[0]}
-                           onChange={(e)=>setFormData({...formData,contacts:[e.target.value]})}
+                           value={userForm.contacts[0]}
+                           onChange={(e)=>setUserForm({...userForm,contacts:[e.target.value]})}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -344,8 +380,8 @@ async function SubmitForm(){
                            label="Endereço"
                            placeholder="Digite o endereço"
                            multiline
-                           value={formData.address}
-                           onChange={(e)=>setFormData({...formData,address:e.target.value})}
+                           value={userForm.address}
+                           onChange={(e)=>setUserForm({...userForm,address:e.target.value})}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -357,8 +393,8 @@ async function SubmitForm(){
                            label="Nuit"
                            placeholder="Digite o nuit"
                            multiline
-                           value={formData.nuit}
-                           onChange={(e)=>setFormData({...formData,nuit:e.target.value})}
+                           value={userForm.nuit}
+                           onChange={(e)=>setUserForm({...userForm,nuit:e.target.value})}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -372,8 +408,8 @@ async function SubmitForm(){
                                label="Observações"
                                multiline
                                rows={4}
-                               value={formData.notes}
-                               onChange={(e)=>setFormData({...formData,notes:e.target.value})}
+                               value={userForm.notes}
+                               onChange={(e)=>setUserForm({...userForm,notes:e.target.value})}
                                defaultValue=""
                                sx={{width:'100%'}}
                                />
@@ -387,19 +423,19 @@ async function SubmitForm(){
                 <div className="flex px-[6px] items-center mt-3 mb-2" id="change-password">
                 <label className="flex items-center cursor-pointer hover:opacity-90">
                 <Switch
-                    checked={Boolean(formData.change_password)}
+                    checked={Boolean(userForm.change_password)}
                     inputProps={{ 'aria-label': 'controlled' }}
                     
                     onChange={(e)=>{
                         setTimeout(()=>_scrollToSection('change-password'),100)
-                        setFormData({...formData,change_password:!Boolean(formData.change_password)})
+                        setUserForm({...userForm,change_password:!Boolean(userForm.change_password)})
                     }}
                 />
                 <span>Alterar senha</span>
                 </label>
                 </div>
 
-                <div className={`${formData.change_password ? 'flex' :'hidden'}`}>   
+                <div className={`${userForm.change_password ? 'flex' :'hidden'}`}>   
                     
 
                 <FormLayout.Section style={{marginTop:0,paddingTop:5}}>
@@ -411,10 +447,10 @@ async function SubmitForm(){
                                id="outlined-adornment-password"
                                type={showPassword ? 'text' : 'password'}
                                onBlur={()=>validate_feild('last_password')}
-                               value={formData.last_password}
-                               onChange={(e)=>setFormData({...formData,last_password:e.target.value})}
+                               value={userForm.last_password}
+                               onChange={(e)=>setUserForm({...userForm,last_password:e.target.value})}
                                error={true}
-                               helperText={(formData.length <= 5 && verifiedInputs.includes('last_password')) ? 'Senha deve ter no minimo 6 caracteres' : verifiedInputs.includes('password') && !formData.password ? "Senha obrigatória" :''}
+                               helperText={(userForm.last_password?.length <= 5 && verifiedInputs.includes('last_password')) ? 'Senha deve ter no minimo 6 caracteres' : verifiedInputs.includes('password') && !formData.password ? "Senha obrigatória" :''}
                                endAdornment={
                                <InputAdornment position="end">
                                   <IconButton
@@ -442,10 +478,10 @@ async function SubmitForm(){
                                id="outlined-adornment-password"
                                type={showPassword ? 'text' : 'password'}
                                onBlur={()=>validate_feild('mew_password')}
-                               value={formData.new_password}
-                               onChange={(e)=>setFormData({...formData,new_password:e.target.value})}
+                               value={userForm.new_password}
+                               onChange={(e)=>setUserForm({...userForm,new_password:e.target.value})}
                                error={true}
-                               helperText={(formData.length <= 5 && verifiedInputs.includes('new_password')) ? 'Senha deve ter no minimo 6 caracteres' : verifiedInputs.includes('password') && !formData.password ? "Senha obrigatória" :''}
+                               helperText={(userForm.new_password?.length <= 5 && verifiedInputs.includes('new_password')) ? 'Senha deve ter no minimo 6 caracteres' : verifiedInputs.includes('password') && !formData.password ? "Senha obrigatória" :''}
                                endAdornment={
                                <InputAdornment position="end">
                                   <IconButton
@@ -473,7 +509,7 @@ async function SubmitForm(){
                 </div>
        
        
-              <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={true}/>
+              <FormLayout.SendButton SubmitForm={SubmitUserForm} loading={loading} valid={valid} id={true}/>
         
                        
 
@@ -486,7 +522,7 @@ async function SubmitForm(){
                     
                </div>
                   
-           </> : <>
+           </> : (page=="notifications") ? <>
            <div>
                                 
                                 <div className="border-b pt-4 pb-8">
@@ -516,14 +552,27 @@ async function SubmitForm(){
                                         
                                         </>:<>
 
-                                        <select onChange={(e)=>{
+                                        <select value={formData.settings?.bills_not?.days} onChange={(e)=>{
 
-                                                  setFormData({...formData,settings:{...formData.settings,bills_not:{...formData.settings?.bills_not,days:e.target.value}}})
+                                                  let days=e.target.value.includes('7') ? 2 : e.target.value
+
+                                                  setFormData({...formData,settings:{...formData.settings,bills_not:{...formData.settings?.bills_not,days}}})
 
                                                   }} id="category" class="bg-gray-50 border border-gray-300 text-gray-900 font-normal text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 p-2.5">
-                                                    <option value={1} selected={Boolean(formData.settings?.bills_not?.days==1)}>1 dia antes</option>
-                                                    <option vlaue={2} selected={Boolean(formData.settings?.bills_not?.days==7)}>Dentro de 7 dias</option>
-                                                    <option value={3} selected={Boolean(formData.settings?.bills_not?.days==15)}>Dentro de 15 dias</option>
+                                                     {[{
+                                                      value:1,
+                                                      text:'1 dia antes'
+                                                     },
+                                                     {
+                                                      value:2,
+                                                      text:'Dentro de 7 dias'
+                                                     },
+                                                     {
+                                                      value:3,
+                                                      text:'Dentro de 15 dias'
+                                                     }].map(i=>(
+                                                      <option value={i.value} selected={formData.settings?.bills_not?.days==i.value ? true : false}>{i.text}</option>
+                                                     ))}
                                                   </select>
                                         </>}
 
@@ -568,6 +617,33 @@ async function SubmitForm(){
                      <div className="py-4">
                       <DefaultButton goTo={SubmitForm} loading={!initialized} text={loading ? 'A actualizar...' :'Actualizar'} disabled={false}/>
                     </div>
+           </>:<>
+           <div className="py-5 mb-4">
+              <span className="font-semibold text-[25px] mb-5 flex">Limpar Dados</span>
+               <Alert severity="warning">Ao clicar neste botão poderá apagar todos os dados neste sistema e fazer a reinicialização. Certifique - se de fazer o backup dos dados que deseja manter.<br/> Está acção poderá remover todas a contas e empresas.</Alert>        
+
+                {!showResetInputs && <button className="bg-red-600 text-white px-3 py-2 rounded-[0.3rem] mt-3 cursor-pointer hover:opacity-75" onClick={()=>{
+                              setShowResetInputs(true)
+                }}>Limpar</button> }  
+
+                {showResetInputs && <div>
+                  <div className="flex items-center mt-3 mb-3">
+                    <input onChange={(e)=>{
+                       setResetPassword(e.target.value)
+                    }}  className="p-1 border rounded-[0.2rem] h-[40px]" placeholder="Digite sua senha" value={resetPassword}/>
+                    <button className="bg-app_orange-400 ml-4 text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{
+                                reset()
+                    }}>Limpar</button>  
+                  </div>
+                  <span className="underline cursor-pointer text-blue-500" onClick={()=>{
+                    setShowResetInputs(false)
+                    setResetPassword('')
+                  }}>Cancelar</span>
+                </div>  }  
+           </div>
+
+            
+                    
            </>}
 
           

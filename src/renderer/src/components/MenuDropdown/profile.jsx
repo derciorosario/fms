@@ -12,7 +12,7 @@ import PersonAdd from '@mui/icons-material/PersonAdd';
 import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
 import { useAuth } from '../../contexts/AuthContext';
-import {Person} from '@mui/icons-material'
+import {Lock, Person} from '@mui/icons-material'
 import {useLocation,useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useData } from '../../contexts/DataContext';
@@ -32,7 +32,13 @@ export default function AccountMenu() {
     setAnchorEl(null);
     
     
-   if(typeof to=="string")  navigate(`${to}`)
+   if(typeof to=="string") {
+      if(to=="/lock"){
+          to="/login"
+          localStorage.setItem('l',true)
+      }
+    navigate(`${to}`)
+   }
 
   };
 
@@ -50,9 +56,9 @@ export default function AccountMenu() {
             aria-haspopup="true"
             aria-expanded={open ? 'true' : undefined}
           >
-            {data._settings[0]?.settings?.file ? <>
+            {user?.logo?.generated_name ? <>
 
-             <div style={{backgroundRepeat:'no-repeat',backgroundSize:"contain",backgroundPosition:"center",backgroundImage:`url("${data.APP_BASE_URL+"/file/"+data._settings[0]?.settings?.file?.generated_name?.replaceAll(' ','%20')}")`}} className="w-[35px] h-[35px] rounded-full bg-slate-400">
+             <div style={{backgroundRepeat:'no-repeat',backgroundSize:"contain",backgroundPosition:"center",backgroundImage:`url("${data.APP_BASE_URL+"/file/"+user?.logo?.generated_name?.replaceAll(' ','%20')}")`}} className="w-[35px] h-[35px] rounded-full bg-slate-400">
                 
              </div>
                     
@@ -117,6 +123,14 @@ export default function AccountMenu() {
             <Logout fontSize="small" />
           </ListItemIcon>
           Login
+        </MenuItem>
+        <MenuItem onClick={()=>{
+             handleClose('/lock')
+        }}>
+          <ListItemIcon>
+             <Lock fontSize="small"/>
+          </ListItemIcon>
+          Trancar
         </MenuItem>
       </Menu>
     </React.Fragment>

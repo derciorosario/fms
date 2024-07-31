@@ -18,6 +18,7 @@ function App() {
   let required_data=['bills_to_pay','account_categories','bills_to_receive','payment_methods','transations']
 
 
+  
   const [initialized,setInitialized]=useState(false)
   
   const [filterOptions,setFilterOPtions]=useState([
@@ -53,6 +54,8 @@ function App() {
  },[])
 
   let {user}=useAuth()
+
+  console.log({user})
 
   return (
     <>
@@ -167,8 +170,8 @@ function App() {
   <tbody>
 
       {_get_stat('upcomming_payments')[i].map((f,_f)=>(
-             <tr key={_f} class="bg-white shadow-sm px-1 hover:text-gray-900 cursor-pointer" onClick={()=>navigate('/'+(i=="inflows" ? "bills-to-receive" : "bills-to-pay")+"/"+f.id)}>
-             <th scope="row" class="px-6 py-4 truncate font-medium text-gray-900 whitespace-nowrap">
+             <tr key={_f} class="bg-white shadow-sm px-1 hover:text-blue-900 cursor-pointer" onClick={()=>navigate('/'+(i=="inflows" ? "bills-to-receive" : "bills-to-pay")+"/"+f.id)}>
+             <th scope="row" class="px-6 py-4 truncate font-medium text-gray-900 hover:text-blue-900 whitespace-nowrap">
                  <span  className="max-w-300"> {_categories.filter(i=>i.field==f.account_origin)[0].name}</span>
              </th>
              <td class="px-6 py-4">

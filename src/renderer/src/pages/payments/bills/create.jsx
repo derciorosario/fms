@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import TextField from '@mui/material/TextField';
 import toast from 'react-hot-toast';
 import { useData  } from '../../../contexts/DataContext';
-import {useParams,useLocation,useNavigate} from 'react-router-dom';
+import {useParams,useLocation,useNavigate, useSearchParams} from 'react-router-dom';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
@@ -34,7 +34,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
           const navigate = useNavigate()
 
           const data = useData()
-          const {user,db} = useAuth()
+          const {user,db,_change_company} = useAuth()
           
           const [initialized,setInitialized]=React.useState()
           const required_data=['account_categories','bills_to_pay','bills_to_receive']
@@ -94,20 +94,27 @@ import DefaultUpload from '../../../components/Files/default-upload';
          const [accountCategories,setAccountCategories]=React.useState([])
          const [referenceOptions,setReferenceOptions]=React.useState([])
          const [showMoreOptions,setShowMoreOptions]=React.useState(false)
+         const [searchParams, setSearchParams] = useSearchParams();
           
        
           useEffect(()=>{
 
-                if(!id || id==formData.id || !db['bills_to_'+type]) return 
+                if(!id || id==formData.id || !db['bills_to_'+type] || !user) return 
 
                 (async()=>{
+                  let res=data._sendFilter(searchParams)
+
+                  if(res.company && res.company!=user.selected_company && user.companies.includes(res.company)){
+                      _change_company(res.company,user,window.location.href)
+                      return
+                  }
+
                   let item =  await db['bills_to_'+type].find({selector: {id}})
                   item=item.docs[0]
 
                   if(item){
                    setFormData({...item,
-                      paid:item.paid ? item.paid : '',
-                      files:item.files[0] ? [{...item.files[0],checked:item.files[0].local ? false : true}] : []
+                      paid:item.paid ? item.paid : ''
                    })
                   }else{
                     navigate(`/bills-to-${type}`)
@@ -117,6 +124,13 @@ import DefaultUpload from '../../../components/Files/default-upload';
                 })()
 
           },[db,pathname,_required_data])
+
+
+
+          
+
+
+
 
        
 
@@ -154,11 +168,16 @@ import DefaultUpload from '../../../components/Files/default-upload';
            useEffect(()=>{
             if(formData.account_origin=="loans_out" || formData.account_origin=="loans_in"){
               setReferenceOptions([{name:t('common.add_new')},...data._investors])
+              console.log(1)
             }else if(type=="receive"){
                 setReferenceOptions([{name:t('common.add_new')},...data._clients])
+                console.log(2)
             }else{
                 setReferenceOptions([{name:t('common.add_new')},...data._suppliers])
+                console.log(3)
             }
+
+            console.log(1)
            },[formData.reference,data._suppliers,data._investors,data._clients])
 
            useEffect(()=>{
@@ -311,9 +330,12 @@ import DefaultUpload from '../../../components/Files/default-upload';
                  
                  let transations=docs.filter(i=>i.account.id==formData.id)
 
+
                  for (let i = 0; i < transations.length; i++) {
                     await db.transations.put({...transations[i],deleted:true})
                  }
+
+
 
                  if(formData.loan_id){
 
@@ -327,7 +349,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
 
                  }
 
-                 let item=await db['bills_to_'+type].get(id)
+                 let item=await db['bills_to_'+type].get(formData._id)
                   item={
                     ...item,
                     paid:'',
@@ -344,7 +366,8 @@ import DefaultUpload from '../../../components/Files/default-upload';
          
 
          async function SubmitForm(){
-              
+             
+            
               if(valid){
 
 
@@ -446,12 +469,22 @@ import DefaultUpload from '../../../components/Files/default-upload';
 
                     }
 
+                    try{
+                      await data.store_uploaded_file_info(formData.files[0])
+                      console.log({s:formData.files[0]})
+                     }catch(e){
+                      console.log({e})
+                    }
+
                     return {ok:true}
                  }catch(e){
                         console.log(e)
                         toast.error('Erro inesperado!')
                         return {error:e}
                  }
+
+
+                
               }else{
                toast.error('Preencha todos os campos obrigatórios')
               }
@@ -534,7 +567,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                             </div>
 
                             <div className="ml-2">
-                                <button onClick={()=>navigate(`/cash-management/${type=="pay" ? 'outflow':'inflow'}?search=${formData.id}`)} type="button" className={`text-gray-900 flex hover:opacity-90 border  border-blue-500   focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-[0.3rem] text-sm px-5 py-[5px] text-center items-center`}>
+                                <button onClick={()=>navigate(`/cash-management/${type=="pay" ? 'outflow':'inflow'}?search=${formData.id.split('-')[0]}&&see_bill_transations=2024-06-20`)} type="button" className={`text-gray-900 flex hover:opacity-90 border  border-blue-500   focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-[0.3rem] text-sm px-5 py-[5px] text-center items-center`}>
                                 <span className="ml-1 text-blue-600">Ver</span>
                                 </button>
                            </div>

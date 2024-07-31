@@ -16,6 +16,7 @@ const DefaultLayout = ({ children , details ,isPopUp,loading,_isLoading}) => {
 
   const {_openPopUps,_loading,_openCreatePopUp,_setOpenCreatePopUp,initSyncStatus} = useData()
 
+ 
   
   if(loading || _loading || changingCompany || (initSyncStatus!="completed" && initSyncStatus!="cancelled")){
      return (

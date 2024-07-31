@@ -1,6 +1,6 @@
 {
     "app": {
-      "title": "FMS",
+      "title": "ProConta",
       "description": "Manage your finance with ease"
     },
     "sidebar": {
@@ -48,7 +48,8 @@
         "title":"Preferences",
         "menu":{
           "profile":"Profile",
-          "notifications":"Notifications"
+          "notifications":"Notifications",
+           "data":"Dados"
         },
         "notifications":{
           "notificationsSettings":"Notifications settings",
@@ -124,7 +125,7 @@
       "receivings":"Receivings",
         "dbItems":{
         "managers":"Managers",
-        "clients":"Clients",
+        "clients":"Clientes",
         "operators":"Operators",
         "investors":"Investors",
         "suppliers":"Suppliers",

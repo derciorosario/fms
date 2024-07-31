@@ -1,7 +1,7 @@
 {
-  "name": "conta-na-mao",
+  "name": "proconta",
   "version": "1.0.0",
-  "description": "An Electron application with React",
+  "description": "Finince App",
   "main": "./out/main/index.js",
   "author": "example.com",
   "homepage": "https://electron-vite.org",
@@ -17,6 +17,11 @@
     "build:mac": "npm run build && electron-builder --mac",
     "build:linux": "npm run build && electron-builder --linux"
   },
+  "build": {
+    "win": {
+      "requestedExecutionLevel": "requireAdministrator"
+    }
+  },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.0",
     "@electron-toolkit/utils": "^3.0.0",
@@ -29,6 +34,7 @@
     "@mui/x-date-pickers": "^7.5.0",
     "antd": "^5.17.0",
     "axios": "^1.6.8",
+    "bcryptjs": "^2.4.3",
     "chart.js": "^4.4.3",
     "chartjs-plugin-datalabels": "^2.2.0",
     "cors": "^2.8.5",

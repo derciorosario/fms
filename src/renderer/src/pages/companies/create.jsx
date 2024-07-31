@@ -169,21 +169,22 @@ import MainUploader from '../setup/compnents/upload-company-logo';
                     let removed_m=_all.managers.filter(i=>i.companies.includes(formData.id) && !selected_managers_ids.includes(i.id))
                     let new_m=_all.managers.filter(i=>selected_managers_ids.includes(i.id) && !olds.some(f=>f.id==i.id))
                     
-                    
 
+                    console.log({olds,new_m,removed_m})
+
+                  
                     for (let i = 0; i < removed_m.length; i++) {
                         let cps=removed_m[i].companies
                         for (let f = 0; f < cps.length; f++) {
                           let c=new PouchDB(`managers-`+cps[f])
-                          let manager = await c.find({selector: {id:email[i].email}})
+                          let manager = await c.find({selector: {email:cps[i].email}})
                           manager=manager.docs[0]
                           let res=await c.put({...manager,deleted:true,companies:[...manager.companies.filter(i=>i!=formData.id)]})
+                          //replicate('from',`managers-`+cps[f],true)
+                          data._add_to_update_list(`managers-`+cps[f])
                           console.log(res)
                        }
                     }
-
-                    console.log({olds,new_m,removed_m})
-
 
 
                   for (let i = 0; i < new_m.length; i++) {
@@ -192,6 +193,8 @@ import MainUploader from '../setup/compnents/upload-company-logo';
                         delete new_m[i]._rev
                         delete new_m[i]._id
                         await new_c.put({...new_m[i],_id:uuidv4(),companies:[...new_m[i].companies,formData.id]})
+                        //replicate('from',`managers-`+formData.id,true)
+                        data._add_to_update_list(`managers-`+formData.id)
 
                       
                   
@@ -201,24 +204,23 @@ import MainUploader from '../setup/compnents/upload-company-logo';
                           let manager = await c.find({selector: {email:new_m[i].email}})
                           manager=manager.docs[0]
                           let res=await c.put({...manager,companies:[...manager.companies,formData.id]})
+                          // replicate('from',`managers-`+cps[f],true)
+                          data._add_to_update_list(`managers-`+cps[f])
                           console.log({res})
                         } 
 
                   }
 
 
-
-
               }else{
                     let company_id=uuidv4()
                     let company=new PouchDB('managers-'+company_id)
-                    replicate('from','managers-'+company_id,true)
                     let managers=_all.managers.filter(i=>chipOptions.includes(i.email))
 
                     for (let i = 0; i < managers.length; i++) {
                          delete managers[i]._rev
                          await company.put({...managers[i],companies:[...managers[i].companies,company_id]})
-
+                         
 
                          let associated_companies=managers[i].companies
 
@@ -227,8 +229,13 @@ import MainUploader from '../setup/compnents/upload-company-logo';
                              let manager = await c.find({selector: {id:managers[i].id}})
                              manager=manager.docs[0]
                              await c.put({...manager,companies:[...manager.companies,company_id]})
+                             //replicate('from','managers-'+associated_companies[f],true)
+                             data._add_to_update_list('managers-'+associated_companies[f])
                         }
                     }
+
+                    //replicate('from','managers-'+company_id,true)
+                    data._add_to_update_list('managers-'+company_id)
 
                   
                     let new_company=JSON.parse(JSON.stringify(formData))
@@ -401,7 +408,7 @@ import MainUploader from '../setup/compnents/upload-company-logo';
                                 validate_feild('headquarter')
                           }}
                           id="_transation_account"
-                          options={user ? user.companies_details.map(i=>i.name) : [] }
+                          options={user ? user.companies_details.filter(i=>i.admin_id==user.id).map(i=>i.name) : [] }
                           sx={{ width: 300 }}
                           disabled={id}
                           renderInput={(params) => <TextField  {...params}
@@ -540,8 +547,8 @@ import MainUploader from '../setup/compnents/upload-company-logo';
 
 
               
-              <div className="ml-7 mb-4">
-                 <MainUploader upload={upload} setUpload={setUpload}/>
+              <div className={`ml-7 mb-4`}>
+                 <MainUploader upload={upload} setUpload={setUpload} disabled={formData.admin_id!=user.id && id}/>
               </div>
               <br/>
 

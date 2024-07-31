@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import VerifiedIcon from '../compnents/valid-icon';
 import MainUploader from '../compnents/upload-company-logo';
+import _var from '../../../assets/vaiables.json'
 
 function FirstUsePerson({formData,setFormData,setUpload,upload}) {
 
@@ -35,7 +36,12 @@ function FirstUsePerson({formData,setFormData,setUpload,upload}) {
         <div class="md:col-span-2">
             <label for="state">Contacto </label>
             <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
-                  <input onChange={(e)=>setFormData({...formData,company:{...formData.company,contact:e.target.value.toString().length  <= 9 ?  e.target.value : formData.company.contact}})} value={formData.company.contact} name="state" id="state" type="number" placeholder="8XXXXXXXX" class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
+                   <select onChange={(e)=>setFormData({...formData,company:{...formData.company,contact_code:e.target.value}})} value={formData.contact_code} className="bg-transparent">
+                        {_var.contry_codes.map(i=>(
+                            <option selected={formData.company.contact_code==i.code ? true : false}  value={i.code}>+{i.code}</option>
+                        ))}
+                  </select>
+                  <input onChange={(e)=>setFormData({...formData,company:{...formData.company,contact:e.target.value.toString().length  <= 9 ?  e.target.value : formData.company.contact}})} value={formData.company.contact} name="state" id="state" type="number" placeholder="" class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
                   {formData.company.contact.length == 9 && <VerifiedIcon/> }
            </div>
         </div>
@@ -48,7 +54,7 @@ function FirstUsePerson({formData,setFormData,setUpload,upload}) {
            </div>
         </div>
 
-        <div class="md:col-span-2">
+        <div class={`md:col-span-2 ${formData.company.contact_code!="258" ? 'hidden':''}`}>
             <label for="state">Provincia / Cidade </label>
             <div class="h-10 bg-gray-50  flex border border-gray-200 rounded items-center mt-1">
             <select onChange={(e)=>setFormData({...formData,company:{...formData.company,state:e.target.value}})} value={formData.company.state} className="w-full h-full px-2">

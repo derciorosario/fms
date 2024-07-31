@@ -165,6 +165,12 @@ circles{
     display: none;
 }
 
+
+.print-table:not(.stats) table:not(.stats) td,.print-table table th{
+    word-break: break-word; /* Break long words */
+    overflow-wrap: break-word; /* Wrap long words */
+}
+
 @media print{
    
     ._float_print_t{

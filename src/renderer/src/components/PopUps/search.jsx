@@ -10,7 +10,7 @@ export default function Search({show}) {
   const data = useData()
 
   const [content,setContent]=React.useState([])
-
+  const inputRef = React.useRef(null);
   const navigate = useNavigate()
 
 
@@ -32,10 +32,44 @@ export default function Search({show}) {
 
     
 
-      setContent(data._search(searchContent,array).filter(i=>i.name || i.description || i.notes))
+      let c=data._search(searchContent,array).filter(i=>i.name || i.description || i.notes)
+      c=c.map(i=>{
+          let link=`/${i._from}/${i.id}`
+
+          if(i._from=="accounts") link=`/account/${i.id}`
+
+           if(i._from=="payment_methods") link=`/payment-methods/${i.id}`
+          
+          if(i._from=="transations") link=`/cash-management/${i.type}flow/${i.id}`
+
+        
+
+          
+          return {...i,link}
+      })
+
+      console.log(c)
+      setContent(c)
 
 
   },[data._loaded,searchContent])
+
+  React.useEffect(()=>{
+
+
+    if(!show) return
+
+    setSearchContent('')
+
+    if (inputRef.current) {
+        inputRef.current.focus();
+      }
+
+
+
+ },[show])
+
+ 
 
  
   
@@ -53,7 +87,7 @@ export default function Search({show}) {
                 <div className="flex items-center">
                 <div className="flex h-10 bg-slate-100 items-center px-2 rounded-lg relative">
                     <span className="text-white"><SearchIcon style={{ color:colors.app_orange[500] }}/></span>
-                    <input value={searchContent} onChange={(e)=>{
+                    <input ref={inputRef} value={searchContent} onChange={(e)=>{
                         setSearchContent(e.target.value)
                     }} placeholder="Pesquisar..." type="text" className="_search outline-none bg-transparent flex-grow px-2"/>
                     {/** <Search setSearchContent={setSearchContent} searchContent={searchContent} show={openPopUps.search} setOpenPopUps={setOpenPopUps}/> */}
@@ -105,7 +139,7 @@ export default function Search({show}) {
         <tbody>
                 {content.map(i=>(
                  <tr onClick={()=>{
-                    navigate(`/${i._from}/${i._id}`)
+                    navigate(i.link)
                     data._closeAllPopUps()
                  }} class="bg-white [&>_td]:px-3 [&>_td]:py-2 [&>_td]:border-b cursor-pointer">
                  <th scope="row" class="px-3 py-2 border-b font-medium text-gray-900 whitespace-nowrap">

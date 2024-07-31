@@ -1,7 +1,10 @@
 {
   "app": {
-    "title": "FMS",
+    "title": "ProConta",
     "description": "Manage your finance with ease"
+  },
+  "setup":{
+     
   },
   "sidebar": {
     "main":{
@@ -48,7 +51,8 @@
        "title":"Preferences",
        "menu":{
          "profile":"Profile",
-         "notifications":"Notifications"
+         "notifications":"Notifications",
+         "data":"Data"
        },
        "notifications":{
           "notificationsSettings":"Notifications settings",

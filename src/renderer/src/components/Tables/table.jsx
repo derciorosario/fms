@@ -103,14 +103,13 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
      let amount=transation.payments.map(i=>i.amount ? parseFloat(i.amount) : 0).reduce((acc, curr) => acc + curr, 0)
   
 
-     setRows(rows.map((i,_i)=>{
+     setRows(sortRows(rows.map((i,_i)=>{
       if(action=="confirm"){
         return i.id==row.id ? {...i,amount:transation.payment.confirmed_amount,confirmed_amount:transation.payment.confirmed_amount,confirmed:!transation.payment.confirmed} : i
       }else{
         return i.id==row.id ? {...i,payment:{...i.payment,confirmed_amount:value}} : i
       }
-      
-    }))
+    })))
 
 
    if(action=="amount"){
@@ -214,11 +213,25 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
 
 
   function update_data(){
-
-      setRows(search_f(data[settings.selected]))
+    setRows(sortRows(search_f(data[settings.selected])))
+     
 
   }
 
+
+
+
+  function sortRows(rows){
+   
+    rows.sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return dateB - dateA;
+    })
+
+    return rows
+   
+  }
 
 
 
@@ -295,6 +308,8 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
  React.useEffect(()=>{
       data._get(settings.required_data)
 },[db,settings])
+
+
 
  
 
@@ -1115,14 +1130,14 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
         renderCell: (params) => (
           <div style={{opacity:.8}}>
 
-          {user.companies_details.filter(i=>i.admin_id==user.id).some(i=>params.row.companies.includes(i.id)) ? <>
+          {(user.companies_details.filter(i=>i.admin_id==user.id).some(i=>params.row.companies.includes(i.id)) || user.email==params.row.email) ? <>
             <span style={{marginRight:'0.5rem',cursor:'pointer'}} onClick={()=>navigate('/manager/'+params.row.id)}>
               <EditOutlinedIcon/>
           </span>
 
-          <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
+          {user.companies_details.filter(i=>i.admin_id==user.id).some(i=>params.row.companies.includes(i.id)) && <span onClick={()=>handleDelete(params.row.id)} style={{cursor:'pointer'}}>
               <DeleteOutlineOutlinedIcon/>
-          </span>
+          </span>}
           
           </>:<>
          
@@ -1345,7 +1360,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
   useEffect(()=>{
     if(settings.selected) {
       let content=search_f(data[settings.selected])
-      setRows(content)
+      setRows(sortRows(content))
     }
 
   },[search,filterOptions,periodFilters,settings])

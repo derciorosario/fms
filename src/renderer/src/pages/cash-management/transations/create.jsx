@@ -77,7 +77,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
           const [type, setType] = React.useState(pathname.includes('inflow') ? 'in' : 'out');
          
 
-          console.log(_transations)
+        //  console.log(_transations)
 
           const [bill,setBill]=React.useState({id:null,from:null})
 
@@ -324,7 +324,6 @@ import DefaultUpload from '../../../components/Files/default-upload';
                 setTransationAccountOptions([{name:t('common.add_new')},..._account_categories.filter(i=>i.type==type)])     
               }
             
-            console.log(data._account_categories)
 
            },[_account_categories,formData.account_origin])
 
@@ -475,6 +474,8 @@ import DefaultUpload from '../../../components/Files/default-upload';
                    try{
 
                      if(id){
+
+                       
                        
                           if(formData.link_payment){
                             let last=await db.transations.get(formData._id)
@@ -490,6 +491,9 @@ import DefaultUpload from '../../../components/Files/default-upload';
                             }else{
                                 account.status="paid"
                             }
+                           
+                            
+                           
                             await _update(`bills_to_${type=="in"?"receive":"pay"}`,[{...account,fees,paid:amount + fees}])
 
                            
@@ -540,6 +544,8 @@ import DefaultUpload from '../../../components/Files/default-upload';
                       fees,
                       id:uuidv4()}])
 
+                     
+
                       setAccountDetails({})
                       setBill(null)
                       setVerifiedInputs([])
@@ -570,11 +576,15 @@ import DefaultUpload from '../../../components/Files/default-upload';
                           }
                         }
                       }
-
-                      
                       
 
                      }
+
+                      try{
+                        await data.store_uploaded_file_info(formData.files[0])
+                      }catch(e){
+                        console.log({e})
+                      }
                  }catch(e){
                         console.log(e)
                         toast.error('Erro inesperado!')
@@ -599,9 +609,6 @@ import DefaultUpload from '../../../components/Files/default-upload';
                if(formData.link_payment && !formData.account.id || !formData.transation_account.name) v=false
 
                if(formData.has_fees && !formData.fine) v=false
-                
-              
-              
                setValid(v)
           },[formData])
 
@@ -636,7 +643,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                 setFormData(_initial_form.transations)
                                 handleLoaded()
                                 navigate(`/cash-management/${type == "in" ? "out" : "in"}flow/create`)
-                              }} className={`flex bg-gray-400 hover:opacity-80 border-b-app_orange-400 focus:outline-none text-white  border-b font-medium  rounded-[0.3rem] text-[13px] px-3 py-[6px] text-center`}>
+                              }} className={`flex bg-gray-400 hover:opacity-80 focus:outline-none text-white  border-b font-medium  rounded-[0.3rem] text-[13px] px-3 py-[6px] text-center`}>
                           {type=="out" ? 'Adicionar entrada':'Adicionar saída'}
                     </button>
                  </div>

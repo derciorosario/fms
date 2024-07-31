@@ -5,7 +5,6 @@ import { useAuth } from '../../../contexts/AuthContext';
 function FilterOptions({formData,setFormData,initialized}) {
 
   const data=useData()
- 
 
   function check_and_uncheck(account){
     let new_accounts=formData.settings?.bills_not?.accounts.includes(account) ? formData.settings?.bills_not?.accounts.filter(i=>i!=account) : [...formData.settings.bills_not.accounts,account]

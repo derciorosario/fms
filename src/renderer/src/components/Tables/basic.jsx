@@ -705,7 +705,7 @@ useEffect(()=>{
 
     if(page=="financial-reconciliation"){
       _d=_filtered_content.map(item => ({
-        'ID':item.id,
+        'ID':item.id.split('-')[0] + '...',
         'Descrição':item.description,
         'Método de pagamento':item.payment.name,
         'Conciliado':item.payment.confirmed ? 'Sim' :'Não',
@@ -722,7 +722,7 @@ useEffect(()=>{
     }
     if(page=="inflows" || page=="outflows"){
         _d=_filtered_content.map(item => ({
-          'ID':item.id,
+          'ID':item.id.split('-')[0] + '...',
           'Descrição':item.description,
           'Tipo':item.type=="in" ? 'Entrada' :'Saida',
           'Valor':(item.type=="out" && item.amount!=0 ?'-' :'')+""+data._cn(item.amount),
@@ -738,7 +738,7 @@ useEffect(()=>{
 
     if(page=="bills-to-pay" || page=="bills-to-receive"){
       _d=_filtered_content.map(item => ({
-        'ID':item.id,
+        'ID':item.id.split('-')[0] + '...',
         'Descrição':item.description,
         'Data de vencimento':item.payday.split('T')[0],
         'Valor em falta':data._cn(parseFloat(item.amount) + parseFloat(item.fees ? item.fees : 0) - parseFloat(item.paid ? item.paid : 0)),
@@ -758,7 +758,7 @@ useEffect(()=>{
 
    if(page=="loans"){
     _d=_filtered_content.map(item => ({
-      'ID':item.id,
+      'ID':item.id.split('-')[0] + '...',
       'Descrição':item.description,
       'Data de vencimento':item.payday.split('T')[0],
       'Valor em falta':data._cn(parseFloat(item.transation_fees) + parseFloat(item.fees ? item.fees : 0) - parseFloat(item.paid ? item.paid : 0)),
@@ -776,7 +776,7 @@ useEffect(()=>{
 
     if(page=="bills-to-pay" || page=="bills-to-receive"){
       _d=_filtered_content.map(item => ({
-        'ID':item.id,
+        'ID':item.id.split('-')[0] + '...',
         'Descrição':item.description,
         'Data de vencimento':item.payday.split('T')[0],
         'Valor em falta':data._cn(parseFloat(item.amount) + parseFloat(item.fees ? item.fees : 0) - parseFloat(item.paid ? item.paid : 0)),
@@ -795,7 +795,7 @@ useEffect(()=>{
 
   if(page=="clients" || page=="investors" || page=="suppliers"){
     _d=_filtered_content.map(item => ({
-      'ID':item.id,
+      'ID':item.id.split('-')[0] + '...',
       'Nome':item.name,
       'Email':item.email,
       'Contactos':item.contacts.join(', '),
@@ -808,7 +808,7 @@ useEffect(()=>{
 
   if(page=="managers"){
     _d=_filtered_content.map(item => ({
-      'ID':item.id,
+      'ID':item.id.split('-')[0] + '...',
       'Nome':item.name,
       'Apelido':item.last_name,
       'Email':item.email,
@@ -823,7 +823,7 @@ useEffect(()=>{
   
   if(page=="account-categories"){
     _d=_filtered_content.map(item => ({
-      'ID':item.id,
+      'ID':item.id.split('-')[0] + '...',
       'Nome':item.name,
       'Categoria':_categories.filter(i=>i.field==item.account_origin)[0].name,
       'Data de criação':item.createdAt.split('T')[0],
@@ -834,7 +834,7 @@ useEffect(()=>{
     
   if(page=="investments"){
     _d=_filtered_content.map(item => ({
-      'ID':item.id,
+      'ID':item.id.split('-')[0] + '...',
       'Nome / Descrição':item.description,
       'Custo':data._cn(item.amount),
       'Valor da depreciação':data._cn(parseFloat(item.depreciation).toFixed(2)),

@@ -132,7 +132,7 @@ function App({details,_isLoading}) {
 
 
                 <span className="border-r flex b-1 h-full"></span>
-                     <div className="flex items-center h-full hidden">
+                     <div className="flex items-center h-full">
                        
                        <DropDownLangs/>
                        
@@ -143,7 +143,7 @@ function App({details,_isLoading}) {
                     <div className="_nots size-10 rounded-l mx-3 justify-center flex items-center relative">
                         <div className="cursor-pointer" onClick={()=>handleOpenPopUps('nots')}>
 
-                            <span className="absolute top-1 left-1 size-2 rounded-full bg-app_orange-500"></span>
+                            {data.not_seen_nots && <span className="absolute top-1 left-1 size-2 rounded-full bg-app_orange-500"></span>}
                             <NotificationsNoneIcon  style={{ color: colors.app_orange[500],width:'60px' }}/>
 
                         </div>

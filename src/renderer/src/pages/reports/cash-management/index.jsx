@@ -210,14 +210,16 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
         }
    },[pathname])
 
-   function print_exportExcel(type){
+   function print_exportExcel(type,from){
+
+    
     
       let project_only=filterOptions.filter(i=>i.field=="_show_projected")[0].groups[0].selected_ids[0]
       let month=filterOptions.filter(i=>i.field=="_month")[0]?.groups?.[0]?.selected_ids?.[0]
 
       let title=`Relatório de Entradas e Saídas ${filterOptions.filter(i=>i.field=="_account_categories")[0].groups[0].items.filter(i=>i.selected).length!= 0 ? 'das conta(s) '+ filterOptions.filter(i=>i.field=="_account_categories")[0].groups[0].items.filter(i=>i.selected).map(i=>i.name).join(', '):''}`
       
-      _print_exportExcel(data,type,currentMenu,period,project_only,month,title)
+      _print_exportExcel(data,type,currentMenu,period,project_only,month,title,from)
    }
 
  
@@ -271,7 +273,7 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
                             </div>
                           
                           <div  onClick={()=>{
-                            print_exportExcel('print')
+                            print_exportExcel('print','stats')
                            }}  className="mr-4 cursor-pointer flex">
                             <LocalPrintshopOutlinedIcon sx={{color:colors.app_black[400]}}/>
                           </div>

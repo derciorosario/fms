@@ -5,8 +5,9 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   
-  let APP_BASE_URL='https://server-fms.onrender.com' //'http://localhost:4000'  //https://server-fms.onrender.com
-  let COUCH_DB_CONNECTION='http://admin:secret@13.40.24.65:3000' //'http://root:secret@localhost:5984' //'http://admin:secret@13.40.24.65:3000'
+  let APP_BASE_URL='https://proconta.derflash.com' //'http://localhost:4000'  //https://server-fms.onrender.com
+  let FRONT_URL='https://resplendent-unicorn-206924.netlify.app'
+  let COUCH_DB_CONNECTION='https://admin:secret@procontacouch.derflash.com' //'http://admin:secret@localhost:5984' //'http://admin:secret@13.40.24.65:3000'
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
@@ -17,9 +18,7 @@ export const AuthProvider = ({ children }) => {
   const [changingCompany,setChangingCompany]=useState(false)
   if(!localStorage.getItem('dbs')) localStorage.setItem('dbs',JSON.stringify([]))
   const [remoteDBs,setRemoteDBs]=useState([])
- 
-
-
+  const [db_names,setDBNames]=useState({})
 
 
   
@@ -41,6 +40,17 @@ export const AuthProvider = ({ children }) => {
         setUser(user)
         setToken(user.token_value)
         setAuth(true)
+
+      }else{
+
+
+        return
+
+       
+        setAuth(false)
+        setloadingLocalUser(false)
+        setLoading(false)
+        window.location.href="/#/login"
 
       }
      
@@ -88,14 +98,13 @@ export const AuthProvider = ({ children }) => {
          {name:'suppliers',db_name:'suppliers-'+user.selected_company},
          {name:'investments',db_name:'investments-'+user.selected_company},
          {name:'settings',db_name:'settings-'+user.id+'-'+user.selected_company},
+         {name:'notifications',db_name:'notifications-'+user.id+'-'+user.selected_company},
          {name:'clients',db_name:'clients-'+user.selected_company},
 
       ]
 
 
       let temp_dbs=['__user-'+user.id]
-
-      console.log({c:user.companies,s:user.selected_company})
 
       temp_dbs=[...temp_dbs,...user.companies.filter(i=>i!=user.selected_company).map(i=>'__managers-'+i)]
 
@@ -114,22 +123,81 @@ export const AuthProvider = ({ children }) => {
   }
 
 
-   async function _change_company(company_id,_user){
+   async function _change_company(company_id,_user,redirect){
+
+
+    if(_user){
+
+      _user.selected_company=company_id
+       await update_user(_user)
+
+    }else{
+      let user_db=new PouchDB('user-'+user.id)
+      let _user=await  user_db.find({selector: { id:user.id }})
+      _user=_user.docs[0]
+      await user_db.put({..._user,selected_company:company_id})
+    }
+
+    
+
+
+
+
+
+
+
+
+
+    /*
     if(user){
       let user_db=new PouchDB('user-'+user.id)
       let _user=await  user_db.find({selector: { id:user.id }})
       _user=_user.docs[0]
       await user_db.put({..._user,selected_company:company_id})
+      console.log(1)
     }else{
-      update_user(_user)
-    }
+      await update_user(_user)
+      console.log(2)
+    }*/
+
+
     setChangingCompany(true)
-    setTimeout(()=>window.location.href="/",500)
+    if(redirect){
+        console.log({redirect})
+        window.location.href=redirect+"&&?rondom="+Math.random().toString()
+        setTimeout(()=>window.location.reload(),500)
+    }else{
+      setTimeout(()=>window.location.href="/",500)
+
+    }
+   
+  }
+  
+
+   async function startover(){
+
+
+      setLoading(true)
+     
+      let _db=Object.keys(db)
+
+      for (let i = 0; i < remoteDBs.length; i++) {
+          let d=await  PouchDB(remoteDBs[i])
+          await d.destroy()
+      }
+
+      let d1=new PouchDB('stored_files')
+      let d2=new PouchDB('user')
+      await d1.destroy()
+      await d2.destroy()
+      localStorage.removeItem('token');
+      window.location.reload()
+
   }
 
 
 const login =  async (userData, authToken) => {
-      if(localStorage.getItem('token')) localStorage.setItem('token', authToken);
+      if(authToken) localStorage.setItem('token', authToken);
       setToken(authToken);
       delete userData.__v
       _change_company(userData.selected_company,userData)
@@ -150,10 +218,15 @@ async function update_user(userData){
         let docs=await u.allDocs({ include_docs: true })
         let user=docs.rows.map(i=>i.doc)[0]
 
+        console.log({userData})
+
         if(user){
-           u.put({id:user.id,_rev:user._rev,_id:user._id})
+         
+           //await u.put({id:user.id,_rev:user._rev,_id:user._id})
+           await u.put({id: userData.id,_rev:user._rev,_id: user._id})
+          
         }else{
-           u.put({_id:'user',id:userData.id})
+           await u.put({_id:'user',id:userData.id})
         }
 
         let user_db=new PouchDB('user-'+userData.id)
@@ -162,10 +235,10 @@ async function update_user(userData){
         _user=_user.docs[0]
 
         if(_user){
-           user_db.put({...userData,_rev:_user._rev})
+           await user_db.put({...userData,_rev:_user._rev})
            //setUser({...userData,_rev:_user._rev})
         }else{
-           user_db.put(userData)
+           await user_db.put(userData)
         }
 
         return
@@ -329,7 +402,7 @@ async function update_user(userData){
    
 
   return (
-    <AuthContext.Provider value={{ update_user_data_from_db,changingCompany,remoteDBs,setRemoteDBs,_change_company,db,APP_BASE_URL,COUCH_DB_CONNECTION,user,update_user,setDestroying,destroying,login, logout, isAuthenticated , loading, setUser, setLoading, token,auth}}>
+    <AuthContext.Provider value={{ startover,update_user_data_from_db,changingCompany,remoteDBs,setRemoteDBs,_change_company,db,APP_BASE_URL,COUCH_DB_CONNECTION,FRONT_URL,user,update_user,setDestroying,destroying,login, logout, isAuthenticated , loading, setUser, setLoading, token,auth}}>
       {children}
     </AuthContext.Provider>
   );

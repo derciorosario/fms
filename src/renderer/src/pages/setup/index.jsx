@@ -11,6 +11,9 @@ import PouchDB from 'pouchdb';
 import PageLoader from '../../components/progress/pageLoader';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
+import { ArrowBack } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
+import LinearProgressBar from '../../components/progress/LinearProgress';
 
 
 function FirstUse() {
@@ -27,7 +30,21 @@ function FirstUse() {
     key:false
   })
 
+  
+            
+            // African phone codes
+
   if(!localStorage.getItem('dbs')) localStorage.setItem('dbs',JSON.stringify([]))
+
+  let langs=['pt','en']
+  const [selectedLang, setSelectedLang] = React.useState(localStorage.getItem('lang') ? localStorage.getItem('lang') : langs[0]);
+  const { t, i18n } = useTranslation();
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+    setSelectedLang(lng)
+    localStorage.setItem('lang',lng)
+};
   
 
   const {user} = useAuth()
@@ -53,6 +70,7 @@ function FirstUse() {
        password:'',
        state:'',
        address:'',
+       contact_code:'258',
        contact:''
     },
     company:{
@@ -60,6 +78,7 @@ function FirstUse() {
        address:'',
        email:'',
        nuit:'',
+       contact_code:'258',
        contact:'',
        key:'',
        logo:{}
@@ -87,7 +106,7 @@ function FirstUse() {
          formData.personal.password.length < 8 ||
          formData.personal.contact.length != 9 ||
          formData.personal.address.length < 3  ||
-         !formData.personal.state
+         !formData.personal.state && formData.personal.contact_code=="258"
       ){
         _valid.personal=false
       }
@@ -97,7 +116,7 @@ function FirstUse() {
       formData.company.contact.length != 9 ||
       formData.company.nuit.length != 9 ||
       formData.company.address.length < 3  ||
-      !formData.company.state
+      (!formData.company.state && formData.company.contact_code=="258")
       
       
         ){
@@ -112,6 +131,8 @@ function FirstUse() {
       setTimeout(()=> localStorage.setItem('setupdata',JSON.stringify({...formData,key:'',personal:{...formData.personal,password:''}})),1000)
   },[formData])
 
+
+  console.log({code:formData.company.contact_code})
 
 
 async function get_invite_info(id){
@@ -170,8 +191,8 @@ async function get_invite_info(id){
 
 }
 
-
-
+  const [v,setV] = useState()
+ 
   useEffect(()=>{
         if(localStorage.getItem('setupdata') && !IsRegister){
              setFormData(JSON.parse(localStorage.getItem('setupdata')))
@@ -183,19 +204,30 @@ async function get_invite_info(id){
         }
         let res=data._sendFilter(searchParams)
 
-
         if(!IsRegister || !res.invite){
              setinitialized(true)
         }else{
              get_invite_info(res.invite)
-             setinvite(res.invite)
+           
         }  
-       
-  },[pathname])
+        setinvite(res.invite)
+
+        
+
+  },[pathname,data.online])
+
+  console.log({invite})
+
+  
+
+
+
 
 
 
   useEffect(()=>{
+
+    setInterval(()=>setV(Math.random()),2000)
    
     setFormData({...formData,company:{...formData.company,logo:upload.file}})
    
@@ -228,6 +260,8 @@ async function get_invite_info(id){
         for (let i = 0; i < dbs.length; i++) {
            /// await dbs[i].destroy()
         }
+
+        localStorage.setItem('token',data.token)
 
         setlogin(true)
         localStorage.setItem('first-company-created-message',true)
@@ -319,7 +353,7 @@ async function get_invite_info(id){
 
   const pages=[
     {name:'Informação pessoal',text:'Insira sua informação pessoal e de login para a plataforma'},
-    {name:'Empresa',text:'Registre sua primeira empresa'},
+    {name:'Empresa',text:'Registar sua primeira empresa'},
     {name:'Chave de acesso',text:'Insira a chave the accesso enviado por email'}
   ]
 
@@ -337,25 +371,41 @@ async function get_invite_info(id){
   return (
 <>
 
-<div class="min-h-screen p-6 bg-slate-100 flex items-center justify-center">
+<div class="min-h-screen p-6 bg-slate-100 flex items-center justify-center relative">
   <div class="container max-w-screen-lg mx-auto">
     <div>
-      
 
-      <div class="bg-white rounded shadow-lg mb-6">
+      <div class="bg-white rounded shadow-lg mb-6 relative overflow-hidden">
+        {(inviteStatus==null && invite) && <div className="absolute top-0 left-0 w-full  overflow-hidden">
+                          <LinearProgressBar />
+        </div>}
+        <div className="absolute right-2 top-2">
+         <select onChange={(e)=>changeLanguage(e.target.value)} value={selectedLang} className=" rounded-[0.1rem] p-1 bg-gray-200 text-gray-500">
+            <option value={"pt"}>PT</option>
+            <option value={"en"}>EN</option>
+         </select>
+        </div>
         <div class="grid gap-4 gap-y-2 text-sm grid-cols-1 lg:grid-cols-3">
 
-          <div class={`text-gray-600 bg-gray-50 px-8 py-10 border-r border-[rgba(0,0,0,0.04)] ${login || IsRegister ? 'hidden':''}`}>
+          <div class={`text-gray-600  flex flex-col justify-between bg-gray-50 px-8 py-10 border-r border-[rgba(0,0,0,0.04)] ${login || IsRegister ? 'hidden':''}`}>
            
-            <p class="font-semibold text-[19px] mt-7">Etapa {currentPage + 1}</p>
-           
-            <p className="text-gray-400 mt-3 text-[15px]">{pages[currentPage].text}</p>
-            <div className="mt-10 relative">
-                  <span className="w-[1px] flex h-[96%] translate-y-[3%] -z-2 bg-slate-200 left-[15px] top-0 absolute"></span>
+               <div>
+                  <p class="font-semibold text-[19px] mt-7">Etapa {currentPage + 1}</p>
+                  
+                  <p className="text-gray-400 mt-3 text-[15px]">{pages[currentPage].text}</p>
+                  <div className="mt-10 relative">
+                        <span className="w-[1px] flex h-[96%] translate-y-[3%] -z-2 bg-slate-200 left-[15px] top-0 absolute"></span>
 
-                  {pages.map((i,_i)=>(
-                              <div className="flex mb-7 relative z-10 items-center"><span className={`flex w-[30px] h-[30px] rounded-full items-center ${currentPage==_i ? 'text-white  bg-app_orange-300 font-semibold':'text-app_black-300  bg-slate-200'} justify-center  mr-3`}>{_i+1}</span> <span className={`${currentPage==_i ? 'font-semibold':' text-gray-400'}`}>{i.name}</span></div>
-                  ))}
+                        {pages.map((i,_i)=>(
+                                    <div className="flex mb-7 relative z-10 items-center"><span className={`flex w-[30px] h-[30px] rounded-full items-center ${currentPage==_i ? 'text-white  bg-app_orange-300 font-semibold':'text-app_black-300  bg-slate-200'} justify-center  mr-3`}>{_i+1}</span> <span className={`${currentPage==_i ? 'font-semibold':' text-gray-400'}`}>{i.name}</span></div>
+                        ))}
+                  </div>
+               </div>
+               
+               <div>
+                  <button onClick={()=>{
+                            navigate('/login')
+                    }} class={`bg-gray-300 bg-app_orange-300 hover:bg-app_orange-400 text-white font-bold py-2 px-4 rounded border-b-app_orange-300 border-b-2`}>  <ArrowBack style={{width:15}}/><span className="ml-1"> login</span></button> 
                </div>
           </div>
 
@@ -369,7 +419,7 @@ async function get_invite_info(id){
                     <p class="font-semibold text-[19px] mt-7">Convite de adesão</p>
 
                     
-                    <p className="text-gray-400 mt-3 text-[15px]"><span className="mr-3 inline-flex text-amber-400">{!invite ? 'Convite não encontrado!' : inviteStatus=="invalid"  ? "Este convite não é valido" : inviteStatus=="not_started" ? "Confirme os dados adicionados no convite antes de prosseguir" :"Está conta ja foi registrada"}</span>  </p>
+                    <p className="text-gray-400 mt-3 text-[15px]"><span className="mr-3 inline-flex text-amber-400">{!invite ? 'Convite não encontrado!' : inviteStatus=="invalid"  ? "Este convite não é valido" : inviteStatus=="not_started" ? "Confirme os dados adicionados no convite antes de prosseguir" : inviteStatus!=null ?  "Está conta ja foi registrada":"Verifique sua internet (a conectar...)"}</span>  </p>
                     <span className="flex mt-4 justify-end">
                       {(inviteStatus=="used" || inviteStatus=="started") && <>
                         <label onClick={()=>navigate('/recover-password')} className="hover:opacity-75 inline-flex text-app_orange-400 underline cursor-pointer">Recuperar senha</label>
@@ -377,7 +427,7 @@ async function get_invite_info(id){
                       </>}
                       <label onClick={()=>navigate('/login')} className="hover:opacity-75 inline-flex text-app_orange-400 underline cursor-pointer">Login</label>
                       <label className="mx-2 text-gray-200">|</label>
-                      <label className="hover:opacity-70 cursor-pointer inline-flex text-app_orange-400 underline" onClick={()=>navigate('/new-company')}>Registrar empresa</label>
+                      <label className="hover:opacity-70 cursor-pointer inline-flex text-app_orange-400 underline" onClick={()=>navigate('/new-company')}>Registar empresa</label>
                     </span>
             </div>}
 
@@ -394,7 +444,7 @@ async function get_invite_info(id){
 
             <div class="grid gap-4 gap-y-2 text-sm grid-cols-1 md:grid-cols-5">
    
-            {(currentPage == 0 && !(!invite && IsRegister) && (inviteStatus!="invalid" &&  inviteStatus!="used" && inviteStatus!="started")) && <FirstUsePerson IsRegister={IsRegister} useExistingAccount={useExistingAccount} formData={formData} setFormData={setFormData}/>}
+            {(currentPage == 0 && ((inviteStatus!=null) && !(!invite && IsRegister) && (inviteStatus!="invalid" &&  inviteStatus!="used" && inviteStatus!="started")) || (!invite && currentPage == 0)) && <FirstUsePerson IsRegister={IsRegister} useExistingAccount={useExistingAccount} formData={formData} setFormData={setFormData}/>}
             {currentPage == 1 && <FirstUseCompany upload={upload} setUpload={setUpload} formData={formData} setFormData={setFormData}/>}
             {currentPage == 2 && <FirstUseLincense login={login} errors={errors} setErrors={setErrors} formData={formData} setFormData={setFormData}/>}
 

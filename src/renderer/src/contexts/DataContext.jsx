@@ -5,7 +5,7 @@ import PouchDB from 'pouchdb';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import io from 'socket.io-client';
-const socket = io('https://proconta.derflash.com');
+const socket = io('https://proconta.derflash.online');
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import PouchDBFind from 'pouchdb-find';

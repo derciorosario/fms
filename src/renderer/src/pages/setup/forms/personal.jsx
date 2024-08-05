@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import VerifiedIcon from '../compnents/valid-icon';
 import _var from '../../../assets/vaiables.json'
 
-function FirstUsePerson({formData,setFormData,useExistingAccount,IsRegister}) {
+function FirstUsePerson({formData,setFormData,useExistingAccount,IsRegister,exists}) {
 
-    console.log({f:formData.personal})
+    
 
   return (
     <>
 
-         {!useExistingAccount && <div class="md:col-span-3">
+         {!useExistingAccount && <div class={`md:col-span-3 ${exists ? 'opacity-65  pointer-events-none':''}`}>
             <label for="full_name">Nome</label>
            <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
                   <input onChange={(e)=>setFormData({...formData,personal:{...formData.personal,name:e.target.value}})} value={formData.personal.name} name="name"  placeholder="Seu nome" class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
@@ -17,7 +17,7 @@ function FirstUsePerson({formData,setFormData,useExistingAccount,IsRegister}) {
            </div>
         </div>}
 
-        {!useExistingAccount && <div class="md:col-span-2">
+        {!useExistingAccount && <div class={`md:col-span-2 ${exists ? 'opacity-65  pointer-events-none':''}`}>
             <label for="full_name">Apelido</label>
            <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
                   <input onChange={(e)=>setFormData({...formData,personal:{...formData.personal,last_name:e.target.value}})} value={formData.personal.last_name} name="name"  placeholder="" class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
@@ -25,23 +25,23 @@ function FirstUsePerson({formData,setFormData,useExistingAccount,IsRegister}) {
            </div>
         </div>}
 
-        <div class={`${useExistingAccount ? 'md:col-span-3':'md:col-span-5'}`}>
+        <div class={`${useExistingAccount ? 'md:col-span-3':'md:col-span-5'} ${exists ? 'opacity-65  pointer-events-none':''}`}>
             <label for="email">Email</label>
-            <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
-                  <input disabled={IsRegister} onChange={(e)=>setFormData({...formData,personal:{...formData.personal,email:e.target.value.replaceAll(' ','')}})} value={formData.personal.email} name="state"  placeholder={`${useExistingAccount ?'Email registrado':''}`} style={{opacity:IsRegister ? '0.4':'1'}} class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
+            <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1 opacity-70">
+                  <input disabled={true} onChange={(e)=>setFormData({...formData,personal:{...formData.personal,email:e.target.value.replaceAll(' ','')}})} value={formData.personal.email} name="state"  placeholder={`${useExistingAccount ?'Email registrado':''}`} style={{opacity:IsRegister ? '0.4':'1'}} class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
                   {(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.personal.email.trim())) && <VerifiedIcon/> }
            </div>
         </div>
 
-        <div class="md:col-span-3">
+        {!exists && <div class={`md:col-span-3`}>
             <label for="address">{useExistingAccount ? 'Senha' : 'Nova senha'}</label>
             <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
                   <input onChange={(e)=>setFormData({...formData,personal:{...formData.personal,password:e.target.value.replaceAll(' ','')}})} value={formData.personal.password} placeholder="Deve ter pelo menos 8 caracteres" id="state"  class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
                   {formData.personal.password.length >= 8  && <VerifiedIcon/> }
            </div>
-        </div>
+        </div>}
 
-        {!useExistingAccount &&  <div class="md:col-span-2">
+        {!useExistingAccount &&  <div class={`md:col-span-2 ${exists ? 'opacity-65  pointer-events-none':''}`}>
             <label for="state">Contacto</label>
            
             <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
@@ -55,7 +55,7 @@ function FirstUsePerson({formData,setFormData,useExistingAccount,IsRegister}) {
            </div>
         </div>}
 
-        {!useExistingAccount &&  <div class="md:col-span-3">
+        {!useExistingAccount &&  <div class={`md:col-span-3 ${exists ? 'opacity-65  pointer-events-none':''}`}>
             <label for="address">Enderenço</label>
             <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
                   <input onChange={(e)=>setFormData({...formData,personal:{...formData.personal,address:e.target.value}})} value={formData.personal.address} name="state" id="state"  class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
@@ -63,7 +63,7 @@ function FirstUsePerson({formData,setFormData,useExistingAccount,IsRegister}) {
            </div>
         </div>}
 
-        {!useExistingAccount &&  <div class={`md:col-span-2 ${formData.personal.contact_code!="258" ? 'hidden':''}`}>
+        {!useExistingAccount &&  <div class={`md:col-span-2 ${formData.personal.contact_code!="258" ? 'hidden':''} ${exists ? 'opacity-65  pointer-events-none':''}`}>
             <label for="state">Provincia / Cidade</label>
             <div class="h-10 bg-gray-50  flex border border-gray-200 rounded items-center mt-1">
                 <select onChange={(e)=>setFormData({...formData,personal:{...formData.personal,state:e.target.value}})} value={formData.personal.state} className="w-full h-full px-2">

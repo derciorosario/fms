@@ -80,7 +80,6 @@ function App() {
    React.useEffect(()=>{
 
         setRecoverPassword(pathname.replaceAll('/','').startsWith('recover-password'))
-
         setRegistrationSuccess(window.location.hash.includes('login?registration-success'))
 
         let res=_sendFilter(searchParams)
@@ -94,6 +93,7 @@ function App() {
 
 
 
+   console.log({user})
 
 
 

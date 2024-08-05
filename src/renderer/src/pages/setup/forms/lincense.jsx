@@ -2,17 +2,17 @@ import React, { useState } from 'react';
 import VerifiedIcon from '../compnents/valid-icon';
 import colors from '../../../assets/colors.json'
 import { Close, CloseRounded } from '@mui/icons-material';
-function FirstUseLincense({formData,setFormData,errors,setErrors,login}) {
+function FirstUseLincense({formData,setFormData,errors,setErrors,login,currentPage,clear_errors}) {
 
 
   return (
     <>
 
         <div className="md:col-span-5">
-              {!login && <div class="w-[300px]">
+              {(!login && currentPage==0) && <div class="w-[300px]">
                     <label for="email">Chave de activação</label>
                     <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1 w-full">
-                            <input onChange={(e)=>setFormData({...formData,key:e.target.value})} value={formData.key} name="name"  placeholder="xxxx xxxx xxxx" class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
+                            <input onChange={(e)=>setFormData({...formData,key:e.target.value.length <= 12 ? e.target.value : formData.key})} value={formData.key} name="name"  placeholder="xxxx xxxx xxxx" class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
                             {formData.key.length == 12 && <VerifiedIcon/> }
                     </div>
              </div>}
@@ -25,7 +25,7 @@ function FirstUseLincense({formData,setFormData,errors,setErrors,login}) {
                       </>
                    ))}
 
-                  <span onClick={()=>setErrors([])} className="ml-1 mt-3 table underline cursor-pointer opacity-80 text-gray-500 hover:opacity-100">Limpar erros!</span>
+                  <span onClick={clear_errors} className="ml-1 mt-3 table underline cursor-pointer opacity-80 text-gray-500 hover:opacity-100">Limpar erros!</span>
              </div>
 
 

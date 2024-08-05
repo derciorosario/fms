@@ -21,9 +21,11 @@ function FirstUse() {
   const [currentPage,setCurrentPage]=useState(0)
   const [loading,setLoading]=useState(false)
   const [errors,setErrors]=useState([])
+  const [validated,setValidated]=useState(false)
   const [login,setlogin]=useState(false)
   const [initialized,setinitialized]=useState(false)
   const [invite,setinvite]=useState(null)
+  const [userExists,setUserExists]=useState(false)
   const [valid,setValid]=useState({
     personal:false,
     company:false,
@@ -108,13 +110,13 @@ function FirstUse() {
          formData.personal.address.length < 3  ||
          !formData.personal.state && formData.personal.contact_code=="258"
       ){
-        _valid.personal=false
+        _valid.personal=userExists ? true : false
       }
 
       if(formData.company.name.length <= 2 ||
       !(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.company.email.trim())) ||
       formData.company.contact.length != 9 ||
-      formData.company.nuit.length != 9 ||
+      formData.company.nuit.length != 9 &&  formData.company.contact_code=="258" ||
       formData.company.address.length < 3  ||
       (!formData.company.state && formData.company.contact_code=="258")
       
@@ -128,7 +130,7 @@ function FirstUse() {
         }
 
       setValid(_valid)
-      setTimeout(()=> localStorage.setItem('setupdata',JSON.stringify({...formData,key:'',personal:{...formData.personal,password:''}})),1000)
+      setTimeout(()=> localStorage.setItem('setupdata',JSON.stringify({...formData,key:formData.key,personal:{...formData.personal,password:''}})),1000)
   },[formData])
 
 
@@ -136,8 +138,7 @@ function FirstUse() {
 
 
 async function get_invite_info(id){
-
-
+     toast.remove()
     try{
 
       let response = await data.makeRequest({method:'get',url:`api/get-invite-info/`+id, error: ``},0);
@@ -158,6 +159,7 @@ async function get_invite_info(id){
       setinitialized(true)
 
     }catch(e){
+      toast.remove()
 
         if(e.response){
                 
@@ -212,11 +214,15 @@ async function get_invite_info(id){
         }  
         setinvite(res.invite)
 
+        if(res.invite){
+          setCurrentPage(1)
+        }
+
         
 
   },[pathname,data.online])
 
-  console.log({invite})
+  console.log({invite,validated,login,key:formData.key})
 
   
 
@@ -242,7 +248,7 @@ async function get_invite_info(id){
         let u=new PouchDB('user')
         let docs=await u.allDocs({ include_docs: true })
         let user=docs.rows.map(i=>i.doc)[0]
-
+  
         if(user){
            u.put({id:data.user.id,_rev:user._rev,_id:user._id})
         }else{
@@ -250,10 +256,27 @@ async function get_invite_info(id){
         }
 
         let user_db=new PouchDB('user-'+data.user.id)
-        await user_db.put(data.user)
+        user_db.createIndex({index: { fields: ['id'] }})
+        let _user=await  user_db.find({selector: { id:data.user.id }})
+        _user=_user.docs[0]
 
-        let user_settings=new PouchDB(`settings-${data.user.id}-${data.user.selected_company}`)
-        await user_settings.put(data.settings)
+        if(_user){
+          user_db.put({...data.user,_rev:_user._rev,_id:_user._id})
+        }else{
+          await user_db.put(data.user)
+        }
+
+       
+
+
+        if(data.settings){
+
+          let user_settings=new PouchDB(`settings-${data.user.id}-${data.user.selected_company}`)
+          await user_settings.put(data.settings)
+
+        }
+
+       
        
         let dbs=JSON.parse(localStorage.getItem('dbs'))
 
@@ -273,6 +296,33 @@ async function get_invite_info(id){
   }
 
 
+  function handle_request_error(e,from){
+    console.log(e)
+    toast.remove()
+     if(e.response){
+           if(e.response.status==400){
+              toast.error('Dados invalidos')
+           }
+           if(e.response.status==404){
+              toast.error(from!="invite" ? 'Item não encontrado' : 'Usuário ou convite não encotrado')
+           }
+
+           if(e.response.status==409){
+            toast.error('Usuário já existe')
+           }
+           if(e.response.status==500){
+              toast.error('Erro interno do servidor, contacte seu administrador')
+           }
+           
+     }else if(e.code=='ERR_NETWORK'){
+          toast.error('Verifique sua internet e tente novamente')
+     }else{
+          console.log(e)
+          toast.error('Erro inesperado!')
+     }
+
+  }
+
 
 
 
@@ -280,6 +330,46 @@ async function get_invite_info(id){
         setLoading(true)
         setErrors([])
         toast.loading(from=="invite" ? `A carregar...`: `A validar...`)
+        
+  
+
+        if(from=="check_code"){
+         
+          try{
+
+            let response = await data.makeRequest({method:'get',url:`api/get-key-info/`+formData.key, error: ``},0);
+            toast.remove()
+            if(response.status==404){
+              toast.error('Convite usado ou inválido!')
+            }else{
+  
+              if(response.user) setUserExists(true)
+  
+              let personal
+  
+              if(response.user){
+                personal={...formData.personal,...response.user,password:'',contact:response.user.contacts[0]}
+              }else{
+                personal={...formData.personal,email:response.info.send_email}
+              }
+  
+              setFormData({...formData,personal})
+              setCurrentPage(response.user ? 2 : 1)
+              
+            }
+  
+            setLoading(false)
+
+          }catch(e){
+            setLoading(false)
+            handle_request_error(e,from)
+          }
+          return
+        }
+
+
+
+
         try{
 
         let response=from=="invite" ? await data.makeRequest({method:'post',url:`api/register-from-invite`,data:{
@@ -311,6 +401,9 @@ async function get_invite_info(id){
           return
         }
 
+
+        setValidated(true)
+
         if(response.data){
             setErrors([])
             firstStart(response.data)
@@ -322,41 +415,32 @@ async function get_invite_info(id){
 
 
        }catch(e){
-        toast.remove()
-         if(e.response){
-             
-               if(e.response.status==400){
-                  toast.error('Dados invalidos')
-               }
-               if(e.response.status==404){
-                  toast.error(from!="invite" ? 'Item não encontrado' : 'Usuário ou convite não encotrado')
-               }
-
-               if(e.response.status==409){
-                toast.error('Usuário já existe')
-               }
-               if(e.response.status==500){
-                  toast.error('Erro interno do servidor, contacte seu administrador')
-               }
-               
-         }else if(e.code=='ERR_NETWORK'){
-              toast.error('Verifique sua internet e tente novamente')
-         }else{
-              console.log(e)
-              toast.error('Erro inesperado!')
-         }
-         setLoading(false)
+        
+        handle_request_error(e,from)
+        setLoading(false)
+        setErrors([])
+         
        }
+       setLoading(false)
+       
  }
 
 
 
   const pages=[
+    {name:'Chave de acesso',text:'Insira a chave de accesso enviada por email'},
     {name:'Informação pessoal',text:'Insira sua informação pessoal e de login para a plataforma'},
     {name:'Empresa',text:'Registar sua primeira empresa'},
-    {name:'Chave de acesso',text:'Insira a chave the accesso enviado por email'}
   ]
 
+
+  
+  function clear_errors(){
+    setValidated(false)
+    setErrors([])
+  }
+
+  
 
   
 
@@ -411,7 +495,7 @@ async function get_invite_info(id){
 
           <div class={`md:col-span-${IsRegister ? '3' : '2'} p-12`}>
 
-           {!IsRegister ? <div className={`mb-10 ${login ? 'hidden':''}`}>
+           {!IsRegister ? <div className={`mb-10 ${(login || errors.length) ? 'hidden':''}`}>
                     <p class="font-semibold text-[19px] mt-7">{pages[currentPage].name}</p>
                     <p className="text-gray-400 mt-3 text-[15px]">Insira sua informação pessoal e de login para a plataforma</p>
             
@@ -442,27 +526,42 @@ async function get_invite_info(id){
             </label>}*/}
            
 
-            <div class="grid gap-4 gap-y-2 text-sm grid-cols-1 md:grid-cols-5">
+            <div class={`grid gap-4 gap-y-2 text-sm grid-cols-1 md:grid-cols-5`}>
    
-            {(currentPage == 0 && ((inviteStatus!=null) && !(!invite && IsRegister) && (inviteStatus!="invalid" &&  inviteStatus!="used" && inviteStatus!="started")) || (!invite && currentPage == 0)) && <FirstUsePerson IsRegister={IsRegister} useExistingAccount={useExistingAccount} formData={formData} setFormData={setFormData}/>}
-            {currentPage == 1 && <FirstUseCompany upload={upload} setUpload={setUpload} formData={formData} setFormData={setFormData}/>}
-            {currentPage == 2 && <FirstUseLincense login={login} errors={errors} setErrors={setErrors} formData={formData} setFormData={setFormData}/>}
+            {((currentPage == 0 || validated || login) && !invite) && <FirstUseLincense login={login} currentPage={currentPage} clear_errors={clear_errors} errors={errors} setErrors={setErrors} formData={formData} setFormData={setFormData}/>}
+            {((currentPage == 1) && ((inviteStatus!=null) && !(!invite && IsRegister) && (inviteStatus!="invalid" &&  inviteStatus!="used" && inviteStatus!="started") || (currentPage==1 && !invite))) &&   <FirstUsePerson exists={userExists} IsRegister={IsRegister} useExistingAccount={useExistingAccount} formData={formData} setFormData={setFormData}/>}
+            {(currentPage == 2 && !validated && !login) && <FirstUseCompany upload={upload} setUpload={setUpload} formData={formData} setFormData={setFormData}/>}
+          
 
       
               <div class={`md:col-span-5 text-right mt-10 ${login || IsRegister ? 'hidden':''}`}>
                 <div class={`${loading ? 'hidden':'inline-flex'}`}>
-                  <button onClick={()=>setCurrentPage((p)=>p-=1)} class={`text-app_black-600 ${currentPage==0 ? 'opacity-0 pointer-events-none':''} font-semibold py-2 px-4 rounded`}>Voltar</button>
+                 
+                  {currentPage==1 && <span onClick={()=>{
+                      setFormData(initial_form)
+                      setCurrentPage(0)
+                      setUserExists(false)
+                  }} className="text-blue-400 mt-1 hover:opacity-70   underline cursor-pointer">Usar outro código</span>
+                   
+                   }
+                  <button onClick={()=>setCurrentPage((p)=>p-=1)} class={`text-app_black-600 ${currentPage==0 || currentPage==1 ? 'opacity-0 pointer-events-none':''} font-semibold py-2 px-4 rounded`}>Voltar</button>
                   <button onClick={()=>{
 
-                    if((currentPage==0 && !valid.personal) || (currentPage==1 && !valid.company) || (currentPage==2 && !valid.key)){
+
+                     if(errors.length) return
+
+                    if((currentPage==0 && !valid.key) || (currentPage==1 && !valid.personal) || (currentPage==2 && !valid.company)){
                         return
-                    }else if(currentPage==2 && valid.key){
-                        SubmitForm()
+                    }else if(currentPage==0 && valid.key){
+                        SubmitForm('check_code')
                         return
+                    }else if(currentPage==2 && valid.company){
+                         SubmitForm()
+                         return
                     }
 
                     setCurrentPage((p)=>p+=1)
-                  }} class={`${(currentPage==0 && !valid.personal) || (currentPage==1 && !valid.company) || (currentPage==2 && !valid.key) ? ' bg-gray-300 cursor-not-allowed':'bg-app_orange-300 hover:bg-app_orange-400'} ${currentPage==2 && valid.key ?' bg-app_orange-500':''} text-white font-bold py-2 px-4 rounded`}>{currentPage==2 ? 'Submeter' :'Próximo'}</button>
+                  }} class={`${(currentPage==0 && !valid.key) || (currentPage==1 && !valid.personal) || errors.length || (currentPage==2 && !valid.company) ? ' bg-gray-300 cursor-not-allowed':'bg-app_orange-300 hover:bg-app_orange-400'} ${currentPage==2 && valid.key ?' bg-app_orange-500':''} text-white font-bold py-2 px-4 rounded`}>{currentPage==2 ? 'Submeter' :'Próximo'}</button>
                 </div>
 
                {loading && <span className="scale-70 inline-block"><CircularProgress style={{color:colors.app_orange[500]}} /></span>}
@@ -476,7 +575,7 @@ async function get_invite_info(id){
                  <button onClick={()=>{
                          SubmitForm('invite')
                     
-                  }} class={`${(currentPage==0 && !valid.personal) ? ' bg-gray-300 cursor-not-allowed':'bg-app_orange-300 hover:bg-app_orange-400'} text-white font-bold py-2 px-4 rounded`}>Enviar</button>
+                  }} class={`${(currentPage==0 && !valid.key) ? ' bg-gray-300 cursor-not-allowed':'bg-app_orange-300 hover:bg-app_orange-400'} text-white font-bold py-2 px-4 rounded`}>Enviar</button>
                 </div>
 
                {loading && <span className="scale-70 inline-block"><CircularProgress style={{color:colors.app_orange[500]}} /></span>}

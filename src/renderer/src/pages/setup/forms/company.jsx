@@ -25,7 +25,7 @@ function FirstUsePerson({formData,setFormData,setUpload,upload}) {
            </div>
         </div>
 
-        <div class="md:col-span-3">
+        <div class={`md:col-span-3  ${formData.company.contact_code!="258" ? 'hidden':''}`}>
             <label for="address">Nuit </label>
             <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
                   <input onChange={(e)=>setFormData({...formData,company:{...formData.company,nuit:e.target.value.toString().length  <= 9 && !isNaN(e.target.value) ?  e.target.value : formData.company.nuit}})} value={formData.company.nuit}  id="state"  class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />

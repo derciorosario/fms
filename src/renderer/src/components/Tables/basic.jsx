@@ -267,6 +267,9 @@ function BasicTable({page,_filtered_content,_setFilteredContent,res}) {
     
     if(page=="companies"){
       _settings.disable_time=true
+      if(!user.lincensed){
+        _settings.has_add_btn=false
+      }
     }
 
 

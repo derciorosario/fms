@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useData } from '../../../contexts/DataContext';
 import { useAuth } from '../../../contexts/AuthContext';
+import { t } from 'i18next';
 
 function FilterOptions({formData,setFormData,initialized}) {
 
@@ -19,7 +20,7 @@ function FilterOptions({formData,setFormData,initialized}) {
  
   <div id="dropdown" className="z-10 w-56 p-3 bg-white rounded-lg shadow">
     <h6 className="mb-3 text-sm font-medium text-gray-900">
-      Contas
+      {t('common.accounts')}
     </h6>
     {<ul className="space-y-2 text-sm" aria-labelledby="dropdownDefault">
         {data._account_categories.map((i,_i)=>(
@@ -36,7 +37,7 @@ function FilterOptions({formData,setFormData,initialized}) {
         ))}
     </ul>}
 
-     {data._account_categories.length==0 && <span className="text-gray-300 font-normal">Nenhuma conta disponivel</span>}
+     {data._account_categories.length==0 && <span className="text-gray-300 font-normal">{t('common.none-account-available')}</span>}
   </div>
 </div>
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import VerifiedIcon from '../compnents/valid-icon';
 import MainUploader from '../compnents/upload-company-logo';
 import _var from '../../../assets/vaiables.json'
+import { t } from 'i18next';
 
 function FirstUsePerson({formData,setFormData,setUpload,upload}) {
 
@@ -10,7 +11,7 @@ function FirstUsePerson({formData,setFormData,setUpload,upload}) {
     <>
 
         <div class="md:col-span-5">
-            <label for="full_name">Nome da empresa</label>
+            <label for="full_name">{t('form.company-name')}</label>
            <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
                   <input onChange={(e)=>setFormData({...formData,company:{...formData.company,name:e.target.value}})} value={formData.company.name} name="name"  class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
                   {formData.company.name.length >= 2 && <VerifiedIcon/> }
@@ -34,7 +35,7 @@ function FirstUsePerson({formData,setFormData,setUpload,upload}) {
         </div>
 
         <div class="md:col-span-2">
-            <label for="state">Contacto </label>
+            <label for="state">{t('common.contact')} </label>
             <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
                    <select onChange={(e)=>setFormData({...formData,company:{...formData.company,contact_code:e.target.value}})} value={formData.contact_code} className="bg-transparent">
                         {_var.contry_codes.map(i=>(
@@ -47,7 +48,7 @@ function FirstUsePerson({formData,setFormData,setUpload,upload}) {
         </div>
        
         <div class="md:col-span-3">
-            <label for="address">Enderenço </label>
+            <label for="address">{t('common.address')} </label>
             <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
                   <input onChange={(e)=>setFormData({...formData,company:{...formData.company,address:e.target.value}})} value={formData.company.address} name="state" id="state"  class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
                   {formData.company.address.length >= 3 && <VerifiedIcon/> }
@@ -55,7 +56,7 @@ function FirstUsePerson({formData,setFormData,setUpload,upload}) {
         </div>
 
         <div class={`md:col-span-2 ${formData.company.contact_code!="258" ? 'hidden':''}`}>
-            <label for="state">Provincia / Cidade </label>
+            <label for="state">{t('common.city-pronvice')} </label>
             <div class="h-10 bg-gray-50  flex border border-gray-200 rounded items-center mt-1">
             <select onChange={(e)=>setFormData({...formData,company:{...formData.company,state:e.target.value}})} value={formData.company.state} className="w-full h-full px-2">
                         <option selected value="" disabled>Selecione</option>

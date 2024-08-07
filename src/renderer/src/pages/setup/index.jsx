@@ -2,7 +2,7 @@ import React, { useState,useEffect } from 'react';
 import FirstUsePerson from './forms/personal';
 import FirstUseCompany from './forms/company';
 import FirstUseLincense from './forms/lincense';
-import { Alert, Checkbox, CircularProgress, Switch} from '@mui/material';
+import {  CircularProgress} from '@mui/material';
 import colors from  '../../assets/colors.json'
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -33,9 +33,6 @@ function FirstUse() {
   })
 
   
-            
-            // African phone codes
-
   if(!localStorage.getItem('dbs')) localStorage.setItem('dbs',JSON.stringify([]))
 
   let langs=['pt','en']
@@ -164,31 +161,27 @@ async function get_invite_info(id){
         if(e.response){
                 
             if(e.response.status==400){
-                toast.error('Dados invalidos')
+                toast.error(t('common.invalid-data'))
             }
             if(e.response.status==404){
-              toast.error('Item não encontrado')
+              toast.error(t('common.item-not-found'))
             }
             if(e.response.status==500){
-              toast.error('Erro interno do servidor, contacte seu administrador')
+              toast.error(t('common.unexpected-error'))
             }
           
             
       }else if(e.code=='ERR_NETWORK'){
-          toast.error('Verifique sua internet e tente novamente')
+          toast.error(t('common.check-network'))
       }else{
           console.log(e)
-          toast.error('Erro inesperado!')
+          toast.error(t('common.unexpected-error'))
       }
       
       setLoading(false)
       setinitialized(true)
          
     }
-
-
-    
-
 
 
 }
@@ -221,12 +214,6 @@ async function get_invite_info(id){
         
 
   },[pathname,data.online])
-
-  console.log({invite,validated,login,key:formData.key})
-
-  
-
-
 
 
 
@@ -290,7 +277,7 @@ async function get_invite_info(id){
         localStorage.setItem('first-company-created-message',true)
         setFormData(initial_form)
        }catch(e){
-          toast.error('Erro de inicialização inesperado, tente novamente! detalhes do erro'+e)
+          toast.error('Fatal error: '+e)
        }
        
   }
@@ -301,24 +288,24 @@ async function get_invite_info(id){
     toast.remove()
      if(e.response){
            if(e.response.status==400){
-              toast.error('Dados invalidos')
+              toast.error(t('common.invalid-data'))
            }
            if(e.response.status==404){
-              toast.error(from!="invite" ? 'Item não encontrado' : 'Usuário ou convite não encotrado')
+              toast.error(t('common.item-not-found'))
            }
 
            if(e.response.status==409){
             toast.error('Usuário já existe')
            }
            if(e.response.status==500){
-              toast.error('Erro interno do servidor, contacte seu administrador')
+              toast.error(t('common.unexpected-error'))
            }
            
      }else if(e.code=='ERR_NETWORK'){
-          toast.error('Verifique sua internet e tente novamente')
+          toast.error(t('common.check-network'))
      }else{
           console.log(e)
-          toast.error('Erro inesperado!')
+          toast.error(t('common.unexpected-error'))
      }
 
   }
@@ -329,7 +316,7 @@ async function get_invite_info(id){
   async function SubmitForm(from){
         setLoading(true)
         setErrors([])
-        toast.loading(from=="invite" ? `A carregar...`: `A validar...`)
+        toast.loading(from=="invite" ? t('common.loading')+`...`: t('common.validating-invite')+`...`)
         
   
 
@@ -340,7 +327,7 @@ async function get_invite_info(id){
             let response = await data.makeRequest({method:'get',url:`api/get-key-info/`+formData.key, error: ``},0);
             toast.remove()
             if(response.status==404){
-              toast.error('Convite usado ou inválido!')
+              toast.error(t('common.invite-used-or-ivalid'))
             }else{
   
               if(response.user) setUserExists(true)
@@ -375,6 +362,7 @@ async function get_invite_info(id){
         let response=from=="invite" ? await data.makeRequest({method:'post',url:`api/register-from-invite`,data:{
           a:formData.personal,
           invite,
+          lang:i18n.lang
         }, error: ``},0)
        
        : 
@@ -382,7 +370,8 @@ async function get_invite_info(id){
        await data.makeRequest({method:'post',url:`api/company/setup`,data:{
         c:formData.company,
         a:formData.personal,
-        key:formData.key
+        key:formData.key,
+        lang:i18n.lang
      }, error: ``},0)
 
        
@@ -393,7 +382,7 @@ async function get_invite_info(id){
         if(from=="invite"){
 
 
-          toast.success('Usuário cadastrado com successo')
+          toast.success(t('common.user-added'))
 
           navigate('/login?registration-success&email='+formData.personal.email)
 
@@ -410,7 +399,7 @@ async function get_invite_info(id){
         }else{
             setLoading(false)
             setErrors(response.errors)
-            toast.error('Dados inválidos!')
+            toast.error(t('common.invalid-data'))
         }
 
 
@@ -428,9 +417,9 @@ async function get_invite_info(id){
 
 
   const pages=[
-    {name:'Chave de acesso',text:'Insira a chave de accesso enviada por email'},
-    {name:'Informação pessoal',text:'Insira sua informação pessoal e de login para a plataforma'},
-    {name:'Empresa',text:'Registar sua primeira empresa'},
+    {name:t('common.access-key'),text:t('messages.insert-key-msg')},
+    {name:t('common.personal-info'),text:t('messages.personal-info-msg')},
+    {name:t('common.company'),text:t('common.register-company')},
   ]
 
 
@@ -474,7 +463,7 @@ async function get_invite_info(id){
           <div class={`text-gray-600  flex flex-col justify-between bg-gray-50 px-8 py-10 border-r border-[rgba(0,0,0,0.04)] ${login || IsRegister ? 'hidden':''}`}>
            
                <div>
-                  <p class="font-semibold text-[19px] mt-7">Etapa {currentPage + 1}</p>
+                  <p class="font-semibold text-[19px] mt-7">{t('common.step')} {currentPage + 1}</p>
                   
                   <p className="text-gray-400 mt-3 text-[15px]">{pages[currentPage].text}</p>
                   <div className="mt-10 relative">
@@ -497,21 +486,21 @@ async function get_invite_info(id){
 
            {!IsRegister ? <div className={`mb-10 ${(login || errors.length) ? 'hidden':''}`}>
                     <p class="font-semibold text-[19px] mt-7">{pages[currentPage].name}</p>
-                    <p className="text-gray-400 mt-3 text-[15px]">Insira sua informação pessoal e de login para a plataforma</p>
+                    <p className="text-gray-400 mt-3 text-[15px]">{t('messages.personal-info-msg')}</p>
             
             </div> : <div className={`mb-10`}>
-                    <p class="font-semibold text-[19px] mt-7">Convite de adesão</p>
+                    <p class="font-semibold text-[19px] mt-7">{t('common.access-invite')}</p>
 
                     
                     <p className="text-gray-400 mt-3 text-[15px]"><span className="mr-3 inline-flex text-amber-400">{!invite ? 'Convite não encontrado!' : inviteStatus=="invalid"  ? "Este convite não é valido" : inviteStatus=="not_started" ? "Confirme os dados adicionados no convite antes de prosseguir" : inviteStatus!=null ?  "Está conta ja foi registrada":"Verifique sua internet (a conectar...)"}</span>  </p>
                     <span className="flex mt-4 justify-end">
                       {(inviteStatus=="used" || inviteStatus=="started") && <>
-                        <label onClick={()=>navigate('/recover-password')} className="hover:opacity-75 inline-flex text-app_orange-400 underline cursor-pointer">Recuperar senha</label>
+                        <label onClick={()=>navigate('/recover-password')} className="hover:opacity-75 inline-flex text-app_orange-400 underline cursor-pointer">{t('common.recover-password')}</label>
                         <label className="mx-2 text-gray-200">|</label>
                       </>}
                       <label onClick={()=>navigate('/login')} className="hover:opacity-75 inline-flex text-app_orange-400 underline cursor-pointer">Login</label>
                       <label className="mx-2 text-gray-200">|</label>
-                      <label className="hover:opacity-70 cursor-pointer inline-flex text-app_orange-400 underline" onClick={()=>navigate('/new-company')}>Registar empresa</label>
+                      <label className="hover:opacity-70 cursor-pointer inline-flex text-app_orange-400 underline" onClick={()=>navigate('/new-company')}>{t('common.register-company')}</label>
                     </span>
             </div>}
 
@@ -527,13 +516,11 @@ async function get_invite_info(id){
            
 
             <div class={`grid gap-4 gap-y-2 text-sm grid-cols-1 md:grid-cols-5`}>
-   
-            {((currentPage == 0 || validated || login) && !invite) && <FirstUseLincense login={login} currentPage={currentPage} clear_errors={clear_errors} errors={errors} setErrors={setErrors} formData={formData} setFormData={setFormData}/>}
-            {((currentPage == 1) && ((inviteStatus!=null) && !(!invite && IsRegister) && (inviteStatus!="invalid" &&  inviteStatus!="used" && inviteStatus!="started") || (currentPage==1 && !invite))) &&   <FirstUsePerson exists={userExists} IsRegister={IsRegister} useExistingAccount={useExistingAccount} formData={formData} setFormData={setFormData}/>}
-            {(currentPage == 2 && !validated && !login) && <FirstUseCompany upload={upload} setUpload={setUpload} formData={formData} setFormData={setFormData}/>}
-          
-
-      
+              
+              {((currentPage == 0 || validated || login) && !invite) && <FirstUseLincense login={login} currentPage={currentPage} clear_errors={clear_errors} errors={errors} setErrors={setErrors} formData={formData} setFormData={setFormData}/>}
+              {((currentPage == 1) && ((inviteStatus!=null) && !(!invite && IsRegister) && (inviteStatus!="invalid" &&  inviteStatus!="used" && inviteStatus!="started") || (currentPage==1 && !invite))) &&   <FirstUsePerson exists={userExists} IsRegister={IsRegister} useExistingAccount={useExistingAccount} formData={formData} setFormData={setFormData}/>}
+              {(currentPage == 2 && !validated && !login) && <FirstUseCompany upload={upload} setUpload={setUpload} formData={formData} setFormData={setFormData}/>}
+            
               <div class={`md:col-span-5 text-right mt-10 ${login || IsRegister ? 'hidden':''}`}>
                 <div class={`${loading ? 'hidden':'inline-flex'}`}>
                  
@@ -541,7 +528,7 @@ async function get_invite_info(id){
                       setFormData(initial_form)
                       setCurrentPage(0)
                       setUserExists(false)
-                  }} className="text-blue-400 mt-1 hover:opacity-70   underline cursor-pointer">Usar outro código</span>
+                  }} className="text-blue-400 mt-1 hover:opacity-70   underline cursor-pointer">{t('common.use-another-key')}</span>
                    
                    }
                   <button onClick={()=>setCurrentPage((p)=>p-=1)} class={`text-app_black-600 ${currentPage==0 || currentPage==1 ? 'opacity-0 pointer-events-none':''} font-semibold py-2 px-4 rounded`}>Voltar</button>
@@ -561,7 +548,7 @@ async function get_invite_info(id){
                     }
 
                     setCurrentPage((p)=>p+=1)
-                  }} class={`${(currentPage==0 && !valid.key) || (currentPage==1 && !valid.personal) || errors.length || (currentPage==2 && !valid.company) ? ' bg-gray-300 cursor-not-allowed':'bg-app_orange-300 hover:bg-app_orange-400'} ${currentPage==2 && valid.key ?' bg-app_orange-500':''} text-white font-bold py-2 px-4 rounded`}>{currentPage==2 ? 'Submeter' :'Próximo'}</button>
+                  }} class={`${(currentPage==0 && !valid.key) || (currentPage==1 && !valid.personal) || errors.length || (currentPage==2 && !valid.company) ? ' bg-gray-300 cursor-not-allowed':'bg-app_orange-300 hover:bg-app_orange-400'} ${currentPage==2 && valid.key ?' bg-app_orange-500':''} text-white font-bold py-2 px-4 rounded`}>{currentPage==2 ? t('common.send') :t('common.next')}</button>
                 </div>
 
                {loading && <span className="scale-70 inline-block"><CircularProgress style={{color:colors.app_orange[500]}} /></span>}
@@ -575,7 +562,7 @@ async function get_invite_info(id){
                  <button onClick={()=>{
                          SubmitForm('invite')
                     
-                  }} class={`${(currentPage==0 && !valid.key) ? ' bg-gray-300 cursor-not-allowed':'bg-app_orange-300 hover:bg-app_orange-400'} text-white font-bold py-2 px-4 rounded`}>Enviar</button>
+                  }} class={`${(currentPage==0 && !valid.key) ? ' bg-gray-300 cursor-not-allowed':'bg-app_orange-300 hover:bg-app_orange-400'} text-white font-bold py-2 px-4 rounded`}>{t('common.send')}</button>
                 </div>
 
                {loading && <span className="scale-70 inline-block"><CircularProgress style={{color:colors.app_orange[500]}} /></span>}

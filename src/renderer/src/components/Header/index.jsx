@@ -17,7 +17,7 @@ import { useData } from '../../contexts/DataContext';
 
 
 function App({details,_isLoading}) {
-    const {user}=useAuth()
+    const {user}=useAuth() 
     const [addMenuAnchorEl, setAddMenuAnchorEl] = React.useState(null);
     const [openPopUps, setOpenPopUps] = React.useState({
         nots:false,
@@ -68,7 +68,7 @@ function App({details,_isLoading}) {
            
             {/*shadow*/}
 
-            <div><span className="text-gray-600 font-semibold text-[18px]">{details && details.name}</span></div>
+            <div><span className="text-gray-600 font-semibold text-[18px] max-lg:text-[15px]">{details && details.name}</span></div>
            
            
             <div className="flex items-center hidden">
@@ -105,9 +105,11 @@ function App({details,_isLoading}) {
               </div>}
 
              <div onClick={(e)=>console.log(e.currentTarget)} className="overflow-hidden relative mr-2 cursor-pointer size-9 flex items-center justify-center">
-                  
+                  <div className="max-lg:hidden">
+                       
                   <ButtonBase style={{width:'100%',height:'100%',transform:'translateX(59px)'}}><AddIcon style={{ color: colors.app_orange[500] }} /></ButtonBase>
              
+                  </div>
                   <DropdownTest/>
                   <Dropdown style={{display:'none'}} items={[
                       {name:'Conta a receber',path:'/bills-to-pay'},
@@ -140,7 +142,7 @@ function App({details,_isLoading}) {
                      </div>
 
                     <span className="border-r flex b-1 h-full"></span>
-                    <div className="_nots size-10 rounded-l mx-3 justify-center flex items-center relative">
+                    <div className="_nots size-10 rounded-l mx-3 justify-center flex items-center md:relative">
                         <div className="cursor-pointer" onClick={()=>handleOpenPopUps('nots')}>
 
                             {data.not_seen_nots && <span className="absolute top-1 left-1 size-2 rounded-full bg-app_orange-500"></span>}

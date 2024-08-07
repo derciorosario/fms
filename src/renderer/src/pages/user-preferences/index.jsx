@@ -117,13 +117,10 @@ console.log({formData})
  async function SubmitForm(){
       if(valid){
            try{
-
             await _update('settings',[{...settingsDetails,settings:{...formData.settings}}])
-            toast.success('Actualizado com sucesso!')
-              
+            toast.success(t('common.updated-successfully'))
            }catch(e){
-
-            toast.error('erro inesperado')
+            toast.error(t('common.unexpected-error'))
 
            }
       }
@@ -143,12 +140,12 @@ async function SubmitUserForm(){
 
      if(valid){
          setLoading(true)
-         toast.loading(`A actualizar...`)
+         toast.loading(t('common.updating'))
 
          try{
             await data.makeRequest({method:'post',url:`api/user/profile/update`,data:{...userForm,logo:upload.file}, error: ``},0);
             toast.remove()
-            toast.success('Perfil actualizado')
+            toast.success(t('common.profile-updated'))
             setLoading(false)
             /*await update_user(userForm)
             _update('settings',[userForm.companies])
@@ -161,34 +158,33 @@ async function SubmitUserForm(){
          setLoading(false)
           if(e.response){
                 if(e.response.status==409){
-                    toast.error('Email ou nome já existe')
+                    toast.error(t('common.user-or-email-exists'))
                 }
                 if(e.response.status==400){
-                    toast.error('Dados invalidos')
+                    toast.error(t('common.invalid-data'))
                 }
                 if(e.response.status==401){
-                  toast.error('Senha incorrecta')
+                  toast.error(t('common.wrong-password'))
                 }
                 if(e.response.status==404){
-                  toast.error('Item não encontrado')
+                  toast.error(t('common.item-not-found'))
                 }
                 if(e.response.status==500){
-                  toast.error('Erro interno do servidor, contacte seu administrador')
+                  toast.error(t('common.unexpected-error'))
                 }
               
                 
           }else if(e.code=='ERR_NETWORK'){
-               toast.error('Verifique sua internet e tente novamente')
+               toast.error(t('common.check-network'))
           }else{
                console.log(e)
-               console.log('--------')
-               toast.error('Erro inesperado!')
+               toast.error(t('common.unexpected-error'))
           }
           setLoading(false)
         }
         
      }else{
-      toast.error('Preencha todos os campos obrigatórios')
+      toast.error(t('common.fill-all-requied-fields'))
      }
  }
 
@@ -223,7 +219,7 @@ async function SubmitUserForm(){
 
     let check=await bcrypt.compare(resetPassword, user.password)
     if(!check){
-      toast('Senha incorrecta!')
+      toast(t('common.wrong-password'))
       return
     }
 
@@ -273,7 +269,7 @@ async function SubmitUserForm(){
 
 
                     {!editMode  && <div className="flex justify-center mt-4" >
-                       <DefaultButton goTo={editProfile} text={'Editar perfil'} no_bg={true} disabled={false}/>
+                       <DefaultButton goTo={editProfile} text={t('common.edit-profile')} no_bg={true} disabled={false}/>
                     </div>}
 
 
@@ -285,7 +281,7 @@ async function SubmitUserForm(){
                     <div className="p-[15px] opacity-75 flex justify-between items-center">
                         <span className="font-medium text-[18px]">{t('userPreferences.notifications.alerts')}</span>
                        {!data.online && <div className="opacity-65">
-                           <Info sx={{width:20}}/> <label>You need internet connect to update</label> 
+                           <Info sx={{width:20}}/> <label>{t('common.you-need-internet')}</label> 
                         </div>}
                     </div>
 
@@ -298,14 +294,14 @@ async function SubmitUserForm(){
                         <div>
                         <TextField
                            id="outlined-textarea"
-                           label="Nome *"
-                           placeholder="Digite o nome"
+                           label={t('common.name')}
+                           placeholder={t('common.type-name')}
                            multiline
                            value={userForm.name}
                            onBlur={()=>validate_feild('name')}
                            onChange={(e)=>setUserForm({...userForm,name:e.target.value})}
                            error={(!userForm.name) && verifiedInputs.includes('name') ? true : false}
-                           helperText={!userForm.name && verifiedInputs.includes('name') ? "Nome obrigatório" :''}
+                           helperText={!userForm.name && verifiedInputs.includes('name') ? t('common.required-field') :''}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLuserFormled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -315,7 +311,7 @@ async function SubmitUserForm(){
                         <TextField
                            id="outlined-textarea"
                            label="Apelido *"
-                           placeholder="Digite o nome"
+                           placeholder={t('common.type-name')}
                            value={userForm.last_name}
                            onBlur={()=>validate_feild('last_name')}
                            onChange={(e)=>setUserForm({...userForm,last_name:e.target.value})}
@@ -349,7 +345,7 @@ async function SubmitUserForm(){
                                options={userForm.contacts}
                                getOptionLabel={(option) => option}
                                renderInput={(params) => (
-                                  <TextField {...params} label="Contactos" placeholder="Digite os contactos" />
+                                  <TextField {...params} label={t('common.contacts')} placeholder={t('common.type-contacts')} />
                                )}
                                value={userForm.contacts}
                                sx={{width:'100%',marginRight:1,'& .MuiAutocomplete-endAdornment':{display:'none'}}}
@@ -363,8 +359,8 @@ async function SubmitUserForm(){
                        <div>
                         <TextField
                            id="outlined-textarea"
-                           label="Contacto"
-                           placeholder="Digite o Contacto"
+                           label={t('common.contact')}
+                           placeholder={t('common.type-contact')}
                            multiline
                            value={userForm.contacts[0]}
                            onChange={(e)=>setUserForm({...userForm,contacts:[e.target.value]})}
@@ -377,8 +373,8 @@ async function SubmitUserForm(){
                        <div>
                         <TextField
                            id="outlined-textarea"
-                           label="Endereço"
-                           placeholder="Digite o endereço"
+                           label={t('common.address')}
+                           placeholder={t('common.type-address')}
                            multiline
                            value={userForm.address}
                            onChange={(e)=>setUserForm({...userForm,address:e.target.value})}
@@ -391,7 +387,7 @@ async function SubmitUserForm(){
                         <TextField
                            id="outlined-textarea"
                            label="Nuit"
-                           placeholder="Digite o nuit"
+                           placeholder={t('common.type-nuit')}
                            multiline
                            value={userForm.nuit}
                            onChange={(e)=>setUserForm({...userForm,nuit:e.target.value})}
@@ -405,7 +401,7 @@ async function SubmitUserForm(){
                        <div className="w-[100%]">
                        <TextField
                                id="outlined-multiline-static"
-                               label="Observações"
+                               label={t('common.notes')}
                                multiline
                                rows={4}
                                value={userForm.notes}
@@ -431,7 +427,7 @@ async function SubmitUserForm(){
                         setUserForm({...userForm,change_password:!Boolean(userForm.change_password)})
                     }}
                 />
-                <span>Alterar senha</span>
+                <span>{t('common.change-password')}</span>
                 </label>
                 </div>
 
@@ -442,7 +438,7 @@ async function SubmitUserForm(){
 
                 <div  style={{transform:'translateX(-0.5rem)'}}>
                        <FormControl sx={{ m: 1 ,width:'100%'}} variant="outlined">
-                            <InputLabel htmlFor="outlined-adornment-password">ultima senha *</InputLabel>
+                            <InputLabel htmlFor="outlined-adornment-password">{t('common.last-password')} *</InputLabel>
                             <OutlinedInput
                                id="outlined-adornment-password"
                                type={showPassword ? 'text' : 'password'}
@@ -450,7 +446,7 @@ async function SubmitUserForm(){
                                value={userForm.last_password}
                                onChange={(e)=>setUserForm({...userForm,last_password:e.target.value})}
                                error={true}
-                               helperText={(userForm.last_password?.length <= 5 && verifiedInputs.includes('last_password')) ? 'Senha deve ter no minimo 6 caracteres' : verifiedInputs.includes('password') && !formData.password ? "Senha obrigatória" :''}
+                               helperText={(userForm.last_password?.length <= 5 && verifiedInputs.includes('last_password')) ? t('password-was-to-have-more-than-6') : verifiedInputs.includes('password') && !formData.password ? "Senha obrigatória" :''}
                                endAdornment={
                                <InputAdornment position="end">
                                   <IconButton
@@ -463,7 +459,7 @@ async function SubmitUserForm(){
                                   </IconButton>
                                </InputAdornment>
                                }
-                               label="Ultima senha"
+                               label={t('common.last-password')}
                             />
                    </FormControl>
 
@@ -473,7 +469,7 @@ async function SubmitUserForm(){
 
                        <div style={{transform:'translateX(-0.5rem)'}}>
                        <FormControl sx={{ m: 1 ,width:'100%'}} variant="outlined">
-                            <InputLabel htmlFor="outlined-adornment-password">Nova senha *</InputLabel>
+                            <InputLabel htmlFor="outlined-adornment-password">{t('common.new-password')} *</InputLabel>
                             <OutlinedInput
                                id="outlined-adornment-password"
                                type={showPassword ? 'text' : 'password'}
@@ -494,7 +490,7 @@ async function SubmitUserForm(){
                                   </IconButton>
                                </InputAdornment>
                                }
-                               label="Nova senha"
+                               label={t('common.new-password')}
                             />
                    </FormControl>
 
@@ -543,7 +539,7 @@ async function SubmitUserForm(){
                                     <p className="font- text-slate-600">{t('userPreferences.notifications.remindersText')}</p>
 
                                     <div className=" mt-8 w-full flex items-center">
-                                         <span className="mr-3 font-light">Periodo de notificações</span>
+                                         <span className="mr-3 font-light">{t('common.notifications-period')}</span>
 
 
                                         {!initialized ? <>
@@ -561,15 +557,15 @@ async function SubmitUserForm(){
                                                   }} id="category" class="bg-gray-50 border border-gray-300 text-gray-900 font-normal text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 p-2.5">
                                                      {[{
                                                       value:1,
-                                                      text:'1 dia antes'
+                                                      text:t('common.one-day-before')
                                                      },
                                                      {
                                                       value:2,
-                                                      text:'Dentro de 7 dias'
+                                                      text:t('common.within--days',{days:7})
                                                      },
                                                      {
                                                       value:3,
-                                                      text:'Dentro de 15 dias'
+                                                      text:t('common.within--days',{days:15})
                                                      }].map(i=>(
                                                       <option value={i.value} selected={formData.settings?.bills_not?.days==i.value ? true : false}>{i.text}</option>
                                                      ))}
@@ -584,7 +580,7 @@ async function SubmitUserForm(){
 
                                     <div className="mt-3 w-full flex items-center">
                                      
-                                       <span className="mr-3 font-light">Selecionar contas a notificar</span>
+                                       <span className="mr-3 font-light">{t('common.select-accounts-to-notify')}</span>
 
                                           {!initialized ? <>
 
@@ -597,7 +593,7 @@ async function SubmitUserForm(){
                                         <span className="text-gray-900 ml-1 rounded-[0.3rem] flex p-1 items-center font-normal">{formData.settings?.bills_not?.accounts?.length==0 ? 'Todas' : `${formData.settings?.bills_not?.accounts?.length} selecionado${formData.settings?.bills_not?.accounts?.length!=1 ? 's' :''}` } <ExpandMoreOutlined style={{width:16}}/></span>
                                         </button>
                                       </div>
-                                              </>}
+                                          </>}
                                       </div>
 
                                     </div>
@@ -619,12 +615,12 @@ async function SubmitUserForm(){
                     </div>
            </>:<>
            <div className="py-5 mb-4">
-              <span className="font-semibold text-[25px] mb-5 flex">Limpar Dados</span>
-               <Alert severity="warning">Ao clicar neste botão poderá apagar todos os dados neste sistema e fazer a reinicialização. Certifique - se de fazer o backup dos dados que deseja manter.<br/> Está acção poderá remover todas a contas e empresas.</Alert>        
+              <span className="font-semibold text-[25px] mb-5 flex">{t('common.clear-data')}</span>
+               <Alert severity="warning">{t('messages.clear-data-msg')}</Alert>        
 
                 {!showResetInputs && <button className="bg-red-600 text-white px-3 py-2 rounded-[0.3rem] mt-3 cursor-pointer hover:opacity-75" onClick={()=>{
                               setShowResetInputs(true)
-                }}>Limpar</button> }  
+                }}>{t('common.clear')}</button> }  
 
                 {showResetInputs && <div>
                   <div className="flex items-center mt-3 mb-3">
@@ -633,21 +629,16 @@ async function SubmitUserForm(){
                     }}  className="p-1 border rounded-[0.2rem] h-[40px]" placeholder="Digite sua senha" value={resetPassword}/>
                     <button className="bg-app_orange-400 ml-4 text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{
                                 reset()
-                    }}>Limpar</button>  
+                    }}>{t('common.clear')}</button>  
                   </div>
                   <span className="underline cursor-pointer text-blue-500" onClick={()=>{
                     setShowResetInputs(false)
                     setResetPassword('')
-                  }}>Cancelar</span>
+                  }}>{t('common.cancel')}</span>
                 </div>  }  
            </div>
-
-            
                     
            </>}
-
-          
-
          </UserPreferencesLayout>
     </>
 

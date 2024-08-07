@@ -246,10 +246,10 @@ import { v4 as uuidv4 } from 'uuid';
                      }
                  }catch(e){
                         console.log(e)
-                        toast.error('Erro inesperado!')
+                        toast.error(t('common.unexpected-error'))
                  }
               }else{
-               toast.error('Preencha todos os campos obrigatórios')
+               toast.error(t('common.fill-all-requied-fields'))
               }
           }
 
@@ -349,7 +349,7 @@ import { v4 as uuidv4 } from 'uuid';
                           sx={{ width: 300 }}
                           disabled={!formData.link_payment}
                           renderInput={(params) => <TextField  {...params}
-                          helperText={(!formData.account.id) && verifiedInputs.includes('account') && formData.link_payment ? 'Campo obrigatório':''}
+                          helperText={(!formData.account.id) && verifiedInputs.includes('account') && formData.link_payment ? t('common.required-field') :''}
                           error={(!formData.account.id) && formData.link_payment && verifiedInputs.includes('account') ? true : false}             
                            value={formData.account.name} label={type == 'in' ? 'conta a receber' : 'conta a pagar'} />}
                       />   
@@ -358,7 +358,7 @@ import { v4 as uuidv4 } from 'uuid';
                     <div>
                           <LocalizationProvider adapterLocale={'en-gb'} dateAdapter={AdapterDayjs} style={{paddingTop:0}} size="small">
                               <DatePicker
-                                helperText={(!nextAccountPayment) && verifiedInputs.includes('next_payment') && parseFloat(formData.amount) < parseFloat(accountDetails.amount) && formData.link_payment ? 'Campo obrigatório':''}
+                                helperText={(!nextAccountPayment) && verifiedInputs.includes('next_payment') && parseFloat(formData.amount) < parseFloat(accountDetails.amount) && formData.link_payment ? t('common.required-field') :''}
                                 onBlur={()=>validate_feild('next_payment')}
                                 error={((!nextAccountPayment) && verifiedInputs.includes('next_payment') && parseFloat(formData.amount) < (parseFloat(accountDetails.amount) - parseFloat(accountDetails.paid))) || (dayjs(nextAccountPayment).$d.toString() != "Invalid Date" && nextAccountPayment) ? true : true}
                                 disabled={parseFloat(formData.amount) < (parseFloat(accountDetails.amount) - parseFloat(accountDetails.paid)) && formData.link_payment ? false : true} value={dayjs(nextAccountPayment).$d.toString() != "Invalid Date" ? dayjs(new Date(nextAccountPayment)) : null}  inputFormat="DD-MM-YYYY" onChange={(e)=>setNextAccountPayment(e.$d)}  size="small" label="Proxima data"  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, 
@@ -374,7 +374,7 @@ import { v4 as uuidv4 } from 'uuid';
                <div className="w-[100%]">
                 <TextField
                         id="outlined-multiline-static"
-                        label="Descrição *"
+                        label={t('common.description')}
                         multiline
                         value={formData.description}
                         onChange={(e)=>setFormData({...formData,description:e.target.value})}
@@ -488,7 +488,7 @@ import { v4 as uuidv4 } from 'uuid';
                     sx={{ width: 300 }}
                     disabled={formData.transation_account.type=="none" ? true : false}
                     renderInput={(params) => <TextField {...params}
-                    helperText={(!formData.transation_account.name) && verifiedInputs.includes('transation_account') ? 'Campo obrigatório':''}
+                    helperText={(!formData.transation_account.name) && verifiedInputs.includes('transation_account') ? t('common.required-field') :''}
                     error={(!formData.transation_account.name) && verifiedInputs.includes('transation_account') ? true : false}             
                     value={formData.transation_account.name} label="Conta de transação" />}
                     
@@ -498,10 +498,10 @@ import { v4 as uuidv4 } from 'uuid';
                                 <TextField
                                   id="outlined-textarea"
                                   label="Valor *"
-                                  placeholder="Digite o valor"
+                                  placeholder={t('common.type-amount')}
                                   multiline
                                   value={formData.amount}
-                                  helperText={parseFloat(formData.amount) > (parseFloat(accountDetails.amount) - parseFloat(accountDetails.paid)) && formData.link_payment ? "Não deve ser maior que o valor do lançamento" :(!formData.amount) && verifiedInputs.includes('amount') ? 'Campo obrigatório':''}
+                                  helperText={parseFloat(formData.amount) > (parseFloat(accountDetails.amount) - parseFloat(accountDetails.paid)) && formData.link_payment ? "Não deve ser maior que o valor do lançamento" :(!formData.amount) && verifiedInputs.includes('amount') ? t('common.required-field') :''}
                                   onBlur={()=>validate_feild('amount')}
                                   error={(!formData.amount) && verifiedInputs.includes('amount') || parseFloat(formData.amount) > parseFloat(accountDetails.amount) && formData.link_payment ? "Não deve ser maior que o valor do laçamento" : (!formData.amount) && verifiedInputs.includes('amount') ? true : false}
                                   onChange={(e)=>setFormData({...formData,amount:_cn_op(e.target.value)})}

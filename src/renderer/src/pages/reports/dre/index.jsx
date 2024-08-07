@@ -8,6 +8,7 @@ import StatsTable from '../components/table'
 import DefaultButton from '../../../components/Buttons/default';
 import colors from '../../../assets/colors.json'
 import { useAuth } from '../../../contexts/AuthContext';
+import { t } from 'i18next';
 function App() {
 
   const {_setRequiredData,_get_dre_stats,_transations,_bills_to_pay,_bills_to_receive,_loaded,_get,_print_exportExcel,_investments} = useData();
@@ -20,10 +21,11 @@ function App() {
   const [currentMenu,setCurrentMenu]=React.useState(1)
  
   const page_menus=[
-    {name:' Análise simples'},
-    {name:' Análise comparativa'}
+    {name:' '+t('common.simple-analyze')},
+    {name:' '+t('common.months-comparison')},
   ]
 
+  
 
   const [initialized,setInitialized]=useState(false)
 
@@ -46,7 +48,7 @@ function App() {
   const [filterOptions,setFilterOPtions]=useState([
     {
       field:'_show_projected',
-      name:'Visão',
+      name:t('common.view_'),
       page:'cash-managemnt-stats',
       not_fetchable:true,
       igual:true,
@@ -55,14 +57,14 @@ function App() {
       hide_search:true,
       single:true,
       groups:[
-        {field:'_show_projected',name:'Mês',items:[{name:'Previsto e realizado',id:1},{name:'Realizado',id:2,selected:true},{name:'Previsto',id:3}],selected_ids:[2],default_ids:[2]}
+        {field:'_show_projected',name:t('common.month'),items:[{name:t('common.projectedAndDone'),id:1},{name:t('common.done'),id:2,selected:true},{name:t('common.projected'),id:3}],selected_ids:[2],default_ids:[2]}
       ]
     },
     
   
     {
         field:'_week_and_month',
-        name:'Periodo',
+        name:t('common.period'),
         page:'cash-managemnt-stats',
         igual:true,
         not_fetchable:true,
@@ -70,7 +72,7 @@ function App() {
         search:'',
         single:true,
         groups:[
-          {field:'_week_and_month',name:'Periodo',items:[{id:'week',name:'Diário',to:'/reports/dre/daily',selected:pathname.includes('/daily') ? true : false},{id:'month',name:'Mensal',selected:!pathname.includes('/daily') ? true :false,to:'/reports/dre/monthly'}],selected_ids:['month']}
+          {field:'_week_and_month',name:t('common.period'),items:[{id:'week',name:t('common.daily'),to:'/reports/dre/daily',selected:pathname.includes('/daily') ? true : false},{id:'month',name:t('common.monthly'),selected:!pathname.includes('/daily') ? true :false,to:'/reports/dre/monthly'}],selected_ids:['month']}
         ]
       },
    
@@ -86,13 +88,24 @@ useEffect(()=>{
 
 useEffect(()=>{
 
-
-
-    let months=['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+    let months=[
+      t('common.months.january'),
+      t('common.months.february'),
+      t('common.months.march'),
+      t('common.months.april'),
+      t('common.months.may'),
+      t('common.months.june'),
+      t('common.months.july'),
+      t('common.months.august'),
+      t('common.months.september'),
+      t('common.months.october'),
+      t('common.months.november'),
+      t('common.months.december')
+    ]
     setFilterOPtions(prev=>([...prev.filter(i=>i.field!="_month"),
       {
         field:'_month',
-        name:'Mês',
+        name:t('common.month'),
         page:'cash-managemnt-stats',
         not_fetchable:true,
         igual:true,
@@ -101,7 +114,7 @@ useEffect(()=>{
         hide_search:true,
         single:true,
         groups:[
-          {field:'_month',dropdown:true,name:'Mês',items:months.map((i,_i)=>({name:i.toString(),id:_i,selected:_i==new Date().getMonth() ? true : false})),selected_ids:[new Date().getMonth()],default_ids:[new Date().getMonth()]}
+          {field:'_month',dropdown:true,name:t('common.month'),items:months.map((i,_i)=>({name:i.toString(),id:_i,selected:_i==new Date().getMonth() ? true : false})),selected_ids:[new Date().getMonth()],default_ids:[new Date().getMonth()]}
          ]
       },
     ]))
@@ -142,7 +155,7 @@ useEffect(()=>{
   setFilterOPtions(prev=>([...prev.filter(i=>i.field!="_year" && (currentMenu==2 && period=='m' ? i.field!="_month": true)),
     {
       field:'_year',
-      name:'Ano',
+      name:t('common.year'),
       page:'cash-managemnt-stats',
       not_fetchable:true,
       igual:true,
@@ -151,7 +164,7 @@ useEffect(()=>{
       dropdown:true,
       single:true,
       groups:[
-        {field:'_year',name:'contas',db_name:'accounts',items:years.map((i)=>({name:i.toString(),id:i.toString(),selected:i==new Date().getFullYear() ? true : false})),selected_ids:[new Date().getFullYear().toString()]}
+        {field:'_year',name:t('common.accounts'),db_name:'accounts',items:years.map((i)=>({name:i.toString(),id:i.toString(),selected:i==new Date().getFullYear() ? true : false})),selected_ids:[new Date().getFullYear().toString()]}
       ]
     },
   ]))
@@ -165,14 +178,14 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
     igual:true,
     startDate:null,
     endDate:null,
-    name:'Periodo',
+    name:t('common.period'),
     search:'',
     field:'_transations',
-    groups:[{field:'period',name:'Periodo',items:[
-      {id:'this_week',name:'Esta semana'},
-      {id:'this_month',name:'Este mês'},
-      {id:'last_month',name:'Mês passado'},
-      {id:'this_year',name:'Este ano'}
+    groups:[{field:'period',name:t('common.period'),items:[
+      {id:'this_week',name:t('common.this-week')},
+      {id:'this_month',name:t('common.this-month')},
+      {id:'last_month',name:t('common.last-month')},
+      {id:'this_year',name:t('common.this-year')}
     ],selected_ids:[]}]
      
   })

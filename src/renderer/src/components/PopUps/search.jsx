@@ -4,6 +4,7 @@ import { useData } from '../../contexts/DataContext';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import colors from '../../assets/colors.json'
+import { t } from 'i18next';
 export default function Search({show}) {
   const [searchContent,setSearchContent] = React.useState('')
 
@@ -41,10 +42,6 @@ export default function Search({show}) {
            if(i._from=="payment_methods") link=`/payment-methods/${i.id}`
           
           if(i._from=="transations") link=`/cash-management/${i.type}flow/${i.id}`
-
-        
-
-          
           return {...i,link}
       })
 
@@ -82,19 +79,19 @@ export default function Search({show}) {
 <div className={`fixed z-10 left-0 ${show ? 'flex':" opacity-0 pointer-events-none"} items-center justify-center top-0 bg-[rgba(0,0,0,0.4)] w-full h-[100vh]`}>
       
 
-     <div className={`w-[600px] h-[300px] ${show ? 'translate-y-2 z-10 ' : ' opacity-0 pointer-events-none translate-y-4'} border-t flex-col flex transition duration-150 ease-in-out   shadow-lg bg-white rounded-[0.5rem] _search`}>
+     <div className={`md:w-[600px] w-full md:h-[300px] h-full ${show ? 'translate-y-2 z-10 ' : ' opacity-0 pointer-events-none translate-y-4'} border-t flex-col flex transition duration-150 ease-in-out   shadow-lg bg-white rounded-[0.5rem] _search`}>
             <div className="flex justify-between p-3 border-b">
                 <div className="flex items-center">
                 <div className="flex h-10 bg-slate-100 items-center px-2 rounded-lg relative">
                     <span className="text-white"><SearchIcon style={{ color:colors.app_orange[500] }}/></span>
                     <input ref={inputRef} value={searchContent} onChange={(e)=>{
                         setSearchContent(e.target.value)
-                    }} placeholder="Pesquisar..." type="text" className="_search outline-none bg-transparent flex-grow px-2"/>
+                    }} placeholder={t('common.search')} type="text" className="_search outline-none bg-transparent flex-grow px-2"/>
                     {/** <Search setSearchContent={setSearchContent} searchContent={searchContent} show={openPopUps.search} setOpenPopUps={setOpenPopUps}/> */}
 
                 </div>
 
-                {(searchContent.length!=0) && <span className="ml-2">Resultados: ({content.length})</span>}
+                {(searchContent.length!=0) && <span className="ml-2">{t('common.results')}: ({content.length})</span>}
                 
                 
                 </div>
@@ -111,9 +108,9 @@ export default function Search({show}) {
             <div className="flex-1 overflow-y-auto relative">
 
             
-           {searchContent.length == 0 &&  <div className="text-center p-10 opacity-65">Comece a pesquisar...</div>}
+           {searchContent.length == 0 &&  <div className="text-center p-10 opacity-65">{t('common.start-searching')}...</div>}
 
-           {searchContent.length != 0 && content.length==0 &&  <div className="text-center p-10 opacity-65">Sem resultados</div>}
+           {searchContent.length != 0 && content.length==0 &&  <div className="text-center p-10 opacity-65">{t('common.no-results')}</div>}
 
            
 
@@ -127,10 +124,10 @@ export default function Search({show}) {
                     
                 </th>
                 <th scope="col">
-                        <span>Nome/Descrição</span>
+                        <span>{t('common.description')}</span>
                 </th>
                 <th scope="col">
-                        <span>Data de criação</span>
+                        <span>{t('common.creation-date')}</span>
                 </th>
                 
             </tr>

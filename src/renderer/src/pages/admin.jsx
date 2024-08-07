@@ -73,9 +73,9 @@ function App() {
                 }
                 
           }else if(e.code=='ERR_NETWORK'){
-               toast.error('Verifique sua internet e tente novamente')
+               toast.error(t('common.check-network'))
           }else{
-               toast.error('Erro inesperado!')
+               toast.error(t('common.unexpected-error'))
           }
           
           return

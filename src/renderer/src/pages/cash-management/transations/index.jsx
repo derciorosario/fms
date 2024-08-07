@@ -4,6 +4,7 @@ import { useData  } from '../../../contexts/DataContext';
 import BasicTable from '../../../components/Tables/basic';
 import TotalCard from '../../../components/Cards/default_totals';
 import { useLocation } from 'react-router-dom';
+import { t } from 'i18next';
 
 function App() {
   const data = useData()
@@ -39,7 +40,7 @@ function App() {
 return (
   <>
     
-     <DefaultLayout details={{name:'Contas a pagar'}}>
+     <DefaultLayout details={{name:type=="in" ? t('common.inflow')+"s":t('common.outflow')+"s"}}>
 
      <TotalCard page={`transations`} items={
            [

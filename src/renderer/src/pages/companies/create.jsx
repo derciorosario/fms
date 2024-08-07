@@ -13,6 +13,7 @@ import MultipleSelectChip from '../../components/TextField/chipInput';
 import { Switch } from '@mui/material';
 import { v4 as uuidv4 } from 'uuid';     
 import MainUploader from '../setup/compnents/upload-company-logo';
+import { t } from 'i18next';
       
   
        
@@ -128,7 +129,7 @@ import MainUploader from '../setup/compnents/upload-company-logo';
                           setFormData({...formData,...item})
                           setUpload({...upload,file:item.logo ? item.logo : {}})
                       }else{
-                          toast.error('Item não encontrado')
+                          toast.error(t('common.item-not-found'))
                           navigate(`/managers`)
                       }
               }
@@ -263,7 +264,8 @@ import MainUploader from '../setup/compnents/upload-company-logo';
 
                   }
 
-                  toast.success('Empresa '+(id ? "actualizada" : "criada"))
+                  toast.success(id ? t('common.updated-successfully')  :  t('common.created-successfully'))
+                                 
 
                 }catch(e){
                      console.log(e)
@@ -271,71 +273,6 @@ import MainUploader from '../setup/compnents/upload-company-logo';
                 }
               }
          }
-
-       /*  async function SubmitForm(){
-              if(valid){
-                  setLoading(true)
-                  toast.loading(`${id ? 'A actualizar...' :'A enviar...'}`)
-                  try{
-                     let response = await makeRequest({method:'post',url:`api/company/`+(id ? "update" : "create"),data:{c:formData,managers:data._managers.filter(i=>chipOptions.includes(i.email)).map(i=>i.id)}, error: ``},0);
-                     toast.remove()
-                     toast.success('Empresa '+(id ? "actualizada" : "criada"))
-
-                     if(!response) return
-                      
-                     delete response.__v
-                     let user=await db.user.get('user')
-                    
-
-                     if(id){
-                        _update('companies',[response])
-                        let new_user_data={...user,companies:[...user.companies.filter(i=>i.id!=formData.id),response],_rev:user._rev}
-                        await db.user.put(new_user_data)
-                        setUser(new_user_data)
-                     }else{
-                        _add('companies',[response])
-                        let new_user_data={...user,companies:[...user.companies,response],_rev:user._rev}
-                        await db.user.put(new_user_data)
-                        setUser(new_user_data)
-                        setVerifiedInputs([])
-                        setFormData(initial_form)
-                        setChipOptions([])
-                     }
-                     
-                     setLoading(false)
-                     
-                     
-                 }catch(e){
-                  toast.remove()
-                   if(e.response){
-                         if(e.response.status==409){
-                             toast.error('Email ou nome já existe')
-                         }
-                         if(e.response.status==400){
-                             toast.error('Dados invalidos')
-                         }
-                         if(e.response.status==404){
-                           toast.error('Item não encontrado')
-                         }
-                         if(e.response.status==500){
-                           toast.error('Erro interno do servidor, contacte seu administrador')
-                         }
-                       
-                         
-                   }else if(e.code=='ERR_NETWORK'){
-                        toast.error('Verifique sua internet e tente novamente')
-                   }else{
-                        console.log(e)
-                        toast.error('Erro inesperado!')
-                   }
-                   setLoading(false)
-                 }
-                 
-              }else{
-               toast.error('Preencha todos os campos obrigatórios')
-              }
-          }
-              */
 
         
           useEffect(()=>{
@@ -372,7 +309,7 @@ import MainUploader from '../setup/compnents/upload-company-logo';
                          setIsFilial(!isFilial)
                       }}
                     />
-                    <span>Adicionar como filial</span>
+                    <span>{t('common.add-as-filial')}</span>
                    </label>
                </div>}
 
@@ -393,7 +330,7 @@ import MainUploader from '../setup/compnents/upload-company-logo';
                             setFormData({...formData,headquarter_id:_id})
                             setFilialDetails({name:newValue})
                           }}
-                          noOptionsText="Sem opções"
+                          noOptionsText={t('common.no-options')}
                           defaultValue={null}
                           inputValue={filialDetails.name}
                           onInputChange={(event, newValue) => {
@@ -412,7 +349,7 @@ import MainUploader from '../setup/compnents/upload-company-logo';
                           sx={{ width: 300 }}
                           disabled={id}
                           renderInput={(params) => <TextField  {...params}
-                          helperText={(!formData.headquarter_id) && verifiedInputs.includes('headquarter') ? 'Campo obrigatório':''}
+                          helperText={(!formData.headquarter_id) && verifiedInputs.includes('headquarter') ? t('common.required-field') :''}
                           error={(!formData.headquarter_id) && verifiedInputs.includes('headquarter') ? true : false}             
                            value={filialDetails.name} label={'Empresa'} />}
                       />   
@@ -433,15 +370,15 @@ import MainUploader from '../setup/compnents/upload-company-logo';
               <div>
                         <TextField
                            id="outlined-textarea"
-                           label="Nome *"
-                           placeholder="Digite o nome"
+                           label={t('common.name')}
+                           placeholder={t('common.type-name')}
                            multiline
                            disabled={user.id!=formData.admin_id && id ? true : false}
                            value={formData.name}
                            onBlur={()=>validate_feild('name')}
                            onChange={(e)=>setFormData({...formData,name:e.target.value})}
                            error={(!formData.name) && verifiedInputs.includes('name') || user.companies_details.some(i=>i.name.toLowerCase()==formData.name.toLocaleLowerCase() && i.id!=formData.id) ? true : false}
-                           helperText={!formData.name && verifiedInputs.includes('name') ? "Nome obrigatório" :user.companies_details.some(i=>i.name.toLowerCase()==formData.name.toLocaleLowerCase() && i.id!=formData.id)   ?'Nome já existe':''}
+                           helperText={!formData.name && verifiedInputs.includes('name') ? "Nome obrigatório" :user.companies_details.some(i=>i.name.toLowerCase()==formData.name.toLocaleLowerCase() && i.id!=formData.id)   ?t('common.name-exists'):''}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -453,14 +390,14 @@ import MainUploader from '../setup/compnents/upload-company-logo';
                         <TextField
                            id="outlined-textarea"
                            label="Email"
-                           placeholder="Digite o email"
+                           placeholder={t('common.type-email')}
                            multiline
                            value={formData.email}
                            disabled={user.id!=formData.admin_id && id ? true : false}
                            onBlur={()=>validate_feild('email')}
                            onChange={(e)=>setFormData({...formData,email:e.target.value})}
                            error={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') ? true : false}
-                           helperText={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') ? "Email inválido":''}
+                           helperText={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') ? t('common.invalid-email'):''}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -477,7 +414,7 @@ import MainUploader from '../setup/compnents/upload-company-logo';
                                options={formData.contacts}
                                getOptionLabel={(option) => option}
                                renderInput={(params) => (
-                                  <TextField {...params} label="Contactos" placeholder="Digite os contactos" />
+                                  <TextField {...params} label={t('common.contacts')} placeholder={t('common.type-contacts')} />
                                )}
                                value={formData.contacts}
                                sx={{width:'100%',marginRight:1,'& .MuiAutocomplete-endAdornment':{display:'none'}}}
@@ -494,9 +431,9 @@ import MainUploader from '../setup/compnents/upload-company-logo';
                            <div key={_i}>
                               <TextField
                                  id="outlined-textarea"
-                                 label="Contacto"
+                                 label={t('common.contact')}
                                  disabled={user.id!=formData.admin_id && id ? true : false}
-                                 placeholder="Digite o Contacto"
+                                 placeholder={t('common.type-contact')}
                                  multiline
                                  value={i}
                                  onChange={(e)=>setFormData({...formData,contacts:[e.target.value]})}
@@ -510,9 +447,9 @@ import MainUploader from '../setup/compnents/upload-company-logo';
                        <div>
                         <TextField
                            id="outlined-textarea"
-                           label="Endereço"
+                           label={t('common.address')}
                            disabled={user.id!=formData.admin_id && id ? true : false}
-                           placeholder="Digite o endereço"
+                           placeholder={t('common.type-address')}
                            multiline
                            value={formData.address}
                            onChange={(e)=>setFormData({...formData,address:e.target.value})}
@@ -525,7 +462,7 @@ import MainUploader from '../setup/compnents/upload-company-logo';
                         <TextField
                            id="outlined-textarea"
                            label="Nuit"
-                           placeholder="Digite o nuit"
+                           placeholder={t('common.type-nuit')}
                            multiline
                            disabled={user.id!=formData.admin_id && id ? true : false}
                            value={formData.nuit}
@@ -537,9 +474,9 @@ import MainUploader from '../setup/compnents/upload-company-logo';
        
        
                        <div className=" relative">
-                          <MultipleSelectChip disabled={user.id!=formData.admin_id && id ? true : false} label={'Gestores'} setItems={setChipOptions} names={chipNames} items={chipOptions}/>
+                          <MultipleSelectChip disabled={user.id!=formData.admin_id && id ? true : false} label={t('common.managers')} setItems={setChipOptions} names={chipNames} items={chipOptions}/>
                         <div className="text-[13px] absolute right-[0px] top-0 translate-y-[-100%] flex items-center">
-                              {(verifiedInputs.includes('company') && chipOptions.length==0) && <span className='text-[11px] text-red-500'>Campo obrigatório</span>}
+                              {(verifiedInputs.includes('company') && chipOptions.length==0) && <span className='text-[11px] text-red-500'>{t('common.required-field')}</span>}
                         </div>
 
                        </div>

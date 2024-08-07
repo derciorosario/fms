@@ -16,6 +16,7 @@ import DatePickerRange from '../../components/Filters/budget-management-date-pic
 import AddIcon from '@mui/icons-material/Add';
 import { v4 as uuidv4 } from 'uuid';
 import PouchDB from 'pouchdb';
+import { t } from 'i18next';
        
        
        function App() {
@@ -30,7 +31,20 @@ import PouchDB from 'pouchdb';
 
           const [items,setItems]=React.useState([])
 
-          let months=['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+          let months=[
+            t('common.months.january'),
+            t('common.months.february'),
+            t('common.months.march'),
+            t('common.months.april'),
+            t('common.months.may'),
+            t('common.months.june'),
+            t('common.months.july'),
+            t('common.months.august'),
+            t('common.months.september'),
+            t('common.months.october'),
+            t('common.months.november'),
+            t('common.months.december')
+          ]
           
 
 
@@ -41,7 +55,7 @@ import PouchDB from 'pouchdb';
             endDate:null,
             start_groups:[
                      {
-                        field:'_month',dropdown:true,name:'Mês',items:months.map((i,_i)=>({name:i.toString(),id:_i})),selected_ids:[]
+                        field:'_month',dropdown:true,name:t('common.month'),items:months.map((i,_i)=>({name:i.toString(),id:_i})),selected_ids:[]
                      },
                      {
                         field:'_day',dropdown:true,name:'Dia',items:Array.from({ length: 31 }, (i,_i) => _i+1).map((i,_i)=>({name:i.toString(),id:_i,selected:_i==0 ? true : false})),selected_ids:[0]
@@ -49,7 +63,7 @@ import PouchDB from 'pouchdb';
             ],
             end_groups:[
                      {
-                        field:'_month',dropdown:true,name:'Mês',items:months.map((i,_i)=>({name:i.toString(),id:_i})),selected_ids:[]
+                        field:'_month',dropdown:true,name:t('common.month'),items:months.map((i,_i)=>({name:i.toString(),id:_i})),selected_ids:[]
                      },
                      {
                         field:'_day',dropdown:true,name:'Dia',items:Array.from({ length: 31 }, (i,_i) => _i+1).map((i,_i)=>({name:i.toString(),id:_i,selected:_i==0 ? true : false})),selected_ids:[0]
@@ -138,11 +152,11 @@ import PouchDB from 'pouchdb';
                      }
                  }catch(e){
                         console.log(e)
-                        toast.error('Erro inesperado!')
+                        toast.error(t('common.unexpected-error'))
                  }
                  
               }else{
-               toast.error('Preencha todos os campos obrigatórios')
+               toast.error(t('common.fill-all-requied-fields'))
               }
           }
 
@@ -285,7 +299,7 @@ import PouchDB from 'pouchdb';
                                               <TextField
                                                     id="outlined-textarea"
                                                     label="Valor"
-                                                    placeholder="Digite o valor"
+                                                    placeholder={t('common.type-amount')}
                                                     multiline
                                                     value={i.value}
                                                     onChange={e=>setFormData({...formData,items:formData.items.map(f=>{

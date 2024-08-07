@@ -8,6 +8,7 @@ import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { t } from 'i18next';
 
 
 export default function DatePickerRange({open,options,setFilterOPtions}) {
@@ -250,13 +251,13 @@ function clear(){
      <div className="w-full">
     
      <div className="flex justify-between items-center mb-1">
-      <span onClick={()=>clear(options.field)} className="text-app_orange-500 text-[15px] hover:underline cursor-pointer">Limpar</span>
+      <span onClick={()=>clear(options.field)} className="text-app_orange-500 text-[15px] hover:underline cursor-pointer">{t('common.clear')}</span>
     </div>
   
 
      <div className="mb-2">
              <button onClick={()=>setOpenIgualOptions(!openIgualOpions)} id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className={`bg-gray-200 border-[2px] text-zinc-500 w-full hover:bg-white focus:outline-none  font-medium rounded-[5px] text-sm  p-[5px] text-center flex justify-between items-center`} type="button">
-              <span>{options.name} {options.igual ? '= (igual a)' :'!= (diferente de)'}</span>
+              <span>{options.name} {options.igual ? '= '+t('common.igual-to') :'!= '+t('common.different-from')}</span>
                  <svg className={`w-2.5 h-2.5 ms-3 ${openIgualOpions ? 'rotate-180' :'' }`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
                 </svg>
@@ -266,10 +267,10 @@ function clear(){
                    <div id="dropdown" className="z-10 absolute bg-white divide-y divide-gray-100 rounded-lg shadow w-full">
                         <ul className="py-2 text-sm text-gray-700" aria-labelledby="dropdownDefaultButton">
                             <li>
-                                <a onClick={()=>selectIgualOrNot(true)} className={`block cursor-pointer px-4 py-2 ${!options.igual ? 'hover:bg-gray-100' :' text-app_orange-500 hover:bg-app_orange-100 bg-app_orange-50'} `}>{options.name} = (igual a)</a>
+                                <a onClick={()=>selectIgualOrNot(true)} className={`block cursor-pointer px-4 py-2 ${!options.igual ? 'hover:bg-gray-100' :' text-app_orange-500 hover:bg-app_orange-100 bg-app_orange-50'} `}>{options.name} = ({t('common.igual-to')})</a>
                             </li>
                             <li>
-                            <a onClick={()=>selectIgualOrNot(false)} className={`block cursor-pointer px-4 py-2 ${options.igual ? 'hover:bg-gray-100' :' text-app_orange-500 hover:bg-app_orange-100 bg-app_orange-50'} `}>{options.name} != (diferente de)</a>
+                            <a onClick={()=>selectIgualOrNot(false)} className={`block cursor-pointer px-4 py-2 ${options.igual ? 'hover:bg-gray-100' :' text-app_orange-500 hover:bg-app_orange-100 bg-app_orange-50'} `}>{options.name} != ({t('common.different-from')})</a>
                             </li>
                         </ul>
                     </div>
@@ -307,7 +308,7 @@ function clear(){
 
 
             <div class={`${!g.dropdown ? 'hidden' :''} col-span-2 sm:col-span-1`}>
-                          <label for="category" class="hidden mb-2 text-sm font-medium text-gray-900">Category</label>
+                          <label for="category" class="hidden mb-2 text-sm font-medium text-gray-900">{t('common.category')}</label>
                           <select onChange={(e)=>check_and_uncheck(g.field,g.items[parseInt(e.target.value)])} id="category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
                           {g.items.filter((i,_i)=>i.name.toLowerCase().includes(options.search.toLowerCase())).map((i,_i)=>(
                    
@@ -334,7 +335,7 @@ function clear(){
    
 
 
-     <span className="text-[14px] ml-1 mb-2 flex">Data customisada</span>
+     <span className="text-[14px] ml-1 mb-2 flex">{t('common.custom-date')}</span>
 
      <div className="flex items-center">
 
@@ -355,7 +356,7 @@ function clear(){
                 <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
               </svg>
             </div>
-            <label className="text-[13px] ml-1">Data inicial</label>
+            <label className="text-[13px] ml-1">{t('common.start-date')}</label>
         </span>
         
         <DatePicker
@@ -374,14 +375,15 @@ function clear(){
           dateFormat="dd-MM-yyyy"
           endDate={options.endDate}
           className={` ${!options.groups[0].selected_ids[0] ? 'bg-app_orange-50' : 'bg-gray-100'} text-gray-900 outline-none text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5`}
-          placeholderText="Data de inicio"
+          placeholderText={t('common.start-date')}
         />
       </div>
-      <span className="mx-4 text-gray-500 flex h-[30px] self-end">Até</span>
+      <span className="mx-4 text-gray-500 flex h-[30px] self-end">{t('common.until')}</span>
       <div className="relative">
       <span className="flex items-center p-1 hidden">
             
-            <div className="inset-y-0 start-0 flex items-center pointer-events-none ">
+            <div className="inset-y-0 start-0 flex items-center pointer-events-none">
+
               <svg
                 className="w-4 h-4 text-gray-500"
                 aria-hidden="true"
@@ -392,7 +394,7 @@ function clear(){
                 <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
               </svg>
             </div>
-            <label className="text-[13px] ml-1">Data final</label>
+            <label className="text-[13px] ml-1">{t('common.end-date')}</label>
         </span>
         
         <DatePicker
@@ -406,13 +408,14 @@ function clear(){
             })
             setCurrentDateType('custom')
           }}
+
           selectsEnd
           dateFormat="dd-MM-yyyy"
           startDate={options.startDate}
           endDate={options.endDate}
           minDate={defaultDates.startDate}
           className={` ${!options.groups[0].selected_ids[0] ? 'bg-app_orange-50' : 'bg-gray-100'} text-gray-900 text-sm outline-none rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5`}
-          placeholderText="Date de fim"
+          placeholderText={t('common.end-date')}
         />
       </div>
     </div>

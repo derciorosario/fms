@@ -15,6 +15,7 @@ import StatsTable from '../components/table';
 import DefaultButton from '../../../components/Buttons/default';
 import colors from '../../../assets/colors.json'
 import { useAuth } from '../../../contexts/AuthContext';
+import { t } from 'i18next';
 
 function App() {
 
@@ -25,9 +26,9 @@ function App() {
   const period=pathname.includes('/daily') ? 'd' : 'm'
 
   const page_menus=[
-    {name:' Gráfico'},
-    {name:' Análise simples'},
-    {name:' Comparação de meses'}
+    {name:' '+t('common.graphic')},
+    {name:' '+t('common.simple-analyze')},
+    {name:' '+t('common.months-comparison')},
   ]
 
   
@@ -52,20 +53,20 @@ function App() {
     {
       open:false,
       field:'_account_categories',
-      name:'Contas',
+      name:t('common.accounts'),
       get_deleted:true,
       db_name:'account_categories',
       igual:true,
       show_all:true,
       search:'',
       groups:[
-        {field:'_account_categories',name:'contas',param:'accounts',db_name:'account_categories',items:[],selected_ids:[],default_ids:[]}
+        {field:'_account_categories',name:t('common.accounts'),param:'accounts',db_name:'account_categories',items:[],selected_ids:[],default_ids:[]}
       ]
     },
 
     {
       field:'_show_projected',
-      name:'Visão',
+      name:t('common.view_'),
       page:'cash-managemnt-stats',
       not_fetchable:true,
       igual:true,
@@ -74,13 +75,13 @@ function App() {
       hide_search:true,
       single:true,
       groups:[
-        {field:'_show_projected',name:'Mês',items:[{name:'Previsto e realizado',id:1},{name:'Realizado',id:2,selected:true},{name:'Previsto',id:3}],selected_ids:[2],default_ids:[2]}
+        {field:'_show_projected',name:t('common.month'),items:[{name:t('common.projectedAndDone'),id:1},{name:t('common.done'),id:2,selected:true},{name:t('common.projected'),id:3}],selected_ids:[2],default_ids:[2]}
       ]
     },
 
     {
         field:'_week_and_month',
-        name:'Periodo',
+        name:t('common.period'),
         page:'cash-managemnt-stats',
         igual:true,
         not_fetchable:true,
@@ -88,7 +89,7 @@ function App() {
         single:true,
         hide_clear:true,
         groups:[
-          {field:'_week_and_month',name:'Visão',items:[{id:'week',name:'Diário',to:'/reports/cash-management/daily',selected:pathname.includes('/daily') ? true : false},{id:'month',name:'Mensal',selected:pathname.includes('/monthly') ? true :false,to:'/reports/cash-management/monthly'}],selected_ids:['month']}
+          {field:'_week_and_month',name:t('common.view_'),items:[{id:'week',name:t('common.daily'),to:'/reports/cash-management/daily',selected:pathname.includes('/daily') ? true : false},{id:'month',name:t('common.monthly'),selected:pathname.includes('/monthly') ? true :false,to:'/reports/cash-management/monthly'}],selected_ids:['month']}
         ]
       },
    
@@ -106,11 +107,24 @@ useEffect(()=>{
 
 
 
-   let months=['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+   let months=[
+    t('common.months.january'),
+    t('common.months.february'),
+    t('common.months.march'),
+    t('common.months.april'),
+    t('common.months.may'),
+    t('common.months.june'),
+    t('common.months.july'),
+    t('common.months.august'),
+    t('common.months.september'),
+    t('common.months.october'),
+    t('common.months.november'),
+    t('common.months.december')
+  ]
     setFilterOPtions(prev=>([...prev.filter(i=>i.field!="_month"),
       {
         field:'_month',
-        name:'Mês',
+        name:t('common.month'),
         page:'cash-managemnt-stats',
         not_fetchable:true,
         igual:true,
@@ -119,7 +133,7 @@ useEffect(()=>{
         hide_search:true,
         single:true,
         groups:[
-          {field:'_month',dropdown:true,name:'Mês',items:months.map((i,_i)=>({name:i.toString(),id:_i,selected:_i==new Date().getMonth() ? true : false})),selected_ids:[new Date().getMonth()],default_ids:[new Date().getMonth()]}
+          {field:'_month',dropdown:true,name:t('common.month'),items:months.map((i,_i)=>({name:i.toString(),id:_i,selected:_i==new Date().getMonth() ? true : false})),selected_ids:[new Date().getMonth()],default_ids:[new Date().getMonth()]}
         ]
       },
     ]))
@@ -145,7 +159,7 @@ useEffect(()=>{
   setFilterOPtions(prev=>([...prev.filter(i=>i.field!="_year" && (currentMenu==2 && period=='m' ? i.field!="_month": true)),
     {
       field:'_year',
-      name:'Ano',
+      name:t('common.year'),
       page:'cash-managemnt-stats',
       not_fetchable:true,
       igual:true,
@@ -154,7 +168,7 @@ useEffect(()=>{
       dropdown:true,
       single:true,
       groups:[
-        {field:'_year',name:'contas',db_name:'accounts',items:years.map((i)=>({name:i.toString(),id:i.toString(),selected:i==new Date().getFullYear() ? true : false})),selected_ids:[years[years.length - 1].toString()],default_ids:[years[years.length - 1].toString()]}
+        {field:'_year',name:t('common.accounts'),db_name:'accounts',items:years.map((i)=>({name:i.toString(),id:i.toString(),selected:i==new Date().getFullYear() ? true : false})),selected_ids:[years[years.length - 1].toString()],default_ids:[years[years.length - 1].toString()]}
       ]
     },
   ]))
@@ -168,14 +182,14 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
     igual:true,
     startDate:null,
     endDate:null,
-    name:'Periodo',
+    name:t('common.period'),
     search:'',
     field:'_transations',
-    groups:[{field:'period',name:'Periodo',items:[
-      {id:'this_week',name:'Esta semana'},
-      {id:'this_month',name:'Este mês'},
-      {id:'last_month',name:'Mês passado'},
-      {id:'this_year',name:'Este ano'}
+    groups:[{field:'period',name:t('common.period'),items:[
+      {id:'this_week',name:t('common.this-week')},
+      {id:'this_month',name:t('common.this-month')},
+      {id:'last_month',name:t('common.last-month')},
+      {id:'this_year',name:t('common.this-year')}
     ],selected_ids:[]}]
      
   })
@@ -217,7 +231,7 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
       let project_only=filterOptions.filter(i=>i.field=="_show_projected")[0].groups[0].selected_ids[0]
       let month=filterOptions.filter(i=>i.field=="_month")[0]?.groups?.[0]?.selected_ids?.[0]
 
-      let title=`Relatório de Entradas e Saídas ${filterOptions.filter(i=>i.field=="_account_categories")[0].groups[0].items.filter(i=>i.selected).length!= 0 ? 'das conta(s) '+ filterOptions.filter(i=>i.field=="_account_categories")[0].groups[0].items.filter(i=>i.selected).map(i=>i.name).join(', '):''}`
+      let title=`${t('common.transations-reports')} ${filterOptions.filter(i=>i.field=="_account_categories")[0].groups[0].items.filter(i=>i.selected).length!= 0 ? t('common.of-accounts')+' '+ filterOptions.filter(i=>i.field=="_account_categories")[0].groups[0].items.filter(i=>i.selected).map(i=>i.name).join(', '):''}`
       
       _print_exportExcel(data,type,currentMenu,period,project_only,month,title,from)
    }
@@ -226,14 +240,14 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
   return (
     <>
     
-        <DefaultLayout details={{name:'Relatórios de fluxo de caixa'}} _isLoading={!initialized}>
+        <DefaultLayout details={{name:t('common.cash-management-reports')+" "+t(`common.${period=="d"?'daily':'monthly'}`)}} _isLoading={!initialized}>
 
         
     
         <div className="flex flex-wrap bg-white rounded-[0.3rem] p-3 mb-2 shadow z-10">
                
                 <div className="mr-4 hidden">
-                   <DefaultButton text={'Actualizar'} no_bg={true} disabled={false}/>
+                   <DefaultButton text={('common.update')} no_bg={true} disabled={false}/>
                 </div>
                 {filterOptions.map((i,_i)=>(
                         <Filter shownFilters={filterOptions} key={_i} filterOptions={filterOptions}  setFilterOPtions={setFilterOPtions} open={i.open} options={i}/>
@@ -255,7 +269,7 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
         <div className="shadow bg-white p-3 rounded-tr-[0.3rem] rounded-tl-[0.3rem]">
                <div className="flex justify-between mb-4">
                      <div className="">
-                        <span className="text-[19px] font-medium text-gray-600">Relatório de Entradas e Saídas</span> {filterOptions.filter(i=>i.field=="_account_categories")[0].groups[0].items.filter(i=>i.selected).length!= 0 && <span className="text-app_orange-400">({filterOptions.filter(i=>i.field=="_account_categories")[0].groups[0].items.filter(i=>i.selected).map(i=>i.name).join(', ')})</span>}
+                        <span className="text-[19px] font-medium text-gray-600">{t('common.cash-management-reports')}</span> {filterOptions.filter(i=>i.field=="_account_categories")[0].groups[0].items.filter(i=>i.selected).length!= 0 && <span className="text-app_orange-400">({filterOptions.filter(i=>i.field=="_account_categories")[0].groups[0].items.filter(i=>i.selected).map(i=>i.name).join(', ')})</span>}
                      </div>
 
 
@@ -269,7 +283,7 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
                                 
                                 }}
                               />
-                              <span>Visão analítica</span>
+                              <span>{t('common.analitic-view')}</span>
                             </div>
                           
                           <div  onClick={()=>{

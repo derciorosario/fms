@@ -16,6 +16,7 @@ import 'dayjs/locale/en-gb';
 import FormLayout from '../../layout/DefaultFormLayout';
 import { v4 as uuidv4 } from 'uuid';     
 import { useAuth } from '../../contexts/AuthContext';
+import { t } from 'i18next';
        function App() {
           const {_cn_op}= useData()
 
@@ -65,7 +66,7 @@ import { useAuth } from '../../contexts/AuthContext';
                      setFormData(item)
 
                      }else{
-                      toast.error('Item não encontrado')
+                      toast.error(t('common.item-not-found'))
                       navigate(`/investments`)
                      }
 
@@ -117,22 +118,22 @@ import { useAuth } from '../../contexts/AuthContext';
                    try{
                      if(id){
                         _update('investments',[{...formData}])
-                        toast.success('Investimento actualizado')
+                        toast.success(t('commmon.updated-successfully'))
                      }else{
                        _add('investments',[{
                             ...formData,
                             id:uuidv4(),
                         }])
                         setFormData(initial_form)
-                        toast.success('Investimento adicionado')
+                        toast.success(t('commmon.added-successfully'))
                         setVerifiedInputs([])
                      }
                  }catch(e){
                         console.log(e)
-                        toast.error('Erro inesperado!')
+                        toast.error(t('common.unexpected-error'))
                  }
               }else{
-               toast.error('Preencha todos os campos obrigatórios')
+               toast.error(t('common.fill-all-requied-fields'))
               }
           }
 
@@ -151,11 +152,11 @@ import { useAuth } from '../../contexts/AuthContext';
     <>
 
 
-<FormLayout loading={!initialized || loading} maxWidth={'700px'} name={id ? 'Actualizar' : 'Novo investimento'} formTitle={id ? 'Actualizar' : 'Adicionar'}>
+<FormLayout loading={!initialized || loading} maxWidth={'700px'} name={id ? t('common.update')  : t('common.new-investment')} formTitle={id ? t('common.update') : t('common.add')}>
 
              
 <FormLayout.Cards topInfo={[
-                          {name:"Valor mensal de depreciação",value: formData.depreciation},
+                          {name:t('common.monthly-depreciation-amount'),value: formData.depreciation},
                      ]}/>
 
             
@@ -167,7 +168,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
                           <TextField
                                   id="outlined-multiline-static"
-                                  label="Descrição *"
+                                  label={t('common.description')}
                                   multiline
                                   value={formData.description}
                                   onChange={(e)=>setFormData({...formData,description:e.target.value})}
@@ -176,7 +177,7 @@ import { useAuth } from '../../contexts/AuthContext';
                                   '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                                   onBlur={()=>validate_feild('description')}
                                   error={(!formData.description) && verifiedInputs.includes('description')}
-                                  helperText={(!formData.description) && verifiedInputs.includes('description') ? "Insira a descrição" :''}
+                                  helperText={(!formData.description) && verifiedInputs.includes('description') ? t('common.required-field') : ''}
                               
                           />
 
@@ -199,11 +200,11 @@ import { useAuth } from '../../contexts/AuthContext';
 
                           <TextField
                               id="outlined-textarea"
-                              label="Custo *"
-                              placeholder="Digite o valor"
+                              label={t('common.cost')}
+                              placeholder={t('common.type-amount')}
                               multiline
                               value={formData.amount}
-                              helperText={(!formData.amount) && verifiedInputs.includes('amount') ? 'Campo obrigatório':''}
+                              helperText={(!formData.amount) && verifiedInputs.includes('amount') ? t('common.required-field') :''}
                               onBlur={()=>validate_feild('amount')}
                               error={(!formData.amount) && verifiedInputs.includes('amount') ? true : false}
                               onChange={(e)=>setFormData({...formData,amount:_cn_op(e.target.value)})}
@@ -219,8 +220,8 @@ import { useAuth } from '../../contexts/AuthContext';
                       <div className="w-full">
                       <TextField
                               id="outlined-textarea"
-                              label={`Número de ${formData.period=="year" ? 'anos' :'meses'}`}
-                              placeholder={`Número de ${formData.period=="year" ? 'anos' :'meses'}`}
+                              label={t('common.number-of')+` ${formData.period=="year" ? t('common.years') :t('common.months')}`}
+                              placeholder={t('common.number-of')+` ${formData.period=="year" ? t('common.years') :t('common.months')}`}
                               multiline
                               value={formData.time}
                               onBlur={()=>validate_feild('time')}

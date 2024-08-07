@@ -4,6 +4,7 @@ import { useData  } from '../../contexts/DataContext';
 import BasicTable from '../../components/Tables/basic';
 import TotalCard from '../../components/Cards/default_totals';
 import { useLocation } from 'react-router-dom';
+import { t } from 'i18next';
 
 function App() {
   const data = useData()
@@ -37,7 +38,7 @@ function App() {
   
   return (
     <>
-       <DefaultLayout details={{name:page=="clients" ? "Clientes" : page=="suppliers" ? "Fornecedores" : "Investidores"}}>
+       <DefaultLayout details={{name:page=="clients" ? t('common.client')+"s" : page=="suppliers" ? t('common.supplier')+"s" : t('common.investor')+"s"}}>
 
       {/** <TotalCard page={`${page}`} items={
              [

@@ -3,6 +3,7 @@ import { useData  } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate ,useSearchParams} from 'react-router-dom';
 import colors from '../../assets/colors.json'
+import { t } from 'i18next';
 export default function filter({open,options,filterOptions,setFilterOPtions,shownFilters}) {
 
   const navigate = useNavigate();
@@ -159,7 +160,7 @@ const  handleClickFilter = () => {
      <div className="w-full">
 
     {!options.hide_clear && <div className="flex justify-between items-center mb-1">
-      <span onClick={()=>clear(options.field)} className="text-app_orange-500 text-[15px] hover:underline cursor-pointer">Limpar </span>
+      <span onClick={()=>clear(options.field)} className="text-app_orange-500 text-[15px] hover:underline cursor-pointer">{t('common.clear')} </span>
     </div>}
 
      <div className={`mb-2 ${options.hide_igual ? 'hidden':''}`}>
@@ -174,10 +175,10 @@ const  handleClickFilter = () => {
                    <div id="dropdown" className="z-10 absolute bg-white divide-y divide-gray-100 rounded-lg shadow w-full">
                         <ul className="py-2 text-sm text-gray-700" aria-labelledby="dropdownDefaultButton">
                             <li>
-                                <a onClick={()=>selectIgualOrNot(true)} className={`block cursor-pointer px-4 py-2 ${!options.igual ? 'hover:bg-gray-100' :' text-app_orange-500 hover:bg-app_orange-100 bg-app_orange-50'} `}>{options.name} = (igual a)</a>
+                                <a onClick={()=>selectIgualOrNot(true)} className={`block cursor-pointer px-4 py-2 ${!options.igual ? 'hover:bg-gray-100' :' text-app_orange-500 hover:bg-app_orange-100 bg-app_orange-50'} `}>{options.name} = ({t('common.igual-to')})</a>
                             </li>
                             <li>
-                            <a onClick={()=>selectIgualOrNot(false)} className={`block cursor-pointer px-4 py-2 ${options.igual ? 'hover:bg-gray-100' :' text-app_orange-500 hover:bg-app_orange-100 bg-app_orange-50'} `}>{options.name} != (diferente de)</a>
+                            <a onClick={()=>selectIgualOrNot(false)} className={`block cursor-pointer px-4 py-2 ${options.igual ? 'hover:bg-gray-100' :' text-app_orange-500 hover:bg-app_orange-100 bg-app_orange-50'} `}>{options.name} != ({t('common.different-from')})</a>
                             </li>
                         </ul>
                     </div>
@@ -193,7 +194,7 @@ const  handleClickFilter = () => {
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
                     </svg>
                 </div>
-                <input onChange={e=> setFilterOPtions(filterOptions.map(f=>{return f.field==options.field ? {...f,search:e.target.value} : f}))} value={options.search} type="search" id="default-search"  className="block  outline-none w-full p-[4px] ps-10 text-sm text-gray-900 border border-gray-300 rounded-[5px] bg-gray-50 focus:ring-blue-500 focus:border-blue-500" placeholder="Pesquisar..." />
+                <input onChange={e=> setFilterOPtions(filterOptions.map(f=>{return f.field==options.field ? {...f,search:e.target.value} : f}))} value={options.search} type="search" id="default-search"  className="block  outline-none w-full p-[4px] ps-10 text-sm text-gray-900 border border-gray-300 rounded-[5px] bg-gray-50 focus:ring-blue-500 focus:border-blue-500" placeholder={t('common.search')} />
            </div>
     </div>
 
@@ -225,7 +226,7 @@ const  handleClickFilter = () => {
 
 
             <div class={`${!g.dropdown ? 'hidden' :''} col-span-2 sm:col-span-1`}>
-                          <label for="category" class="hidden mb-2 text-sm font-medium text-gray-900">Category</label>
+                          <label for="category" class="hidden mb-2 text-sm font-medium text-gray-900">{t('common.category')}</label>
                           <select onChange={(e)=>check_and_uncheck(g.field,g.items[parseInt(e.target.value)])} id="category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
                           {g.items.filter((i,_i)=>i.name.toLowerCase().includes(options.search.toLowerCase())).map((i,_i)=>(
                    

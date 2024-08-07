@@ -3,6 +3,14 @@
       "title": "Inventory Management",
       "description": "Manage your inventory with ease"
     },
+    "menu": {
+      "home": "Home",
+      "features":"Features",
+      "plans":"Plans",
+      "support":"Support",
+      "about-us": "About Us",
+      "contact": "Contact"
+    },
     "navigation": {
       "dashboard": "Dashboard",
       "products": "Products",

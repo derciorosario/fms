@@ -15,6 +15,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import DefaultButton from '../Buttons/default';
 import { v4 as uuidv4 } from 'uuid';
 import { CircularProgress } from '@mui/material';
+import { t } from 'i18next';
 
 
 export default function Table({page_settings,setSearch,setItemsToDelete,search,filterOptions,page,periodFilters,_setFilteredContent,setFilterOptions,setDatePickerPeriodOptions,clearAllFilters}) {
@@ -334,7 +335,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
                  },
                  {
                   field: 'payment_origin',
-                  headerName: 'Método de pagamento',
+                  headerName: t('common.payment-method'),
                   width: 170,
                   renderCell: (params) => (
                     <span>{params.row.payment.name}</span>
@@ -342,7 +343,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
                   },
                  {
                   field: 'createdAt',
-                  headerName: 'Data de criação',
+                  headerName: t('common.creation-date'),
                   width: 170,
                   renderCell: (params) => (
                     <span>{new Date(params.row.createdAt).toISOString().split('T')[0] + " "+ new Date(params.row.createdAt).toISOString().split('T')[1].replace('.000Z','').slice(0,5) || "-"}</span>
@@ -350,7 +351,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
                   },
                  {
                   field: 'description',
-                  headerName: 'Descrição',
+                  headerName: t('common.description'),
                   width: 170,
                   renderCell: (params) => (
                     <span>{params.row.description ? params.row.description : '-'}</span>
@@ -358,7 +359,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
                 },
                 {
                   field: 't_account',
-                  headerName: 'Conta de transação',
+                  headerName: t('common.transaction-account'),
                   width: 150,
                   renderCell: (params) => (
                     <span>{params.row.transation_account.name ? params.row.transation_account.name :'-'}</span>
@@ -366,7 +367,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
                  },
                  {
                    field: 'amount',
-                   headerName: 'Valor registrado',
+                   headerName: t('common.registed-amount'),
                    width: 150,
                    renderCell: (params) => (
                      <span className={`${params.row.type=='out' ? 'text-red-600' : 'text-green-500'}`}>{params.row.type=='out' ? '-':''}{new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(params.row.payment.amount)}</span>
@@ -375,7 +376,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
 
                  { 
                   field: 'confirmed_amount',
-                  headerName: 'Valor por conciliar',
+                  headerName: t('common.amount-to-conciliate'),
                   width: 180,
                   renderCell: (params) => (
                         <div className="flex h-full justify-center items-center">
@@ -442,7 +443,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
         },
         {
           field: 'pay_day',
-          headerName: 'Data de vencimento',
+          headerName: t('common.due-date'),
           width: 170,
           renderCell: (params) => (
             <span>{params.row.payday ? params.row.payday.split('T')[0] : '-'}</span>
@@ -450,7 +451,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
         },
           {
             field: 'description',
-            headerName: 'Descrição',
+            headerName: t('common.description'),
             width: 200,
             renderCell: (params) => (
               <span>{params.row.description ? params.row.description : '-'}</span>
@@ -458,7 +459,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
           },
           {
             field: 'left',
-            headerName: 'Valor em falta',
+            headerName: t('common.missing-amount'),
             width: 150,
             renderCell: (params) => (
               <span>{params.row.amount ? data._cn((parseFloat(params.row.amount) + parseFloat(params.row.fees ? params.row.fees : 0) - parseFloat(params.row.paid ? params.row.paid : 0)) <= 0 ? 0 : (parseFloat(params.row.amount) + parseFloat(params.row.fees ? params.row.fees : 0) - parseFloat(params.row.paid ? params.row.paid : 0)))  : '-'}</span>
@@ -467,7 +468,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
           
           {
             field: 'amount',
-            headerName: 'Total a '+(page=="bills-to-pay" ? 'pagar' :'receber'),
+            headerName: (page=="bills-to-pay" ? t('common.total-to-pay') :t('common.total-to-receive')),
             width: 150,
             renderCell: (params) => (
               <span>{params.row.amount ? new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(parseFloat(params.row.amount))  : '-'}</span>
@@ -476,19 +477,19 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
           ,
           {
             field: 'status',
-            headerName: 'Estado',
+            headerName: t('common.state'),
             width: 120,
             renderCell: (params) => (
               <div>
                 
-                      <span style={{backgroundColor:!params.row.status || params.row.status=='paid' ? colors.common.paid :  new Date(params.row.payday) >= new Date(data._today()) ? colors.common.pending: colors.common.delayed , color: '#fff' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='paid' || !params.row.status ? 'Pago' : new Date(params.row.payday) >= new Date(data._today())  ? 'Pendente' : 'Atrasado'}</span>
+                      <span style={{backgroundColor:!params.row.status || params.row.status=='paid' ? colors.common.paid :  new Date(params.row.payday) >= new Date(data._today()) ? colors.common.pending: colors.common.delayed , color: '#fff' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='paid' || !params.row.status ? t('common.paid') : new Date(params.row.payday) >= new Date(data._today())  ? 'Pendente' : 'Atrasado'}</span>
                 
               </div>
             )
           },
           {
             field: 'paid',
-            headerName: page=="bills-to-pay" ? 'Valor pago ' : 'Valor recebido',
+            headerName: page=="bills-to-pay" ? t('common.paid') : t('common.received'),
             width: 170,
             renderCell: (params) => (
             <span>{params.row.paid ? data._cn(params.row.paid) : '-'}</span>
@@ -496,7 +497,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
           },
           {
             field: 'fees',
-            headerName: 'Multa',
+            headerName: t('common.fine'),
             width: 170,
             renderCell: (params) => (
             <span>{params.row.fees ? data._cn(params.row.fees) : '-'}</span>
@@ -504,7 +505,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
           },
           {
             field: 'name',
-            headerName: 'Conta',
+            headerName: t('common.account'),
             width: 150,
             renderCell: (params) => (
               <span>{data._account_categories.filter(i=>i.id==params.row.account_id)[0]?.name}</span>
@@ -513,7 +514,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
           
           {
             field: 'account_origin',
-            headerName: 'Categoria',
+            headerName:t('common.category'),
             width: 210,
             renderCell: (params) => (
               <span>{_categories.filter(i=>i.field==params.row.account_origin)[0].name}</span>
@@ -522,7 +523,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
           
           {
             field: 'payment_type',
-            headerName: 'Tipo de pagamento',
+            headerName: t('common.payment-type'),
             width: 150,
             renderCell: (params) => (
               <span>{params.row.payment_type=="single" || params.row.total_installments==1  ? 'Único' : 'Em prestações'}</span>
@@ -530,7 +531,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
           },
           {
             field: 'installments',
-            headerName: 'Número de prestações',
+            headerName: t('common.numbers-of-installments'),
             width: 150,
             renderCell: (params) => (
               <span>{params.row.total_installments}</span>
@@ -539,7 +540,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
         
         {
           field: 'doc_number',
-          headerName: 'Número da fatura',
+          headerName: t('invoice.invoice-number'),
           width: 150,
           renderCell: (params) => (
             <span>{params.row.invoice_number ? params.row.invoice_number : '-'}</span>
@@ -549,7 +550,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
 
         {
           field: 'createdAt',
-          headerName: 'Data de criação',
+          headerName: t('common.creation-date'),
           width: 170,
           renderCell: (params) => (
             <span>{params.row.createdAt ? params.row.createdAt.split('T')[0] : '-'}</span>
@@ -578,7 +579,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     },
     {
       field: 'name',
-      headerName: 'Descrição',
+      headerName: t('common.description'),
       width: 150,
       renderCell: (params) => (
         <span>{params.row.description}</span>
@@ -586,7 +587,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     },
     {
       field: 'amount',
-      headerName: 'Custo',
+      headerName: t('common.cost'),
       width: 150,
       renderCell: (params) => (
         <span>{params.row.amount ? new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(parseFloat(params.row.amount))  : '-'}</span>
@@ -594,15 +595,15 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     },
     {
       field: 'description',
-      headerName: 'Período',
+      headerName: t('common.period'),
       width: 170,
       renderCell: (params) => (
-        <span>{params.row.time} {params.row.period== "year" ? 'Anos' : 'Meses'}</span>
+        <span>{params.row.time} {params.row.period== "year" ? t('common.years') : t('common.period') }</span>
       )
     },
     {
       field: 'depreciantion',
-      headerName: 'Valor da depreciação',
+      headerName: t('common.depreciation-amount'),
       width: 170,
       renderCell: (params) => (
         <span>{data._cn(parseFloat(params.row.depreciation).toFixed(2))}</span>
@@ -610,7 +611,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     },
     {
       field: 'buyday',
-      headerName: 'Data de compra',
+      headerName: t('common.buying-amount'),
       width: 170,
       renderCell: (params) => (
         <span>{params.row.buyday.split('T')[0]}</span>
@@ -618,7 +619,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     },
     {
       field: 'createdAt',
-      headerName: 'Data de criação',
+      headerName: t('common.creation-date'),
       width: 170,
       renderCell: (params) => (
         <span>{params.row.createdAt ? params.row.createdAt.split('T')[0] : '-'}</span>
@@ -649,7 +650,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
   },
   {
     field: 'payday',
-    headerName: 'Data de vencimento',
+    headerName: t('common.due-date'),
     width: 170,
     renderCell: (params) => (
       <span>{params.row.payday.split('T')[0]}</span>
@@ -657,7 +658,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
   },
   {
     field: 'name',
-    headerName: 'Descrição',
+    headerName: t('common.description'),
     width: 150,
     renderCell: (params) => (
       <span>{params.row.description}</span>
@@ -665,7 +666,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
   },
   {
     field: 'amount',
-    headerName: 'Valor do empréstimo',
+    headerName: t('common.loan-amount'),
     width: 200,
     renderCell: (params) => (
       <span>{params.row.amount ? new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(parseFloat(params.row.amount))  : '-'}</span>
@@ -673,7 +674,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
   },
   {
     field: 'paid',
-    headerName: 'Pago',
+    headerName: t('common.paid'),
     width: 170,
     renderCell: (params) => (
       <span>{data._cn(parseFloat(params.row.paid ? params.row.paid : 0)) }</span>
@@ -681,7 +682,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
   },
   {
     field: 'description',
-    headerName: 'Juros a pagar',
+    headerName: t('common.fees-to-pay'),
     width: 170,
     renderCell: (params) => (
       <span>{data._cn(parseFloat(params.row.transation_fees))}</span>
@@ -689,19 +690,19 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
   },
   {
     field: 'status',
-    headerName: 'Estado',
+    headerName: t('common.state'),
     width: 120,
     renderCell: (params) => (
       <div>
         
-              <span style={{backgroundColor:!params.row.status || params.row.status=='paid' ? colors.common.paid :  new Date(params.row.payday) >= new Date(data._today()) ? colors.common.pending: colors.common.delayed , color: '#fff' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='paid' || !params.row.status ? 'Pago' : new Date(params.row.payday) >= new Date(data._today())  ? 'Pendente' : 'Atrasado'}</span>
+              <span style={{backgroundColor:!params.row.status || params.row.status=='paid' ? colors.common.paid :  new Date(params.row.payday) >= new Date(data._today()) ? colors.common.pending: colors.common.delayed , color: '#fff' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}>  {params.row.status=='paid' || !params.row.status ? t('common.paid') : new Date(params.row.payday) >= new Date(data._today())  ? 'Pendente' : 'Atrasado'}</span>
         
       </div>
     )
   },
   {
     field: 'depreciantion',
-    headerName: 'Valor da cada prestação',
+    headerName: t('common.each-installment-amount'),
     width: 170,
     renderCell: (params) => (
       <span>{data._cn(parseFloat(params.row.installment_amount).toFixed(2))}</span>
@@ -710,7 +711,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
  
   {
     field: 'installments',
-    headerName: 'Número de prestações',
+    headerName: t('common.installment-amount'),
     width: 170,
     renderCell: (params) => (
       <span>{params.row.total_installments}</span>
@@ -718,7 +719,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
   },
   {
     field: 'account',
-    headerName: 'Conta',
+    headerName: t('common.account'),
     width: 150,
     renderCell: (params) => (
       <span>{data._account_categories.filter(i=>i.id==params.row.account_id)[0]?.name}</span>
@@ -726,7 +727,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
   },
   {
     field: 'next_payment',
-    headerName: 'Pagamento proximo',
+    headerName: t('common.next-payment'),
     width: 170,
     renderCell: (params) => (
       <span>{params.row.installments.filter(i=>new Date(data._today()) <= new Date(i.end.split('T')[0])).length  ? params.row.installments.filter(i=>new Date(data._today()) <= new Date(i.end.split('T')[0]))?.[0]?.end?.split('T')?.[0] :''}</span>
@@ -734,7 +735,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
   },
   {
     field: 'buyday',
-    headerName: 'Data do empréstimo',
+    headerName: t('common.loan-date'),
     width: 170,
     renderCell: (params) => (
       <span>{params.row.loanday.split('T')[0]}</span>
@@ -742,7 +743,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
   },
   {
     field: 'createdAt',
-    headerName: 'Data de criação',
+    headerName: t('common.creation-date'),
     width: 170,
     renderCell: (params) => (
       <span>{params.row.createdAt ? params.row.createdAt.split('T')[0] : '-'}</span>
@@ -773,7 +774,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
       },
       {
         field: 'name',
-        headerName: 'Categoria de conta',
+        headerName: t('common.account-category'),
         width: 150,
         renderCell: (params) => (
           <span>{_categories.filter(i=>i.field==params.row.account_origin)[0].name}</span>
@@ -781,7 +782,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
       },
       {
         field: 'desc',
-        headerName: 'Descrição',
+        headerName: t('common.description'),
         width: 150,
         renderCell: (params) => (
           <span>{params.row.description ? params.row.description :'-'}</span>
@@ -789,7 +790,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
       },
       {
         field: 'projected',
-        headerName: 'Projectado',
+        headerName: t('common.projected'),
         width: 170,
         renderCell: (params) => (
           <span>{_cn(params.row.items.map(item => parseFloat(item.value)).reduce((acc, curr) => acc + curr, 0))}</span>
@@ -797,7 +798,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
       },
       {
         field: 'done',
-        headerName: 'Realizado',
+        headerName: t('common.done'),
         width: 170,
         renderCell: (params) => (
           <span>{_cn(data._transations.filter(i=>i.account_origin==params.row.account_origin).map(item => (item.type=="out" ? - (parseFloat(item.amount)) : parseFloat(item.amount))).reduce((acc, curr) => acc + curr, 0))}</span>
@@ -805,7 +806,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
       },
       {
         field: 'time',
-        headerName: 'Período',
+        headerName: t('common.period'),
         width: 220,
         renderCell: (params) => (
           <span>{data._convertDateToWords(params.row.items[0].picker.startDate.split('T')[0])} - {data._convertDateToWords(params.row.items[params.row.items.length - 1].picker.endDate.split('T')[0]) }</span>
@@ -814,7 +815,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
       
       {
         field: 'createdAt',
-        headerName: 'Data de criação',
+        headerName: t('common.creation-date'),
         width: 170,
         renderCell: (params) => (
           <span>{params.row.createdAt ? params.row.createdAt.split('T')[0] : '-'}</span>
@@ -844,7 +845,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
    },
     {
         field: 'name',
-        headerName: 'Nome',
+        headerName: t('common.name'),
         width: 200,
         renderCell: (params) => (
           <span>{params.row.name ? params.row.name : '-'}</span>
@@ -853,7 +854,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
       
       {
         field: 'origin',
-        headerName: 'Categoria',
+        headerName: t('common.category'),
         width: 200,
         renderCell: (params) => (
           <span>{_categories.filter(i=>i.field==params.row.account_origin)[0].name}</span>
@@ -861,7 +862,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
       },
       {
         field: 'last_name',
-        headerName: 'Notas',
+        headerName: t('common.notes'),
         width: 150,
         renderCell: (params) => (
           <span>{params.row.description ? params.row.description : '-'}</span>
@@ -890,7 +891,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
    },
     {
         field: 'name',
-        headerName: 'Nome',
+        headerName: t('common.name'),
         width: 200,
         renderCell: (params) => (
           <span>{params.row.name ? params.row.name : '-'}</span>
@@ -899,7 +900,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
 
       /*{
         field: 'balance',
-        headerName: 'Saldo',
+        headerName: t('common.balance'),
         width: 200,
         renderCell: (params) => (
           <span>{parseFloat(params.row.has_initial_amount ? params.row.initial_amount : 0)  (data._transations.filter(f=>f.type == "in").map(f=>f.payments.filter(j=>j.account_id==params.row.id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0) - data._transations.filter(f=>f.type == "out").map(f=>f.payments.filter(j=>j.account_id==params.row.id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0))}</span>
@@ -907,7 +908,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
       },*/
       ,{
         field: 'balance',
-        headerName: 'Saldo',
+        headerName: t('common.balance'),
         width: 200,
         renderCell: (params) => (
           <span>{parseFloat((data._transations.filter(f=>f.type == "in").map(f=>f.payments.filter(j=>j.account_id==params.row.id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0))) + parseFloat((params.row.initial_amount ? params.row.initial_amount : 0)) - parseFloat((data._transations.filter(f=>f.type == "out").map(f=>f.payments.filter(j=>j.account_id==params.row.id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0)))} </span>
@@ -919,13 +920,13 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
         headerName: 'Tipo',
         width: 200,
         renderCell: (params) => (
-          <span>{params.row.type=="mobile" ? 'Móvel' : params.row.type=="bank" ? 'Bancária' : params.row.type=="cashier" ? 'Caixa' : 'Outro'}</span>
+          <span>{params.row.type=="mobile" ? t('common.mobile') : params.row.type=="bank" ? t('common.bank') : params.row.type=="cashier" ? t('common.cahier') : t('common.another')}</span>
         ),
       },
 
       {
         field: 'notes',
-        headerName: 'Notas',
+        headerName: t('common.notes'),
         width: 150,
         renderCell: (params) => (
           <span>{params.row.description ? params.row.description : '-'}</span>
@@ -956,7 +957,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
 
     {
       field: 'description',
-      headerName: 'Descrição',
+      headerName: t('common.description'),
       width: 170,
       renderCell: (params) => (
         <span>{params.row.description ? params.row.description : '-'}</span>
@@ -964,7 +965,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     },
     {
       field: 'amount',
-      headerName: 'Valor',
+      headerName: t('common.amount'),
       width: 150,
       renderCell: (params) => (
         <span>{params.row.amount ? data._cn(parseFloat(params.row.amount))  : '-'}</span>
@@ -972,7 +973,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     },
     {
       field: 'account',
-      headerName: 'Conta de agendamento',
+      headerName: t('common.description'),
       width: 150,
       renderCell: (params) => (
         <span>{params.row.account.name ? params.row.account.name :'-'}</span>
@@ -980,7 +981,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     },
     {
       field: 't_account',
-      headerName: 'Conta de transação',
+      headerName: t('common.transaction-account'),
       width: 150,
       renderCell: (params) => (
         <span>{params.row.transation_account.name ? params.row.transation_account.name :'-'}</span>
@@ -988,7 +989,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     },
     {
       field: 'name',
-      headerName: 'Categoria',
+      headerName: t('common.category'),
       width: 210,
       renderCell: (params) => (
         <span>{_categories.filter(i=>i.field==params.row.account_origin)[0].name}</span>
@@ -996,7 +997,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     },
     {
       field: 'payment_type',
-      headerName: 'Tipo de transação',
+      headerName: t('common.transation-type'),
       width: 150,
       renderCell: (params) => (
          <span style={{backgroundColor:params.row.type=='in' ? '#C9E8E8': 'rgb(255 244 198)', color: '#111' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}> {params.row.type=="in" ? 'Entrada' : 'Saída'} </span>
@@ -1004,7 +1005,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     },
     {
       field: 'fees',
-      headerName: 'Multa',
+      headerName:t('common.fine'),
       width: 170,
       renderCell: (params) => (
       <span>{params.row.fees ? data._cn(params.row.fees) : '-'}</span>
@@ -1012,7 +1013,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     },
     {
       field: 'reference',
-      headerName: 'Referência',
+      headerName: t('common.reference'),
       width: 150,
       renderCell: (params) => (
          <span>{params.row.reference.name ? params.row.reference.name :'-'}</span>
@@ -1021,7 +1022,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     
   {
     field: 'createdAt',
-    headerName: 'Data de criação',
+    headerName: t('common.creation-date'),
     width: 170,
     renderCell: (params) => (
       <span>{params.row.createdAt ? params.row.createdAt.split('T')[0] : '-'}</span>
@@ -1051,18 +1052,10 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     },
     {
         field: 'name',
-        headerName: 'Nome',
+        headerName: t('common.name'),
         width: 150,
         renderCell: (params) => (
           <span>{params.row.name ? params.row.name : '-'}</span>
-        ),
-      },
-      {
-        field: 'last_name',
-        headerName: 'Apelido',
-        width: 150,
-        renderCell: (params) => (
-          <span>{params.row.last_name ? params.row.last_name : '-'}</span>
         ),
       },
       {
@@ -1075,7 +1068,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
       },
       {
         field: 'contacts',
-        headerName: 'Contactos',
+        headerName: t('common.contacts'),
         width: 170,
         renderCell: (params) => (
           <div>
@@ -1089,7 +1082,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
 
        {
         field: 'address',
-        headerName: 'Endereço',
+        headerName: t('common.address'),
         width: 150,
         renderCell: (params) => (
           <span>{params.row.address ? params.row.address : '-'}</span>
@@ -1099,7 +1092,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     
     {
         field: 'notes',
-        headerName: 'Observações',
+        headerName: t('common.notes'),
         width: 170,
         renderCell: (params) => (
         <span>-</span>
@@ -1107,7 +1100,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     },
     {
       field: '-',
-      headerName: 'Data de  criação',
+      headerName: t('common.creation-date'),
       width: 170,
       renderCell: (params) => (
       <span>-</span>
@@ -1152,7 +1145,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
      
       {
         field: 'name',
-        headerName: 'Nome',
+        headerName: t('common.name'),
         width: 150,
         renderCell: (params) => (
           <span className={`${params.row.id==user.id ? 'text-app_orange-400':''}`}>{params.row.name ? params.row.name : '-'} {params.row.id==user.id && '(Você)'}</span>
@@ -1161,7 +1154,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
       },
       {
         field: 'last_name',
-        headerName: 'Apelido',
+        headerName: t('common.surname'),
         width: 150,
         renderCell: (params) => (
           <span>{params.row.last_name ? params.row.last_name : '-'}</span>
@@ -1177,7 +1170,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
       },
       {
         field: 'companies',
-        headerName: 'Empresas',
+        headerName: t('common.companies'),
         width: 300,
         renderCell: (params) => (
           <span>{user.companies_details.filter(i=>params.row.companies.includes(i.id)).map(i=>i.name).join(', ')}</span>
@@ -1185,7 +1178,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
       },
       {
         field: 'contacts',
-        headerName: 'Contactos',
+        headerName: t('common.contacts'),
         width: 170,
         renderCell: (params) => (
           <div>
@@ -1199,7 +1192,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
 
        {
         field: 'address',
-        headerName: 'Endereço',
+        headerName: t('common.address'),
         width: 150,
         renderCell: (params) => (
           <span>{params.row.address ? params.row.address : '-'}</span>
@@ -1209,7 +1202,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
      
       {
           field: 'notes',
-          headerName: 'Observações',
+          headerName: t('common.notes'),
           width: 170,
           renderCell: (params) => (
           <span>-</span>
@@ -1217,7 +1210,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
       },
       {
         field: '-',
-        headerName: 'Data de  criação',
+        headerName: t('common.creation-date'),
         width: 170,
         renderCell: (params) => (
         <span>{params.row.createdAt ? params.row.createdAt.split('T')[0] : '-'}</span>
@@ -1265,7 +1258,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     },
     {
         field: 'name',
-        headerName: 'Nome',
+        headerName: t('common.name'),
         width: 150,
         renderCell: (params) => (
           <span className={`${params.row.id==user.selected_company ? 'text-app_orange-400':''}`}>{params.row.name ? params.row.name : '-'}</span>
@@ -1273,7 +1266,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
       },
       {
         field: 'Filial de:',
-        headerName: 'Filial de:',
+        headerName: t('common.company-of'),
         width: 150,
         renderCell: (params) => (
           <span>{params.row.headquarter_id ? user.companies_details.filter(i=>i.id==params.row.headquarter_id)[0].name  : '-'}</span>
@@ -1313,7 +1306,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
       },*/
       {
         field: 'contacts',
-        headerName: 'Contactos',
+        headerName: t('common.contacts'),
         width: 170,
         renderCell: (params) => (
           <div>
@@ -1327,7 +1320,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
 
        {
         field: 'address',
-        headerName: 'Endereço',
+        headerName: t('common.address'),
         width: 150,
         renderCell: (params) => (
           <span>{params.row.address ? params.row.address : '-'}</span>
@@ -1337,7 +1330,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
   
     {
       field: '-',
-      headerName: 'Data de  criação',
+      headerName: t('common.creation-date'),
       width: 170,
       renderCell: (params) => (
         <span>{params.row.createdAt ? params.row.createdAt.split('T')[0] : '-'}</span>

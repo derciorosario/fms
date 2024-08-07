@@ -3,6 +3,7 @@ import DefaultLayout from '../../../layout/DefaultLayout';
 import { useData  } from '../../../contexts/DataContext';
 import BasicTable from '../../../components/Tables/basic';
 import TotalCard from '../../../components/Cards/default_totals';
+import { t } from 'i18next';
 
 function App() {
   const {_payment_methods} = useData();
@@ -39,7 +40,7 @@ React.useEffect(()=>{
   
   return (
     <>
-     <DefaultLayout details={{name:'Meios de pagamento'}}>
+     <DefaultLayout details={{name:t('common.payment-method')}}>
           
         
 

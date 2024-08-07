@@ -55,14 +55,14 @@ function App() {
    
     let menuItems=[
         {name:'Dashboard',path:'/',paths:['/'],field:'dashboard',icon:'GridViewIcon'},
-        {name:'Contas',paths:['/bills-to-pay','/bills-to-receive','/bills-to-receive/create','/bills-to-pay/create'],field:'payments',icon:'PaymentsOutlinedIcon',sub_menus:[
+        {name:t('common.accounts'),paths:['/bills-to-pay','/bills-to-receive','/bills-to-receive/create','/bills-to-pay/create'],field:'payments',icon:'PaymentsOutlinedIcon',sub_menus:[
             {name:'A pagar',path:'/bills-to-pay',field:'bills-to-pay',paths:['/bills-to-pay','/bills-to-pay/create'],icon:'PaymentsOutlinedIcon'},
             {name:'A receber',path:'/bills-to-receive',field:'bills-to-receive',paths:['/bills-to-receive','/bills-to-receive/create'],icon:'PaymentsOutlinedIcon'}
         ]},
         {name:'Cadastro',paths:['/register','/clients','/clients/create','/suppliers','/suppliers/create','/managers','/managers/create'],field:'register',icon:'PeopleAltIcon',sub_menus:[
             {name:'Clientes',path:'/clients',field:'clients',paths:['/clients','/clients/create'],icon:'PaymentsOutlinedIcon'},
             {name:'Fornecedores',path:'/suppliers',field:'suppliers',paths:['/suppliers','/suppliers/create'],icon:'PaymentsOutlinedIcon'},
-            {name:'Gestores',path:'/managers',field:'managers',paths:['/managers','/managers/create'],icon:'PaymentsOutlinedIcon'}
+            {name:t('common.managers'),path:'/managers',field:'managers',paths:['/managers','/managers/create'],icon:'PaymentsOutlinedIcon'}
         ]}
     ]
     

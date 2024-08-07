@@ -21,6 +21,7 @@ import { ArrowRightOutlined, Close, ContentCopy, Info } from '@mui/icons-materia
 import { v4 as uuidv4 } from 'uuid';  
 import colors from '../../../assets/colors.json'   
 import { Alert, CircularProgress } from '@mui/material';
+import { t } from 'i18next';
        
        function App() {
 
@@ -84,7 +85,7 @@ import { Alert, CircularProgress } from '@mui/material';
                      setPrevEmail(item.email)
                      handleLoaded('form','add')
                      }else{
-                      toast.error('Item não encontrado')
+                      toast.error(t('common.item-not-found'))
                       navigate(`/managers`)
                      }
 
@@ -227,7 +228,7 @@ import { Alert, CircularProgress } from '@mui/material';
 
                               if(user.email==prevEmail){
 
-                                 toast.success('Usuário '+(id ? "actualizado" : "criado"))
+                                 toast.success(id ? t('common.updated-successfully')  :  t('common.created-successfully'))
                                  setLoading(false)
                                  return
 
@@ -296,14 +297,13 @@ import { Alert, CircularProgress } from '@mui/material';
                     
                      setLoading(false)
                      if(!email_used) {
-                        toast.success('Usuário '+(id ? "actualizado" : "criado"))
+                        toast.success(id ? t('common.updated-successfully')  :  t('common.created-successfully'))
 
 
 
                            if(!id){
 
                                  setSavedInvite(formData.invite)
-
                                  setInviteRes(null)
                                  setShowD(true)
 
@@ -314,29 +314,20 @@ import { Alert, CircularProgress } from '@mui/material';
                                  }
 
                                  try{
-
                                     let res=await data.makeRequest({method:'post',url:`api/check-invite/`,data:{
-
                                        email:formData.email,
                                        invite:formData.invite
-
                                     }, error: ``},8);
 
                                     if(res.first_login){
-
                                        setInviteRes(null)
                                        setInviteLoader(false)
                                        setShowD(false)
-                                       toast('Convite validado')
-
+                                       toast(t('common.invited-validated'))
                                     }else{
-
                                        if(inviteRes==null) setInviteRes(true)
                                        setInviteLoader(false)
-
                                     }
-                                   
-
                                  }catch(e){
                                        setInviteRes(false)
                                        setInviteLoader(false)
@@ -351,7 +342,7 @@ import { Alert, CircularProgress } from '@mui/material';
               }catch(e){
                      setLoading(false)
                      console.log(e)
-                     toast.error('Erro inesperado!')
+                     toast.error(t('common.unexpected-error'))
               }
 
               if(!id && email_used==false){
@@ -385,7 +376,7 @@ import { Alert, CircularProgress } from '@mui/material';
         
           const handleCopyClick = (text) => {
             navigator.clipboard.writeText(data.FRONT_URL+'/#/confirm-invite?invite='+(savedInvite ? savedInvite : formData.invite)).then(() => {
-              toast.success('Texto copiado!');
+              toast.success(t('messages.text-copied'));
             }).catch(err => {
               alert('Failed to copy text: ', err);
             });
@@ -412,29 +403,29 @@ import { Alert, CircularProgress } from '@mui/material';
                          <div className="mr-2 shadow-sm  bg-app_orange-400 flex items-center justify-center rounded-sm">
                              <Close sx={{color:'#fff'}}/>
                          </div>
-                         <span className="text-white">Fechar</span>
+                         <span className="text-white">{t('common.close')}</span>
                      </div>}
 
                      <div className="flex items-center mt-3 mb-3 p-3 rounded-[0.3rem] bg-white relative z-10">
                             {inviteLoader && <div className="flex items-center">
                                <span className="flex scale-75 mr-2"><CircularProgress style={{color:colors.app_orange[500]}} value={10} /></span>
-                               <span>A validar convite...</span>
+                               <span>{t('messages.validating-invite')}...</span>
                             </div> } 
 
                             {inviteRes != null && <div>
                                  {inviteRes == false && <div className="max-w-[400px] min-w-[400px]">
-                                    <Alert severity="warning">Não foi possivel validar o convite. O link poderá ser criado assim que conectar a internet!</Alert>        
+                                    <Alert severity="warning">{t('could-not-validate-link')}</Alert>        
                                  </div>}
 
                                  {inviteRes == true && <div className="max-w-[400px] min-w-[400px]">
-                                    <Alert security="info">Link validado.</Alert>        
+                                    <Alert security="info">{t('common.link-validated')}.</Alert>        
                                  </div>}
 
                                  {<div className="flex items-center mt-5">
                                        <button className="bg-app_orange-400  text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{
                                                 handleCopyClick()
                                                 setShowD(false)  
-                                       }}><span> <ContentCopy/></span>Copiar link</button> 
+                                       }}><span> <ContentCopy/></span>{t('common.copy-linked')}</button> 
 
 
                                        <div onClick={()=>{
@@ -450,20 +441,20 @@ import { Alert, CircularProgress } from '@mui/material';
                    </div>
 
 
-              <FormLayout loading={!initialized} name={ `${id ? 'Actualizar Gestor' : 'Novo Gestor'}`} formTitle={id ? 'Actualizar' : 'Adicionar'}  topLeftContent={(
+              <FormLayout loading={!initialized} name={ `${id ?  t('common.update-manager') : t('common.new-manager')}`} formTitle={id ? t('common.update') : t('common.add')}  topLeftContent={(
                   <>
-                     {(formData.firstLogin && prevEmail!=user.email && formData.created_by!=user.id) && <span className="text-gray-400 font-light"><Info sx={{width:20}}/> Não poderá editar dados pessoais</span>}
+                     {(formData.firstLogin && prevEmail!=user.email && formData.created_by!=user.id) && <span className="text-gray-400 font-light"><Info sx={{width:20}}/> {t('messages.cannot-update-personal-data')}</span>}
 
                       {(!formData.firstLogin && id) && <div className="flex items-center">
 
                         <div onClick={()=>{
                          handleCopyClick()
-                       }} className="px-2 text-app_orange-400 underline cursor-pointer table hover:opacity-80"><ContentCopy/> Copiar convite</div>
+                       }} className="px-2 text-app_orange-400 underline cursor-pointer table hover:opacity-80"><ContentCopy/> {t('common.copy-invite')}</div>
 
  
                         <div onClick={()=>{
                          window.open(data.FRONT_URL+'/#/confirm-invite?invite='+(savedInvite ? savedInvite : formData.invite), "_blank")
-                       }} className="px-2 text-app_orange-400 underline cursor-pointer table hover:opacity-80"><ArrowRightOutlined/> Aceder ao link</div>
+                       }} className="px-2 text-app_orange-400 underline cursor-pointer table hover:opacity-80"><ArrowRightOutlined/>{t('common.access-link')} </div>
 
 
                       </div>}
@@ -477,18 +468,19 @@ import { Alert, CircularProgress } from '@mui/material';
                
 
               <FormLayout.Section>
+
               <div>
                         <TextField
                            id="outlined-textarea"
-                           label="Nome *"
-                           placeholder="Digite o nome"
+                           label={t('common.name')}
+                           placeholder={t('common.type-name')}
                            multiline
                            disabled={(formData.firstLogin || !canEdit) && prevEmail!=user.email && formData.created_by!=user.id ? true : false}
                            value={formData.name}
                            onBlur={()=>validate_feild('name')}
                            onChange={(e)=>setFormData({...formData,name:e.target.value})}
                            error={(!formData.name) && verifiedInputs.includes('name') ? true : false}
-                           helperText={!formData.name && verifiedInputs.includes('name') ? "Nome obrigatório" :''}
+                           helperText={!formData.name && verifiedInputs.includes('name') ? t('common.required-field') :''}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -497,14 +489,14 @@ import { Alert, CircularProgress } from '@mui/material';
                        <div>
                         <TextField
                            id="outlined-textarea"
-                           label="Apelido *"
-                           placeholder="Digite o apelido"
+                           label={t('common.surname')}
+                           placeholder={t('common.type-surname')}
                            value={formData.last_name}
                            disabled={(formData.firstLogin || !canEdit) && prevEmail!=user.email && formData.created_by!=user.id ? true : false}
                            onBlur={()=>validate_feild('last_name')}
                            onChange={(e)=>setFormData({...formData,last_name:e.target.value})}
                            error={(!formData.last_name)  && verifiedInputs.includes('last_name') ? true : false}
-                           helperText={verifiedInputs.includes('last_name') && !formData.last_name ? "Apelido obrigatório" :''}
+                           helperText={verifiedInputs.includes('last_name') && !formData.last_name ? t('common.required-field') :''}
                            multiline
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
@@ -515,14 +507,14 @@ import { Alert, CircularProgress } from '@mui/material';
                         <TextField
                            id="outlined-textarea"
                            label="Email *"
-                           placeholder="Digite o email"
+                           placeholder={t('common.type-email')}
                            multiline
                            disabled={formData.firstLogin || !canEdit ? true : false}
                            value={formData.email}
                            onBlur={()=>validate_feild('email')}
                            onChange={(e)=>setFormData({...formData,email:e.target.value})}
                            error={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') || formData.email==user.email && !formData.firstLogin ? true : false}
-                           helperText={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') ? "Email inválido":formData.email==user.email && !formData.firstLogin ? 'Não pode adicionar seu email':''}
+                           helperText={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') ? t('common.invalid-email'):formData.email==user.email && !formData.firstLogin ? 'Não pode adicionar seu email':''}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -539,7 +531,7 @@ import { Alert, CircularProgress } from '@mui/material';
                                getOptionLabel={(option) => option}
                                disabled={(formData.firstLogin || !canEdit) && prevEmail!=user.email && formData.created_by!=user.id ? true : false}
                                renderInput={(params) => (
-                                  <TextField {...params} label="Contactos" placeholder="Digite os contactos" />
+                                  <TextField {...params} label={t('common.contacts')} placeholder={t('common.type-contacts')} />
                                )}
                                value={formData.contacts}
                                sx={{width:'100%',marginRight:1,'& .MuiAutocomplete-endAdornment':{display:'none'}}}
@@ -555,9 +547,9 @@ import { Alert, CircularProgress } from '@mui/material';
                            <div key={_i}>
                               <TextField
                                  id="outlined-textarea"
-                                 label="Contacto"
+                                 label={t('common.contact')}
                                  disabled={(formData.firstLogin || !canEdit) && prevEmail!=user.email && formData.created_by!=user.id ? true : false}
-                                 placeholder="Digite o Contacto"
+                                 placeholder={t('common.type-contact')}
                                  multiline
                                  value={i}
                                  onChange={(e)=>setFormData({...formData,contacts:[e.target.value]})}
@@ -571,8 +563,8 @@ import { Alert, CircularProgress } from '@mui/material';
                        <div>
                         <TextField
                            id="outlined-textarea"
-                           label="Endereço"
-                           placeholder="Digite o endereço"
+                           label={t('common.address')}
+                           placeholder={t('common.type-address')}
                            multiline
                            disabled={(formData.firstLogin || !canEdit) && prevEmail!=user.email && formData.created_by!=user.id ? true : false}
                            value={formData.address}
@@ -586,7 +578,7 @@ import { Alert, CircularProgress } from '@mui/material';
                         <TextField
                            id="outlined-textarea"
                            label="Nuit"
-                           placeholder="Digite o nuit"
+                           placeholder={t('common.type-nuit')}
                            disabled={(formData.firstLogin || !canEdit) && prevEmail!=user.email && formData.created_by!=user.id ? true : false}
                            multiline
                            value={formData.nuit}
@@ -635,7 +627,7 @@ import { Alert, CircularProgress } from '@mui/material';
                        <div className="w-[100%]">
                        <TextField
                                id="outlined-multiline-static"
-                               label="Observações"
+                               label={t('common.notes')}
                                multiline
                                rows={4}
                                disabled={formData.firstLogin || !canEdit ? true : false}
@@ -646,9 +638,9 @@ import { Alert, CircularProgress } from '@mui/material';
                        </div>
 
                        <div className=" relative">
-                          <MultipleSelectChip disabled={!canEdit} validate_feild={validate_feild} label={'Acesso a empresas'} setItems={setChipOptions} names={chipNames} items={chipOptions}/>
+                          <MultipleSelectChip disabled={!canEdit} validate_feild={validate_feild} label={t('common.access-to-companies')} setItems={setChipOptions} names={chipNames} items={chipOptions}/>
                         <div className="text-[13px] absolute right-[0px] top-0 translate-y-[-100%] flex items-center">
-                              {(verifiedInputs.includes('company') && chipOptions.length==0) && <span className='text-[11px] text-red-500'>Campo obrigatório</span>}
+                              {(verifiedInputs.includes('company') && chipOptions.length==0) && <span className='text-[11px] text-red-500'>{t('common.required-field')}</span>}
                         </div>
 
                        </div>

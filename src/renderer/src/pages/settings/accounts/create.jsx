@@ -12,6 +12,7 @@ import Select from '@mui/material/Select';
 import FormLayout from '../../../layout/DefaultFormLayout';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '../../../contexts/AuthContext';
+import { t } from 'i18next';
 
 
        function App({isPopUp}) {
@@ -43,7 +44,7 @@ import { useAuth } from '../../../contexts/AuthContext';
                      setFormData(item)
 
                      }else{
-                      toast.error('Item não encontrado')
+                      toast.error(t('common.item-not-found'))
                       navigate(`/accounts`)
                      }
 
@@ -104,14 +105,14 @@ import { useAuth } from '../../../contexts/AuthContext';
               
               if(valid){
                   if(items.some(i=>i.name.toLowerCase() == formData.name.toLowerCase() && i.id!=id)){
-                     toast.error('Nome já existe')
+                     toast.error(t('common.name-exists'))
                      return
                   }
 
                    try{
                      if(id && !isPopUp){
                         _update('account_categories',[{...formData}])
-                        toast.success('Canta actualizada')
+                        toast.success(t('common.updated-successfully'))
                      }else{
                         
                         let new_item={...formData,id:uuidv4()}
@@ -124,16 +125,16 @@ import { useAuth } from '../../../contexts/AuthContext';
                          if(isPopUp) _setOpenCreatePopUp('')
 
                         setVerifiedInputs([])
-                        toast.success('Conta adicionada')
+                        toast.success(t('common.updated-successfully'))
                         setFormData(initial_form)
                      }
                  }catch(e){
                         console.log(e)
-                        toast.error('Erro inesperado!')
+                        toast.error(t('common.unexpected-error'))
                  }
                  
               }else{
-               toast.error('Preencha todos os campos obrigatórios')
+               toast.error(t('common.fill-all-requied-fields'))
               }
           }
 
@@ -158,21 +159,21 @@ import { useAuth } from '../../../contexts/AuthContext';
          return (
            <>
 
-         <FormLayout loading={!initialized || loading} isPopUp={isPopUp} maxWidth={'700px'} name={id ? 'Actualizar' : 'Nova conta'} formTitle={isPopUp ? 'Adicionar nova conta' : (id ? 'Actualizar' : 'Adicionar nova')}>
+         <FormLayout loading={!initialized || loading} isPopUp={isPopUp} maxWidth={'700px'} name={id ? t('common.update') : t('common.new-account')} formTitle={isPopUp ? t('common.add-new-account') : (id ? t('common.update') : t('common.add-new_'))}>
 
                     <FormLayout.Section maxWidth={'700px'}>
 
                       <div>
                         <TextField
                            id="outlined-textarea"
-                           label="Nome *"
-                           placeholder="Digite o nome"
+                           label={t('common.name')}
+                           placeholder={t('common.type-name')}
                            multiline
                            value={formData.name}
                            onBlur={()=>validate_feild('name')}
                            onChange={(e)=>setFormData({...formData,name:e.target.value})}
                            error={(!formData.name) && verifiedInputs.includes('name') ? true : false}
-                           helperText={!formData.name && verifiedInputs.includes('name') ? "Nome obrigatório" :''}
+                           helperText={!formData.name && verifiedInputs.includes('name') ? t('common.required-field') :''}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -204,19 +205,19 @@ import { useAuth } from '../../../contexts/AuthContext';
                   <div>
 
                      <FormControl sx={{ m: 1, width: '100%',margin:0,height:40,display:'none' }} size="small">
-                                    <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Tipo de conta *</InputLabel>
+                                    <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">{t('common.account-type')} *</InputLabel>
                                     <Select
                                     labelId="demo-simple-select-error-label"
                                     id="demo-simple-select-error"
                                     value={formData.account_origin}
-                                    label="Tipo de conta*"
+                                    label={t('common.account-type')}
                                     onChange={(e)=>setFormData({...formData,account_origin:e.target.value})}
                                     sx={{width:'100%','& .MuiInputBase-root':{height:40},'& .css-1869usk-MuiFormControl-root':{margin:0},'& .Mui-focused.MuiInputLabel-root': { top:0 },
                                     '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                                     >
 
                                    {_categories.filter(i=>i.type == _openDialogRes?.details?.type || !isPopUp).map(i=>(
-                                     <MenuItem value={i.field} key={i.field}><span style={{color:i.type=='in' ? '#16a34a' : 'crimson'}}>{i.sub_name ? i.sub_name : i.name}</span></MenuItem>
+                                     <MenuItem value={i.field} key={i.field}><span style={{color:i.type=='in' ? '#16a34a' : 'crimson'}}>{i.sub_name ? i.sub_name : t(`categories.${i.field}`) }</span></MenuItem>
                                    ))}
 
                                     
@@ -228,21 +229,21 @@ import { useAuth } from '../../../contexts/AuthContext';
 
 
                      <FormControl sx={{ m: 1, width: '100%',margin:0,height:40 }} size="small">
-                     <InputLabel htmlFor="grouped-select">Tipo de conta</InputLabel>
+                     <InputLabel htmlFor="grouped-select">{t('common.account-type')}</InputLabel>
                      <Select defaultValue="" id="grouped-select"
                      
                        value={formData.account_origin}
-                        label="Tipo de conta"
+                        label={t('common.account-type')}
                         onChange={(e)=>setFormData({...formData,account_origin:e.target.value})}
                      >
                         <MenuItem value="">
-                           <em>Selecione uma opção</em>
+                           <em>{t('common.select-an-option')}</em>
                         </MenuItem>
-                        {(_openDialogRes?.details?.type=="in"|| !isPopUp) && <ListSubheader><span className="font-semibold text-[#16a34a] opacity-70">Entradas</span></ListSubheader>}
+                        {(_openDialogRes?.details?.type=="in"|| !isPopUp) && <ListSubheader><span className="font-semibold text-[#16a34a] opacity-70">{t('common.inflows')}</span></ListSubheader>}
                         {_categories.filter(i=>i.type == _openDialogRes?.details?.type || !isPopUp || i.field==_openDialogRes?.details?.type).filter(i=>i.type=="in").map(i=>(
                                <MenuItem value={i.field} key={i.field}><span className=" w-[7px] rounded-full h-[7px] bg-[#16a34a] inline-block mr-2"></span> <span>{i.name}</span></MenuItem>
                         ))}
-                        {(_openDialogRes?.details?.type=="out"|| !isPopUp) && <ListSubheader><span className="font-semibold text-red-600 opacity-70">Saídas</span></ListSubheader>}
+                        {(_openDialogRes?.details?.type=="out"|| !isPopUp) && <ListSubheader><span className="font-semibold text-red-600 opacity-70">{t('common.outflows')}</span></ListSubheader>}
                         {_categories.filter(i=>i.type == _openDialogRes?.details?.type || !isPopUp || i.field==_openDialogRes?.details?.type).filter(i=>i.type=="out").map(i=>(
                              <MenuItem value={i.field} key={i.field}><span className=" w-[7px] rounded-full h-[7px] bg-red-500 inline-block mr-2"></span> <span>{i.name}</span></MenuItem>
                         ))}
@@ -256,7 +257,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 
                                 <TextField
                                         id="outlined-multiline-static"
-                                        label="Nota"
+                                        label={t('common.notes')}
                                         multiline
                                         rows={4}
                                         value={formData.notes}

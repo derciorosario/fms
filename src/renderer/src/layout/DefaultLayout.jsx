@@ -9,12 +9,13 @@ import PageLoader from '../components/progress/pageLoader';
 import Close from '@mui/icons-material/Close';
 import PrintTable from '../components/Tables/print';
 import { useAuth } from '../contexts/AuthContext';
+import { t } from 'i18next';
 
 const DefaultLayout = ({ children , details ,isPopUp,loading,_isLoading}) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const {changingCompany} = useAuth()
 
-  const {_openPopUps,_loading,_openCreatePopUp,_setOpenCreatePopUp,initSyncStatus} = useData()
+  const {_openPopUps,_loading,_openCreatePopUp,_setOpenCreatePopUp,initSyncStatus,_menu} = useData()
 
  
   
@@ -39,7 +40,7 @@ const DefaultLayout = ({ children , details ,isPopUp,loading,_isLoading}) => {
       <>
 
       <PrintTable/>
-     <div>
+     <div className={`${_menu ? '__open':''}`}>
       {/* <!-- ===== Page Wrapper Start ===== --> */}
       <div className="flex h-screen overflow-hidden">
         {/* <!-- ===== Sidebar Start ===== --> */}
@@ -60,7 +61,7 @@ const DefaultLayout = ({ children , details ,isPopUp,loading,_isLoading}) => {
                        <div className="mr-2 shadow-sm  bg-app_orange-400 flex items-center justify-center rounded-sm">
                           <Close sx={{color:'#fff'}}/>
                        </div>
-                      <span className="text-white">Fechar</span>
+                      <span className="text-white">{t('common.close')}</span>
                     </div>
                     
               </div>

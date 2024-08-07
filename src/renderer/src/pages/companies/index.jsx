@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import DefaultLayout from '../../layout/DefaultLayout';
 import { useData  } from '../../contexts/DataContext';
 import BasicTable from '../../components/Tables/basic';
+import { t } from 'i18next';
 
 function App() {
   const data = useData()
@@ -33,7 +34,7 @@ function App() {
   
   return (
     <>
-       <DefaultLayout details={{name:'Empresas'}}>
+       <DefaultLayout details={{name:t('common.companies')}}>
 
        {/** <TotalCard page={`${page}`} items={
              [

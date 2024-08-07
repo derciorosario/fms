@@ -12,10 +12,11 @@ import PersonAdd from '@mui/icons-material/PersonAdd';
 import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
 import { useAuth } from '../../contexts/AuthContext';
-import {Lock, Person} from '@mui/icons-material'
+import {Lock, Person, SwitchAccountOutlined} from '@mui/icons-material'
 import {useLocation,useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useData } from '../../contexts/DataContext';
+import { t } from 'i18next';
 
 
 export default function AccountMenu() {
@@ -33,6 +34,12 @@ export default function AccountMenu() {
     
     
    if(typeof to=="string") {
+      if(to=="/logout"){
+
+        logout()
+
+        return
+      }
       if(to=="/lock"){
           to="/login"
           localStorage.setItem('l',true)
@@ -107,6 +114,9 @@ export default function AccountMenu() {
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
         <MenuItem onClick={()=>handleClose('/user-preferences')}>
+           <ListItemIcon>
+           <Person/>
+          </ListItemIcon>
            Perfil
         </MenuItem>
         <Divider />
@@ -116,21 +126,39 @@ export default function AccountMenu() {
           </ListItemIcon>
           Configurações
         </MenuItem> */}
+
+
+
+        {!window.electron && <MenuItem onClick={()=>{
+             handleClose('/login')
+           }}>
+          <ListItemIcon>
+            <SwitchAccountOutlined/>
+          </ListItemIcon>
+             {t('common.change-account')}
+       </MenuItem>}
+
+         
+
+
         <MenuItem onClick={()=>{
-            handleClose('/login')
+            handleClose('/logout')
         }}>
           <ListItemIcon>
             <Logout fontSize="small" />
           </ListItemIcon>
-          Login
+           {t('common.logout')}
         </MenuItem>
+
+
+        
         <MenuItem onClick={()=>{
              handleClose('/lock')
         }}>
           <ListItemIcon>
              <Lock fontSize="small"/>
           </ListItemIcon>
-          Trancar
+          {t('common.lock')}
         </MenuItem>
       </Menu>
     </React.Fragment>

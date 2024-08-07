@@ -27,7 +27,7 @@ function App() {
   return (
     <>
        <DeleteDialog res={confirmDelete} show={itemsToDelete.length} loading={deleteLoading}/>
-       <DefaultLayout details={{name:'Contas'}}>
+       <DefaultLayout details={{name:t('common.accounts')}}>
             <div className="rounded-[0.3rem] shadow bg-white">
               <div className="p-3 flex justify-between">
                    <div>

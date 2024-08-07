@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import GridViewIcon from '@mui/icons-material/GridView';
 import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
@@ -15,8 +15,6 @@ import { useData } from '../../contexts/DataContext';
 import PublishedWithChangesOutlinedIcon from '@mui/icons-material/PublishedWithChangesOutlined';
 import TuneIcon from '@mui/icons-material/Tune';
 import PriceChangeOutlinedIcon from '@mui/icons-material/PriceChangeOutlined';
-import CurrencyExchangeOutlinedIcon from '@mui/icons-material/CurrencyExchangeOutlined';
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import colors from '../../assets/colors.json'
 import { useTranslation } from 'react-i18next';
 
@@ -24,16 +22,53 @@ function App({float}) {
     const { t } = useTranslation();
     const {user,_change_company}=useAuth()
     const {_setMenu,_menu,_openPopUps,_closeAllPopUps,_showPopUp}=useData()
+    const [keepFloat,setKeepFloat]=useState(window.innerWidth <= 1024)
 
     let {pathname} = useLocation()
-    //const [open,setOpen]=React.useState(() => localStorage.getItem('menu_open'))
+
+
+    function handleResize(){
+            setKeepFloat(window.innerWidth <= 1024)
+    }
+
+    useEffect(()=>{
+
+       
+        if(keepFloat){
+            _setMenu(prev=>({...prev,open:false}))
+
+        }
+
+       
+      
+
+
+    },[keepFloat])
+
+    console.log({keepFloat,m:_menu.open})
+    
+    
+    useEffect(() => {
+        window.addEventListener("resize", handleResize);
+       /* return () => {
+          document.removeEventListener("resize", handleResize);
+        };*/
+    }, []);
+
 
     const navigate = useNavigate();
 
     function openCloseMenu(){
-        _setMenu({..._menu,open:float ? true : !_menu.open})
 
         _closeAllPopUps()
+
+        if(keepFloat){
+              _setMenu({..._menu,float:true})
+              return
+        }
+        _setMenu({..._menu,open:float ? true : !_menu.open})
+
+     
 
         if(_menu.open){
             localStorage.removeItem('menu_open');
@@ -71,7 +106,7 @@ function App({float}) {
 
        menuItems.forEach(item=>{
           if(checkActive(item) && !_menu.openDropDown.includes(pathname))  {
-             _setMenu({..._menu,openDropDown:[..._menu.openDropDown,item.field]})
+             _setMenu((prev)=>({...prev,openDropDown:[...prev.openDropDown,item.field]}))
           }
        })
 
@@ -126,8 +161,8 @@ function App({float}) {
             {name:t('sidebar.accounts.toReceive'),path:'/bills-to-receive',paths:['bills-to-receive','bills-to-receive/create','bills-to-receive/:id'],icon:'PaymentsOutlinedIcon'},   
         ]},
         {name:t('sidebar.main.cashManagement'),field:'cash-management',icon:'MonetizationOnOutlinedIcon',sub_menus:[
-            {name:'Entradas',path:'/cash-management/inflow/',field:'cash-management/inflow',paths:['/cash-management/inflow','/cash-management/inflow/create','/cash-management/inflow/:id'],icon:'MonetizationOnOutlinedIcon'},
-            {name:'Saídas',path:'/cash-management/outflow/',field:'cash-management/outflow',paths:['/cash-management/outflow','/cash-management/outflow/create','/cash-management/outflow/:id'],icon:'MonetizationOnOutlinedIcon'},   
+            {name:t('common.outflows'),path:'/cash-management/inflow/',field:'cash-management/inflow',paths:['/cash-management/inflow','/cash-management/inflow/create','/cash-management/inflow/:id'],icon:'MonetizationOnOutlinedIcon'},
+            {name:t('common.inflows'),path:'/cash-management/outflow/',field:'cash-management/outflow',paths:['/cash-management/outflow','/cash-management/outflow/create','/cash-management/outflow/:id'],icon:'MonetizationOnOutlinedIcon'},   
         ]},
         {name:t('sidebar.main.register'),field:'register',icon:'PeopleAltIcon',sub_menus:[
             {name:t('sidebar.register.clients'),path:'/clients',field:'clients',paths:['/clients','/clients/create/','/client/:id'],icon:'PaymentsOutlinedIcon'},
@@ -149,6 +184,7 @@ function App({float}) {
         {name:t('sidebar.main.finacialReconciliation'),path:'/financial-reconciliation',paths:['/financial-reconciliation'],field:'financial-reconciliation',icon:'CurrencyExchangeOutlinedIcon'},
        
         {name:t('sidebar.main.reports'),field:'reports',icon:'ChartIcon',sub_menus:[
+            {name:t('sidebar.reports.accountsAndBalance'),path:'/reports/global',field:'/reports/global',paths:['/reports/global'],icon:'PaymentsOutlinedIcon'},
             {name:t('sidebar.reports.monthlyCashManagement'),path:'/reports/cash-management/monthly',field:'cash-management/monthly',paths:['/reports/cash-management/monthly'],icon:'PaymentsOutlinedIcon'},
             {name:t('sidebar.reports.dailyCashManagement'),path:'/reports/cash-management/daily',field:'cash-management/daily',paths:['/reports/cash-management/daily'],icon:'PaymentsOutlinedIcon'},
             {name:t('sidebar.reports.dre'),path:'/reports/dre',field:'/reports/dre',paths:['/reports/dre','/reports/dre/daily','/reports/dre/monthly'],icon:'PaymentsOutlinedIcon'},
@@ -250,8 +286,7 @@ function App({float}) {
 
             {menuItems.map(item=>(
                 <>
-
-<div key={item.field} className={`w-full ${!_menu.open && !float ? 'mb-2':''}`}>
+              <div key={item.field} className={`w-full ${!_menu.open && !float ? 'mb-2':''}`}>
                 <div onClick={()=>changeOpenDropdown(item.field,item.path)} className={`${checkActive(item) && 'bg-app_orange-transparent'} relative  flex py-1 px-2 items-center justify-between w-full cursor-pointer`}>
                     <div className="flex items-center">
                         <div className={`rounded-lg flex justify-center  p-0.5`}>

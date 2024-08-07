@@ -1,0 +1,145 @@
+import React, { useEffect, useState } from 'react'
+import PayPalButton from './paypal'
+import { GoogleLogin } from '@react-oauth/google'
+import i18n from '../../../../i18n'
+import { t } from 'i18next'
+import Register from './register'
+import SelectPaymentMethod from './select-payment'
+import Logo from '../../../assets/icon.png'
+import Download from './download'
+import Invoice from '../../../pages/invoice'
+import InvoiceDownload from '../../../pages/invoice/invoice-download'
+import { useNavigate } from 'react-router-dom'
+import { useHomeData } from '../../../../contexts/HomeDataContext'
+
+function DownloadProcess({}) {
+    
+  const [activePage,setActvePage]=useState(0)
+  const [pages,setPages]=useState([])
+  const data=useHomeData()
+  const navigate = useNavigate()
+  const [resetUpdater,setResetUpdater]= useState()
+
+  useEffect(()=>{
+    setPages([
+        {name:t('titles.register')},
+        {name:t('titles.payment')},
+        {name:"Download"}
+    ])
+  },[i18n.language])
+
+  useEffect(()=>{
+
+        if(!data.initialized || data.resetUpdater!=resetUpdater){
+            setActvePage(!data.form.done ? 0 : data.form.done)
+            setResetUpdater(Math.random())
+        }
+        
+  },[data.formUpdater,data.resetUpdater])
+
+
+
+
+  useEffect(()=>{
+
+      if(!data.initialized){
+        return
+      }
+      if(data.form.done){
+        data.register()
+      }
+  },[data.done,data.initialized])
+
+  
+  return (
+    
+   <>
+    <InvoiceDownload/>
+    <div className={`w-full top-0 left-0 fixed z-30 flex flex-col h-[100vh] ${!data.dialogs.register ? 'opacity-0 pointer-events-none translate-y-[50px]':''} transition-all ease-in duration-100`}>
+
+<div className="bg-[rgba(0,0,0,0.4)] h-[60px] w-full relative flex items-end">
+    <div className="bg-[rgba(0,0,0,0.4)]  w-full h-[10px] z-[-1] translate-y-[100%]"></div>
+</div>
+
+<div className="flex-1 bg-white rounded-t-[0.8rem] overflow-auto flex-col justify-between flex">
+   
+    <div>
+         <div className="w-full flex justify-center relative">
+                    <span className="mt-6 h-[3px] w-[50px] bg-gray-400 rounded-full"></span>
+
+                    {!data.loading && <span onClick={()=>{
+                            data.reset()
+                            data.setDialogs({...data.dialogs,register:false})
+                    }} className="text-red-500 underline cursor-pointer absolute flex top-3 left-1 ml-3">{t('common.cancel')}</span> 
+                    }
+
+                   {!data.loading && <div onClick={()=>{
+                        if(data.form.done==2 || data.form.proof_ok){
+                            data.reset()
+                        }
+                        data.setDialogs({...data.dialogs,register:false})}
+                    } className="bg-[#ff4800] cursor-pointer hover:opacity-90 w-[40px] h-[40px] absolute right-3 top-3 z-30 rounded-full flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
+                    </div>}
+        </div>
+
+        <div className="w-full flex justify-center items-center mt-14 mb-10">
+                    {pages.map((i,_i)=>(
+                            <div className="flex items-center justify-center relative">
+                                <span className={`flex ${activePage==_i ? 'bg-[#ff7626]':'bg-white'} justify-center items-center w-[30px] h-[30px] border-[2px] border-app_primary-400 rounded-full`}>
+                                    <label className={`${activePage==_i ? 'text-white':'text-gray-500'} `}>{_i+1}</label>  
+                                </span>
+                                <label className="mx-2 max-sm:text-[13px] flex max-md:absolute max-md:left-[10px] top-[100%] max-md:translate-x-[-50%]">{i.name}</label>
+                            {_i+1 != pages.length &&  <span className="w-[100px] h-[2px] max-sm:w-[70px] bg-gray-400"></span>}
+                        </div>
+                    ))}
+        </div>
+    </div>
+    <div className={`py-3 px-8 flex justify-between max-md:mb-10 ${data.loading ? 'opacity-0 pointer-events-none':''}`}>
+       {(activePage >= data.form.done && activePage!=0 && activePage!=2 && !data.form.proof_ok) ? <button onClick={()=>{
+          setActvePage(activePage - 1)
+       }} className="rounded-[0.3rem] flex items-center cursor-pointer hover:opacity-70 bg-[#ff7626] text-white px-2 py-1">
+          <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" fill="#fff"><path d="M400-240 160-480l240-240 56 58-142 142h486v80H314l142 142-56 58Z"/></svg>
+          <span className="ml-1"> {t('common.go-back')}</span>
+       </button> : <span></span>}
+
+       {(data.form.done > activePage && activePage!=2 && data.form.done != 1) ? <button  onClick={()=>{
+           setActvePage(activePage + 1)
+       }} className="rounded-[0.3rem] flex items-center cursor-pointer hover:opacity-70 bg-green-600 text-white px-2 py-1">
+           <span className="ml-1"> {t('common.next')}</span>
+           <svg className="rotate-180" xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" fill="#fff"><path d="M400-240 160-480l240-240 56 58-142 142h486v80H314l142 142-56 58Z"/></svg>
+       </button> : <span></span>}
+       
+    </div>
+
+   <div className="w-full flex-1  px-4">
+          {activePage == 0 && <Register activePage={activePage} setActvePage={setActvePage}/>}
+          {activePage == 1 && <SelectPaymentMethod activePage={activePage} setActvePage={setActvePage}/>}   
+          {activePage == 2 && <Download/>}
+   </div>
+
+   
+    <div className="flex justify-between p-2 relative">
+             <a className="flex items-center"><img src={Logo} className="h-[30px] mr-2"/><span className="text-white font-bold text-[18px]">Pro Conta</span></a>
+                <div className="flex items-center">
+
+                    {data.form.done==2 && <span onClick={()=>navigate('/invoice/'+data.form.invoice.invoice_number)} className="bg-[#ff7626] hidden cursor-pointer mr-2 text-white p-1 rounded-[0.3rem] underline">{t('common.view-invoice')}</span>}
+                    
+                    <div className="flex items-center mb-2">                
+                            <svg xmlns="http://www.w3.org/2000/svg" height="28px" viewBox="0 -960 960 960" fill="#ddd"><path d="M798-120q-125 0-247-54.5T329-329Q229-429 174.5-551T120-798q0-18 12-30t30-12h162q14 0 25 9.5t13 22.5l26 140q2 16-1 27t-11 19l-97 98q20 37 47.5 71.5T387-386q31 31 65 57.5t72 48.5l94-94q9-9 23.5-13.5T670-390l138 28q14 4 23 14.5t9 23.5v162q0 18-12 30t-30 12Z"/></svg>
+                            <span className="text-gray-500 ml-3 text-[15px]"><a href="mailto:hello@proconta.com">+258 856462304</a></span>
+                    </div>
+               </div>
+    </div>
+
+
+
+
+</div>
+
+</div>
+   </>
+  )
+}
+
+export default DownloadProcess

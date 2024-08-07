@@ -18,6 +18,7 @@ import 'dayjs/locale/en-gb';
 import { Switch } from '@mui/material';
 import { v4 as uuidv4 } from 'uuid';      
 import { useAuth } from '../../../contexts/AuthContext';
+import { t } from 'i18next';
        
        function App({isPopUp}) {
 
@@ -64,7 +65,7 @@ import { useAuth } from '../../../contexts/AuthContext';
                      if(item){
                      setFormData(item)
                      }else{
-                      toast.error('Item não encontrado')
+                      toast.error(t('common.item-not-found'))
                       navigate(`/payment_methods`)
                      }
                })()
@@ -107,14 +108,14 @@ import { useAuth } from '../../../contexts/AuthContext';
               
               if(valid){
                   if(items.some(i=>i.name.toLowerCase() == formData.name.toLowerCase() && i.id!=id)){
-                     toast.error('Nome já existe')
+                     toast.error(t('common.name-exists'))
                      return
                   }
 
                    try{
                      if(id && !isPopUp){
                         _update('payment_methods',[{...formData}])
-                        toast.success('Conta actualizada')
+                        toast.success(t('common.updated-successfully'))
                      }else{
                           let new_id=uuidv4()
                           let new_item={...formData,id:new_id}
@@ -126,7 +127,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 
 
                         setVerifiedInputs([])
-                        toast.success('Conta adicionada')
+                        toast.success(t('common.added-successfully'))
                         setFormData(initial_form)
 
                         if(isPopUp) _setOpenCreatePopUp('')
@@ -136,11 +137,11 @@ import { useAuth } from '../../../contexts/AuthContext';
                      }
                  }catch(e){
                         console.log(e)
-                        toast.error('Erro inesperado!')
+                        toast.error(t('common.unexpected-error'))
                  }
                  
               }else{
-               toast.error('Preencha todos os campos obrigatórios')
+               toast.error(t('common.fill-all-requied-fields'))
               }
           }
 
@@ -168,21 +169,21 @@ import { useAuth } from '../../../contexts/AuthContext';
          return (
            <>
 
-         <FormLayout loading={!initialized || loading} isPopUp={isPopUp} maxWidth={'700px'} name={id ? 'Actualizar' : 'Nova conta'} formTitle={isPopUp ? 'Adicionar novo meio de pagamento' : (id ? 'Actualizar' : 'Adicionar nova')}>
+         <FormLayout loading={!initialized || loading} isPopUp={isPopUp} maxWidth={'700px'} name={id ? t('common.add-update') : t('common.add-new_')} formTitle={isPopUp ? t('common.add-payment-method') : (id ? t('common.update') : t('common.add-new_'))}>
 
                     <FormLayout.Section maxWidth={'700px'}>
 
                       <div>
                         <TextField
                            id="outlined-textarea"
-                           label="Nome *"
-                           placeholder="Digite o nome"
+                           label={t('common.name')}
+                           placeholder={t('common.type-name')}
                            multiline
                            value={formData.name}
                            onBlur={()=>validate_feild('name')}
                            onChange={(e)=>setFormData({...formData,name:e.target.value})}
                            error={(!formData.name) && verifiedInputs.includes('name') ? true : false}
-                           helperText={!formData.name && verifiedInputs.includes('name') ? "Nome obrigatório" :''}
+                           helperText={!formData.name && verifiedInputs.includes('name') ? t('common.required-field') :''}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -191,13 +192,13 @@ import { useAuth } from '../../../contexts/AuthContext';
                         <div>
                         <FormControl sx={{ m: 1, width: '100%',margin:0,height:40 }} size="small">
 
-                                <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Tipo</InputLabel>
+                                <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">{t('common.type')}</InputLabel>
                                 <Select
                                 labelId="demo-simple-select-error-label"
                                 id="demo-simple-select-error"
                                 value={formData.type}
                                 defaultValue=""
-                                label="Tipo"
+                                label={t('common.type')}
                                 onChange={(e)=>setFormData({...formData,type:e.target.value})}
                                 sx={{width:'100%','& .MuiInputBase-root':{height:40},'& .css-1869usk-MuiFormControl-root':{margin:0},'& .Mui-focused.MuiInputLabel-root': { top:0 },
                                 '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
@@ -205,10 +206,10 @@ import { useAuth } from '../../../contexts/AuthContext';
                                 { /*<MenuItem value="">
                                                <em>Selecione o tipo</em>
                                 </MenuItem>*/} 
-                                <MenuItem value={'cashier'}>Caixa</MenuItem>
-                                <MenuItem value={'bank'}>Bancária</MenuItem>
-                                <MenuItem value={'mobile'}>Móvel</MenuItem>
-                                <MenuItem value={'other'}>Outro</MenuItem>
+                                <MenuItem value={'cashier'}>{t('common.cashier')}</MenuItem>
+                                <MenuItem value={'bank'}>{t('common.bank')}</MenuItem>
+                                <MenuItem value={'mobile'}>{t('common.mobile')}</MenuItem>
+                                <MenuItem value={'other'}>{t('common.another')}</MenuItem>
                                 </Select>
 
                         </FormControl>
@@ -225,7 +226,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 
                                 <TextField
                                         id="outlined-multiline-static"
-                                        label="Nota"
+                                        label={t('common.notes')}
                                         multiline
                                         rows={4}
                                         value={formData.notes}
@@ -254,7 +255,7 @@ import { useAuth } from '../../../contexts/AuthContext';
                             setFormData({...formData,has_initial_amount:!Boolean(formData.has_initial_amount)})
                           }}
                       />
-                      <span>Introduzir o valor inicial</span>
+                      <span>{t('common.type-initial-value')}</span>
                       </label>
                     </div>
 
@@ -266,8 +267,8 @@ import { useAuth } from '../../../contexts/AuthContext';
                       <div>
                                                 <TextField
                                                 id="outlined-textarea"
-                                                label="Valor inicial *"
-                                                placeholder="Digite inicial"
+                                                label={t('common.initial-value')}
+                                                placeholder={t('common.type-initial-value')}
                                                 multiline
                                                 value={formData.initial_amount}
                                                 onBlur={()=>validate_feild('initial_amount')}
@@ -280,7 +281,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 
                           <div>
                                 <LocalizationProvider adapterLocale={'en-gb'} dateAdapter={AdapterDayjs} style={{paddingTop:0}} size="small">
-                                    <DatePicker value={dayjs(formData.last_transation_date).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.last_transation_date)) : null}  inputFormat="DD-MM-YYYY" onChange={(e)=>setFormData({...formData,last_transation_date:e.$d})} error={true} size="small" label="Data da ultima transação*"  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, 
+                                    <DatePicker value={dayjs(formData.last_transation_date).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.last_transation_date)) : null}  inputFormat="DD-MM-YYYY" onChange={(e)=>setFormData({...formData,last_transation_date:e.$d})} error={true} size="small" label={t('common.last-transaction-date')}  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, 
                                         '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                         '& .MuiStack-root': { paddingTop:0},'& .MuiInputLabel-root':{ top:-8}}}
                                         />

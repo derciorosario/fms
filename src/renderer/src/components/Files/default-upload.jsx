@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useData } from '../../contexts/DataContext';
+import { t } from 'i18next';
 
 export default function DefaultUpload({formData,setFormData,from,show}) {
 
@@ -72,7 +73,7 @@ export default function DefaultUpload({formData,setFormData,from,show}) {
         let file={id:uuidv4(),name:orginal_name,path,size,generated_name,uploaded:false,app_id:data._app.id,from__id:formData.id}
 
         if(size/1024/1024 > 5){
-           toast.error('Arquivo não pode der maior que 2MB')
+           toast.error(t('common.file-was-to-be-more-than')+' 2MB')
           // return
         }
 
@@ -108,9 +109,9 @@ export default function DefaultUpload({formData,setFormData,from,show}) {
           }catch (err) {
 
               if(err.code=="ERR_NETWORK"){
-                toast.error('Verifique sua internet e tente novamente')
+                toast.error(t('messages.check-internet'))
               }else{
-                toast.error('Erro inesperado! detalhes do erro:'+err)
+                toast.error(t('common.unkown-error-see-details')+' '+err)
               }
 
               setUpload({
@@ -231,9 +232,9 @@ export default function DefaultUpload({formData,setFormData,from,show}) {
             setUpload(prev=>({...prev,progress:0,downloading:false}))
 
             if(error.code=="ERR_NETWORK"){
-              toast.error('Verifique sua internet e tente novamente')
+              toast.error(t('messages.check-internet'))
             }else{
-              toast.error('Erro inesperado! detalhes do erro:'+error)
+              toast.error(t('common.unkown-error-see-details')+error)
             }
           })
           .finally(() => {
@@ -252,7 +253,7 @@ export default function DefaultUpload({formData,setFormData,from,show}) {
                                 <div className={`border min-h-[80px] p-3 flex-col justify-center items-center rounded-[2px] border-dashed relative ${!formData.files[0] ?'cursor-pointer' :''}`}>
                                         <div className="flex items-center justify-center ">
                                           {(!upload.uploading && !upload.downloading) && !formData.files[0] && <label>
-                                              <Button sx={{width:'100%'}} endIcon={<FilePresentIcon/>}>Anexar documento ou imagem max [2MB]</Button>
+                                              <Button sx={{width:'100%'}} endIcon={<FilePresentIcon/>}>{t('messages.attach-doc')} max [2MB]</Button>
                                               <input ref={fileInputRef_1} onChange={handleFileChange} className="w-full h-full absolute top-0 left-0 opacity-0" type="file"/>
                                           </label>}
                                         </div>
@@ -265,8 +266,8 @@ export default function DefaultUpload({formData,setFormData,from,show}) {
 
                                         {formData.files[0] && (!upload.uploading && !upload.downloading) &&  <>
                                             <div className="flex flex-col">
-                                              <span className={`text-center block mb-4`} onClick={openFile}><span className={`${(fileExists || formData.files[0]?.uploaded)  ? 'text-blue-500 underline cursor-pointer':' opacity-50'} `}>{formData.files[0]?.name}</span> {(!fileExists && window.electron && data._app.id==upload?.file?.app_id) && <label className="text-red-600 ml-2">(Removido)</label>}  {(!formData.files[0].uploaded && data._app.id!=upload?.file?.app_id) && <label className="ml-2">(Não carregado)</label>}</span>
-                                              <div className="text-center"> {(!fileExists && formData.files[0].uploaded) && <span><Button onClick={downloadFile} startIcon={<Download style={{color:'rgb(59,130,246)'}}/>}>Baixar</Button></span>} {fileExists && <Button onClick={openFileInFolder}>Abrir pasta</Button>}<label className="ml-4 relative"><Button endIcon={<RefreshOutlined/>} variant="contained">Alterar</Button><input ref={fileInputRef_2} onChange={handleFileChange} className="w-full h-full absolute top-0 left-0 opacity-0" type="file"/></label></div>
+                                              <span className={`text-center block mb-4`} onClick={openFile}><span className={`${(fileExists || formData.files[0]?.uploaded)  ? 'text-blue-500 underline cursor-pointer':' opacity-50'} `}>{formData.files[0]?.name}</span> {(!fileExists && window.electron && data._app.id==upload?.file?.app_id) && <label className="text-red-600 ml-2">({t('common.removed')})</label>}  {(!formData.files[0].uploaded && data._app.id!=upload?.file?.app_id) && <label className="ml-2">({t('common.not-uploaded')})</label>}</span>
+                                              <div className="text-center"> {(!fileExists && formData.files[0].uploaded) && <span><Button onClick={downloadFile} startIcon={<Download style={{color:'rgb(59,130,246)'}}/>}>Download</Button></span>} {fileExists && <Button onClick={openFileInFolder}>{t('common.open-in-folder')}</Button>}<label className="ml-4 relative"><Button endIcon={<RefreshOutlined/>} variant="contained">{t('common.change')}</Button><input ref={fileInputRef_2} onChange={handleFileChange} className="w-full h-full absolute top-0 left-0 opacity-0" type="file"/></label></div>
                                             </div>
                                         </> }
 

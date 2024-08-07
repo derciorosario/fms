@@ -479,14 +479,14 @@ import DefaultUpload from '../../../components/Files/default-upload';
                     return {ok:true}
                  }catch(e){
                         console.log(e)
-                        toast.error('Erro inesperado!')
+                        toast.error(t('common.unexpected-error'))
                         return {error:e}
                  }
 
 
                 
               }else{
-               toast.error('Preencha todos os campos obrigatórios')
+               toast.error(t('common.fill-all-requied-fields'))
               }
           }
 
@@ -551,31 +551,31 @@ import DefaultUpload from '../../../components/Files/default-upload';
              
               <ConfirmDialog show={deletePayments.showDialog} message={deletePayments.message} res={confirmDeletePayments} loading={deletePayments.loading}/>
                
-               <FormLayout loading={!initialized || loading} name={ `${id ? 'Actualizar' : 'Nova'} conta a `+ (type=="receive" ? 'receber' : 'pagar')} formTitle={id ? 'Actualizar' : 'Adicionar nova'} topLeftContent={(
+               <FormLayout loading={!initialized || loading} name={ `${id ? t('common.update') : t('common.new')} `+ (type=="receive" ? t('common.bills-to-receive') : t('common.bills-to-pay'))} formTitle={id ? t('common.update') : t('common.add_new_')} topLeftContent={(
                  
                  <>
                         <div className="flex justify-center items-center">
                             
-                              {id && <span className="mr-3 opacity-80">Pagamentos:</span>}
+                              {id && <span className="mr-3 opacity-80">{t('common.payments')}:</span>}
                             
                            {(formData.paid) ? <>
 
                             <div>
                                 <button onClick={()=>setDeletePayments({showDialog:true,loading:false})} type="button" className="text-gray-900 bg-white flex hover:bg-gray-100 border border-red-400 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-[0.3rem] text-sm px-5 py-[5px] text-center items-center">
-                                <span className="ml-1  text-red-600">Anular</span>
+                                <span className="ml-1  text-red-600">{t('common.annul')}</span>
                                 </button>
                             </div>
 
                             <div className="ml-2">
                                 <button onClick={()=>navigate(`/cash-management/${type=="pay" ? 'outflow':'inflow'}?search=${formData.id.split('-')[0]}&&see_bill_transations=2024-06-20`)} type="button" className={`text-gray-900 flex hover:opacity-90 border  border-blue-500   focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-[0.3rem] text-sm px-5 py-[5px] text-center items-center`}>
-                                <span className="ml-1 text-blue-600">Ver</span>
+                                <span className="ml-1 text-blue-600">{t('common.see')}</span>
                                 </button>
                            </div>
                            </>:''}
 
                           {id && formData.status!="paid" && formData.id && <div className="ml-2">
                               <button onClick={saveAndPay} type="button" className={`text-gray-900 flex hover:opacity-90 border ${valid ? 'bg-app_orange-500':'bg-gray-400 cursor-not-allowed'}   focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-[0.3rem] text-sm px-5 py-[5px] text-center items-center`}>
-                                <span className="ml-1 text-white">Salvar e pagar</span>
+                                <span className="ml-1 text-white">{t('common.save-and-pay')}</span>
                               </button>
                           </div>}
 
@@ -596,10 +596,10 @@ import DefaultUpload from '../../../components/Files/default-upload';
 
                      <FormLayout.Cards topInfo={[
                           //{name:'Saldo da conta',value:_cn(formData.amount && formData.paid ? parseFloat(formData.amount) - parseFloat(formData.paid) : formData.amount ? parseFloat(formData.amount) : 0)},
-                          {name:type=="pay" ? "Pago" : "Recebido",value:data._cn(formData.paid ? parseFloat(formData.paid) : 0)},
-                          {name:'Estado',value:formData.paid >= formData.amount && parseFloat(formData.amount) && id ? 'pago' : formData.status!="paid" &&  new Date(data._today()) > new Date(formData.payday) && id ? 'atrasado' : 'pedente',color:formData.status!="paid" && id && new Date(data._today()) > new Date(formData.payday) ? 'crimson' :formData.paid >= formData.amount && formData.paid && id ? 'green' :null},
-                          {id:'left',name:'Em falta',value:parseFloat(formData.paid) > parseFloat(formData.amount) ? 0 :data._cn(parseFloat(formData.amount ? formData.amount : 0) - parseFloat(formData.paid ? formData.paid : 0))},
-                          {id:'fees',name:'Multa',value:data._cn(formData.fees)},
+                          {name:type=="pay" ? t('common.paid'): t('common.received'),value:data._cn(formData.paid ? parseFloat(formData.paid) : 0)},
+                          {name:t('common.state'),value:formData.paid >= formData.amount && parseFloat(formData.amount) && id ? t('common.paid') : formData.status!="paid" &&  new Date(data._today()) > new Date(formData.payday) && id ? t('common.delayed') : t('common.pending'),color:formData.status!="paid" && id && new Date(data._today()) > new Date(formData.payday) ? 'crimson' :formData.paid >= formData.amount && formData.paid && id ? 'green' :null},
+                          {id:'left',name:t('common.missing-amount'),value:parseFloat(formData.paid) > parseFloat(formData.amount) ? 0 :data._cn(parseFloat(formData.amount ? formData.amount : 0) - parseFloat(formData.paid ? formData.paid : 0))},
+                          {id:'fees',name:t('common.fine'),value:data._cn(formData.fees)},
                           
                      ].filter(i=>(i.id!='fees' || formData.fees) && (i.id!="left" || id))}/>
 
@@ -612,12 +612,12 @@ import DefaultUpload from '../../../components/Files/default-upload';
                         <div>
                             <TextField
                                     id="outlined-multiline-static"
-                                    label="Descrição*"
+                                    label={t('common.description')+"*"}
                                     multiline
                                     value={formData.description}
                                     onBlur={()=>validate_feild('description')}
                                     error={(!formData.description) && verifiedInputs.includes('description') ? true : false}
-                                    helperText={!formData.description && verifiedInputs.includes('description') ? "Campo obrigatório" :''}
+                                    helperText={!formData.description && verifiedInputs.includes('description') ? t('common.required-field') : ''} 
                                     onChange={(e)=>setFormData({...formData,description:e.target.value})}
                                     defaultValue=""
                                     sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
@@ -641,7 +641,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                       setFormData({...formData,account_name:newValue})
                                     }
                                 }}
-                                noOptionsText="Não encotrado"
+                                noOptionsText={t('common.not-found')}
                                 ref={account_name}
                                 defaultValue={null}
                                 inputValue={formData.account_name}
@@ -656,19 +656,19 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                 renderInput={(params) => <TextField {...params}
                                 helperText={!accountCategories.some(a=>a.id==formData.account_id) && formData.account_name && initialized ? "(Nova conta será adicionada)" :''}
                                 sx={{'& .MuiFormHelperText-root': {color:!accountCategories.some(a=>a.id==formData.account_id) && formData.account_name ? 'green' : 'crimson'}}}
-                                value={formData.account_name} label="Nome da conta *" />}
+                                value={formData.account_name} label={t('common.account-name')} />}
                         />   
                             </div>
                         <div>
                             <FormControl sx={{ m: 1, width: '100%',margin:0,height:40 }} size="small">
 
-                                            <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Categoria *</InputLabel>
+                                            <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">{t('common.category')} *</InputLabel>
                                             <Select
                                             disabled={accountCategories.some(a=>a.id==formData.account_id) || formData.loan_id ? true : false}
                                             labelId="demo-simple-select-error-label_"
                                             id="demo-simple-select-error_"
                                             value={formData.account_origin}
-                                            label="Categoria"
+                                            label={t('common.category')}
                                             defaultValue=""
                                             onChange={(e)=>{
                                                 setFormData({...formData,account_origin:e.target.value,reference: ((e.target.value=="loans_in" || !e.target.value || (e.target.value!="loans_in" && formData.account_origin=="loans_in")))          ||         (e.target.value=="loans_out" || !e.target.value || ((e.target.value!="loans_out" && formData.account_origin=="loans_out"))) ? {id:null,name:null} : formData.reference})
@@ -678,12 +678,11 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                             >
 
                                             <MenuItem value="">
-                                               <em>Selecione uma opção</em>
+                                               <em>{t('common.select-an-option')}</em>
                                             </MenuItem> 
 
-
                                             {data._categories.filter(i=>!i.disabled && (type=='pay' ? (i.type=="out") : (i.type=="in"))).map(i=>(
-                                                <MenuItem value={i.field} key={i.field}><span className={`w-[7px] rounded-full h-[7px] ${type=='pay' ? 'bg-red-500' :' bg-green-600'}  inline-block mr-2`}></span> <span>{i.name}</span></MenuItem>
+                                                <MenuItem value={i.field} key={i.field}><span className={`w-[7px] rounded-full h-[7px] ${type=='pay' ? 'bg-red-500' :' bg-green-600'}  inline-block mr-2`}></span> <span>{t(`categories.${i.field}`)}</span></MenuItem>
                                             ))}
 
                                             </Select>
@@ -732,7 +731,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                 onBlur={()=>validate_feild('reference')}
                                 helperText={!formData.reference.id && formData.reference.name ? `(Novo ${type=="in" ? (formData.account_origin=="loans_in" ? "Investidor" : "Cliente")  : (formData.account_origin == "loans_out" ? 'Investidor' :'Fornecedor')} será adicionado) `: ''}
                                 sx={{'& .MuiFormHelperText-root': {color: !formData.reference.id && formData.reference.name ? 'green' : 'crimson'}}}
-                                value={formData.reference.name}  label={'Beneficiário'}
+                                value={formData.reference.name}  label={t('common.beneficie')}
                                 
                                 />}
                                 />   
@@ -741,36 +740,11 @@ import DefaultUpload from '../../../components/Files/default-upload';
 
 
 
-                            <div className="hidden">
-                                    <FormControl sx={{ m: 1, width: '100%',margin:0,height:40 }} size="small">
-
-                                    
-
-                                            <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Categoria de conta *</InputLabel>
-                                            <Select
-                                            disabled={accountCategories.some(i=>i.id==formData.account_id)}
-                                            labelId="demo-simple-select-error-label"
-                                            id="demo-simple-select-error"
-                                            value={formData.type}
-                                            label="Categoria de conta"
-                                            onChange={(e)=>setFormData({...formData,type:e.target.value})}
-                                            sx={{width:'100%','& .MuiInputBase-root':{height:40},'& .css-1869usk-MuiFormControl-root':{margin:0},'& .Mui-focused.MuiInputLabel-root': { top:0 },
-                                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
-                                            >
-                                            <MenuItem value={'variable'}>Variável</MenuItem>
-                                            <MenuItem value={'fixed'}>Fixa</MenuItem>
-                                            </Select>
-
-                                            
-
-                                    </FormControl>
-                                    </div>
-
                                     <div>
                                             <TextField
                                             id="outlined-textarea"
-                                            label="Valor a pagar *"
-                                            placeholder="Digite o valor a pagar"
+                                            label={t('common.amount-to-pay')}
+                                            placeholder={t('common.type-the-amount-to-pay')}
                                             multiline
                                             value={formData.amount}
                                             onBlur={()=>validate_feild('amount')}
@@ -802,7 +776,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                             <div className="flex items-center justify-center">
                             <div className="w-full">
                             <LocalizationProvider adapterLocale={'en-gb'} dateAdapter={AdapterDayjs} style={{paddingTop:0}} size="small">
-                                <DatePicker value={dayjs(formData.payday).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.payday)) : null}  inputFormat="DD-MM-YYYY" onChange={(e)=>setFormData({...formData,payday:e.$d})} error={true} size="small" label="Data de vencimento*"  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, 
+                                <DatePicker value={dayjs(formData.payday).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.payday)) : null}  inputFormat="DD-MM-YYYY" onChange={(e)=>setFormData({...formData,payday:e.$d})} error={true} size="small" label={t('common.due-date')}  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, 
                                     '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                     '& .MuiStack-root': { paddingTop:0},'& .MuiInputLabel-root':{ top:-8}}}
                                     />
@@ -812,7 +786,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                             </div>
 
                             <FormControl sx={{ m: 1, width: 'calc(40% + 3px)',margin:0,height:40,marginLeft:'3px',display:id ? 'none' :'flex'}} size="small">
-                                <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Periodo</InputLabel>
+                                <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">{t('common.period')}</InputLabel>
                                 <Select
                                 labelId="demo-simple-select-error-label"
                                 id="demo-simple-select-error"
@@ -823,12 +797,12 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                 '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                                 >
                                 
-                                <MenuItem value={'today'}>hoje</MenuItem>
-                                <MenuItem value={'7'}>7 dias</MenuItem>
-                                <MenuItem value={'30'}>30 dias</MenuItem>
-                                <MenuItem value={'60'}>60 dias</MenuItem>
-                                <MenuItem value={'90'}>90 dias</MenuItem>
-                                <MenuItem value={'custom'}>Outro</MenuItem>
+                                <MenuItem value={'today'}>{t('common.today')}</MenuItem>
+                                <MenuItem value={'7'}>7 {t('common.days')}</MenuItem>
+                                <MenuItem value={'30'}>30 {t('common.days')}</MenuItem>
+                                <MenuItem value={'60'}>60 {t('common.days')}</MenuItem>
+                                <MenuItem value={'90'}>90 {t('common.days')}</MenuItem>
+                                <MenuItem value={'custom'}>{t('common.another')}</MenuItem>
                                 </Select>
                                 </FormControl>
                             </div>
@@ -838,7 +812,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                             <div className="hidden">
                             <LocalizationProvider adapterLocale={'en-gb'} dateAdapter={AdapterDayjs} style={{paddingTop:0}} size="small">
                                 <DemoContainer components={['DatePicker', 'DatePicker', 'DatePicker']} style={{paddingTop:0}} size="small">
-                                    <DatePicker onChange={(e)=>setFormData({...formData,due_date:e.$d})} label="Prazo de pagamento *"  style={{padding:0,overflow:'hidden'}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
+                                    <DatePicker onChange={(e)=>setFormData({...formData,due_date:e.$d})} label={t('common.payment-deadline')}  style={{padding:0,overflow:'hidden'}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                     '& .MuiStack-root': { paddingTop:0},'& .MuiInputLabel-root':{ top:-8}}}
                                     />
                                 </DemoContainer>
@@ -889,7 +863,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                 setFormData({...formData,repeat_details:{...formData.repeat_details,repeat:!formData.repeat_details.repeat}})
                                 if(!formData.repeat_details.repeat) setTimeout(()=>data._scrollToSection('repeat-payment'),100)
                             }}/>
-                            <span>Repetir lançamento</span>
+                            <span>{t('common.repeat-payment')}</span>
                         </label>
                      </div>
 
@@ -903,15 +877,15 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                     <div>
                                                 <TextField
                                                 id="outlined-textarea"
-                                                label="Quantidade de vezes"
-                                                placeholder="Digite o número"
+                                                label={t('common.quantity-times')}
+                                                placeholder={t('common.type-the-number')}
                                                 multiline
                                                 disabled={Boolean(id)}
                                                 value={formData.repeat_details.times}
                                                 onBlur={()=>validate_feild('repeat-payment-quantity')}
                                                 onChange={(e)=>setFormData({...formData,repeat_details:{...formData.repeat_details,times:data._cn_op(e.target.value)}})}
                                                 error={(!formData.repeat_details.times) && verifiedInputs.includes('repeat-payment-quantity') ? true : false}
-                                                helperText={!formData.repeat_details.times && verifiedInputs.includes('repeat-payment-quantity') && formData.repeat_details.repeat==true ? "Campo obrigatório" :''}
+                                                helperText={!formData.repeat_details.times && verifiedInputs.includes('repeat-payment-quantity') && formData.repeat_details.repeat==true ? t('common.required-field') : ''} 
                                                 sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                                 '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                                                 />
@@ -919,21 +893,21 @@ import DefaultUpload from '../../../components/Files/default-upload';
 
                                     
                                     <FormControl sx={{ m: 1, width: 'calc(40% + 3px)',margin:0,height:40,marginLeft:'3px',display:id ? 'none' :'flex'}} size="small">
-                                        <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">Periodo</InputLabel>
+                                        <InputLabel style={{margin:0,height:40}} id="demo-simple-select-error">{t('common.period')}</InputLabel>
                                         <Select
                                         disabled={Boolean(id)}
                                         labelId="demo-simple-select-error-label"
                                         id="demo-simple-select-error"
                                         value={formData.repeat_details.period}
-                                        label="Periodo"
+                                        label={t('common.period')}
                                         onChange={(e)=>setFormData({...formData,repeat_details:{...formData.repeat_details,period:e.target.value}})}
                                         sx={{width:'100%','& .MuiInputBase-root':{height:40},'& .css-1869usk-MuiFormControl-root':{margin:0},'& .Mui-focused.MuiInputLabel-root': { top:0 },
                                         '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                                         >
                                         
-                                        <MenuItem value={'month'}>Meses</MenuItem>
-                                        <MenuItem value={'week'}>Semanas</MenuItem>
-                                        <MenuItem value={'year'}>Anos</MenuItem>
+                                        <MenuItem value={'month'}>{t('common.months')}</MenuItem>
+                                        <MenuItem value={'week'}>{t('common.weeks')}</MenuItem>
+                                        <MenuItem value={'year'}>{t('common.years')}</MenuItem>
                                         </Select>
                                         </FormControl>
 
@@ -960,7 +934,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                 if(!formData.pay_in_installments) setTimeout(()=>data._scrollToSection('pay_in_installments'),100)
                                 setFormData({...formData,pay_in_installments:!formData.pay_in_installments})
                             }}/>
-                            <span>Pagar em prestações</span>
+                            <span>{t('common.pay-in-installments')}</span>
                         </label>
                      </div>
 
@@ -973,15 +947,15 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                 <div>
                                         <TextField
                                         id="outlined-textarea"
-                                        label="Quantidade de prestações"
-                                        placeholder="Digite o número"
+                                        label={t('common.quantity-times')}
+                                        placeholder={t('common.type-the-number')}
                                         multiline
                                         disabled={formData.pay_in_installments && !formData.paid ? false : true}
                                         value={formData.total_installments}
                                         onBlur={()=>validate_feild('total_installents')}
                                         onChange={(e)=>setFormData({...formData,total_installments:data._cn_op(e.target.value)})}
                                         error={(!formData.total_installments) && verifiedInputs.includes('total_installments') ? true : false}
-                                        helperText={!formData.total_installments && verifiedInputs.includes('total_installments') && formData.pay_in_installments==true ? "Campo obrigatório" :''}
+                                        helperText={!formData.total_installments && verifiedInputs.includes('total_installments') && formData.pay_in_installments==true ? t('common.required-field') : ''} 
                                         sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                         '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                                         />
@@ -1006,7 +980,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                             setShowMoreOptions(!showMoreOptions)
                         }}>
                             <span className={`${showMoreOptions ? ' rotate-180' :' '}`}><ExpandMoreOutlinedIcon sx={{color:'gray'}}/></span>
-                            <span>Mostar mais opções</span>
+                            <span>{t('common.show-more-options')}</span>
                         </label> :  ''}
 
                       
@@ -1019,7 +993,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                 
                                 <div className="-translate-y-0">
                                     <LocalizationProvider  adapterLocale={'en-gb'} dateAdapter={AdapterDayjs} style={{paddingTop:0}} size="small">
-                                        <DatePicker  value={dayjs(formData.invoice_emission_date).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.invoice_emission_date)) : null} onChange={(e)=>setFormData({...formData,invoice_emission_date:e.$d})}  label="Data de emissão da fatura"  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
+                                        <DatePicker  value={dayjs(formData.invoice_emission_date).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.invoice_emission_date)) : null} onChange={(e)=>setFormData({...formData,invoice_emission_date:e.$d})}  label={t('common.invoice-emission-date')}  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                             '& .MuiStack-root': { paddingTop:0},'& .MuiInputLabel-root':{ top:-8}}}
                                             />
                                     </LocalizationProvider>
@@ -1030,8 +1004,8 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                     <div>
                                             <TextField
                                             id="outlined-textarea"
-                                            label="Número da fatura"
-                                            placeholder="Digite o número da fatura"
+                                            label={t('invoice.invoice-number')}
+                                            placeholder={t('common.type-invoice-number')}
                                             multiline
                                             value={formData.invoice_number}
                                             onChange={(e)=>setFormData({...formData,invoice_number:e.target.value})}

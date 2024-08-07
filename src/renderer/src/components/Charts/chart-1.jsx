@@ -1,7 +1,10 @@
 // MixedChart.js
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, LineController, BarController, Title, Tooltip, Legend, Filler } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
+
+
+
 
 // Register necessary Chart.js components
 ChartJS.register(
@@ -18,7 +21,28 @@ ChartJS.register(
   Filler
 );
 
-const MixedChart = ({labels, datasets, horizontal}) => {
+const MixedChart = ({labels, datasets, horizontal,gridY,titleY,ticksY,title,lengend}) => {
+
+  
+const chartRef = useRef(null);
+
+useEffect(() => {
+  const handleResize = () => {
+    if (chartRef?.current) {
+
+     console.log(chartRef.current.hartInstance)
+    chartRef.current.chartInstance.resize();
+    }
+  };
+
+  window.addEventListener('resize', handleResize);
+
+  return () => {
+    window.removeEventListener('resize', handleResize);
+  };
+}, [])
+
+
   const data = {
     labels:labels ? labels:[],
     datasets:datasets ? datasets:[]
@@ -32,13 +56,25 @@ const MixedChart = ({labels, datasets, horizontal}) => {
       datalabels: {
         display: false,
       },
+      title: {
+        display: title || false, 
+      },
+      legend: {
+        display: lengend || true, 
+      },
     },
     scales: {
       y: {
         beginAtZero: true,
         grid: {
-            display: true // Disable grid lines on the x-axis
-        }
+            display: gridY==false ? false : true  // Disable grid lines on the x-axis
+        },
+        ticks: {
+          display: ticksY || false, 
+        },
+        title: {
+          display:titleY || false, 
+        },
       },
       x: {
         stacked: false,
@@ -50,7 +86,7 @@ const MixedChart = ({labels, datasets, horizontal}) => {
   };
 
   return (
-      <Chart type='bar' data={data} options={options} />
+      <Chart ref={chartRef} type='bar' data={data} options={options} />
   );
 };
 

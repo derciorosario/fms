@@ -5,6 +5,7 @@ import FormCard from '../components/Cards/form_totals';
 import LinearProgressBar from '../components/progress/LinearProgress';
 import DefaultButton from '../components/Buttons/default';
 import { v4 as uuidv4 } from 'uuid';
+import { t } from 'i18next';
 const FormLayout = ({name,formTitle,maxWidth, children, topLeftContent,loading,isPopUp}) => {
          
   return (
@@ -69,19 +70,14 @@ FormLayout.SendButton = ({SubmitForm,valid,loading,id,text}) => {
     let update_loading_text
     let create_loading_text
 
-    update_text=!text?.update ? "Actualizar" : text?.update
-    create_text=!text?.create ? "Enviar" : text?.create
-    update_loading_text=!text?.update_loading ? "a actualizar..." : text?.update_loading
-    create_loading_text=!text?.create_loading ? "a anviar..." : text?.create_loading
+    update_text=!text?.update ? t('common.update') : text?.update
+    create_text=!text?.create ? t('common.send') : text?.create
+    update_loading_text=!text?.update_loading ? t('common.updating') : text?.update_loading
+    create_loading_text=!text?.create_loading ? t('common.sending') : text?.create_loading
          
     return (
                  <div className="px-3 mb-2 mt-7 flex">
-
-
                     <DefaultButton loading={loading} goTo={SubmitForm} disabled={!Boolean(valid)} text={loading ? `${id ? update_loading_text : create_loading_text}`:`${id ? update_text : create_text}`}/>
-
-                    
-                    
                  </div>
     )
 }

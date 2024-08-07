@@ -4,6 +4,7 @@ import { useData  } from '../../../contexts/DataContext';
 import BasicTable from '../../../components/Tables/basic';
 import TotalCard from '../../../components/Cards/default_totals';
 import { useLocation } from 'react-router-dom';
+import { t } from 'i18next';
 
 function App() {
   const data = useData()
@@ -45,21 +46,21 @@ function App() {
   return (
     <>
       
-       <DefaultLayout details={{name:type=="pay" ? 'Contas a pagar' : 'Contas a receber'}}>
+       <DefaultLayout details={{name:type=="pay" ? t('common.bills-to-pay') : t('common.bills-to-receive')}}>
 
        <TotalCard page={`bills_to_${type}`} items={
              [
               {name:'Total',value:statResponses.global.total},
-              {name:type == 'pay' ? 'Pago' :'Recebido',value:statResponses.global.paid},
-              {name:'Em falta',value:statResponses.global.left}
+              {name:type == 'pay' ?  t('common.paid') :t('common.received'),value:statResponses.global.paid},
+              {name:t('common.missing'),value:statResponses.global.left}
              ]
         }/>
 
 
          <BasicTable res={[
             {name:'Total',value:statResponses.result.total},
-            {name:type == 'pay' ? 'Pago' :'Recebido',value:statResponses.result.paid},
-            {name:'Em falta',value:statResponses.result.left}
+            {name:type == 'pay' ? t('common.paid') :t('common.received'),value:statResponses.result.paid},
+            {name:t('common.missing'),value:statResponses.result.left}
          ]} _setFilteredContent={_setFilteredContent} _filtered_content={_filtered_content}  page={`bills-to-${type}`}/>
            
         </DefaultLayout>

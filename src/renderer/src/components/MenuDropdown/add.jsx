@@ -6,6 +6,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Divider from '@mui/material/Divider';
 import { useNavigate } from 'react-router-dom';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import { t } from 'i18next';
 
 const StyledMenu = styled((props) => (
   <Menu
@@ -88,28 +89,27 @@ export default function CustomizedMenus() {
         onClose={handleClose}
       >
         <MenuItem onClick={()=>handleClose('/bills-to-pay/create')} disableRipple>
-          Conta a pagar
+        {t('common.dbItems.billsToPay')}
         </MenuItem>
         <MenuItem onClick={()=>handleClose('/bills-to-receive/create')} disableRipple>
-          Conta a receber
+        {t('common.dbItems.billsToReceive')}
         </MenuItem>
         <Divider sx={{ my: 0.5 }} />
         <MenuItem onClick={()=>handleClose('/cash-management/inflow/create')} disableRipple>
-          Entrada
+        {t('common.inflow')}
         </MenuItem>
         <MenuItem onClick={()=>handleClose('/cash-management/outflow/create')} disableRipple>
-          Saida
+        {t('common.outflow')}
         </MenuItem>
         <MenuItem onClick={()=>handleClose('/account/create')} disableRipple>
-          Conta
+        {t('common.account')}
         </MenuItem>
-
         <Divider sx={{ my: 0.5 }} />
         <MenuItem onClick={()=>handleClose('/client/create')} disableRipple>
-          Cliente
+        {t('common.client')}
         </MenuItem>
         <MenuItem onClick={()=>handleClose('/supplier/create')} disableRipple>
-          Fornecedor
+        {t('common.supplier')}
         </MenuItem>
       
       </StyledMenu>

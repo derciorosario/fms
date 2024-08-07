@@ -2,6 +2,7 @@ import { useState } from 'react';
 import React from 'react';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import { useData } from '../../../contexts/DataContext';
+import { t } from 'i18next';
 
 function StatsTable({content}) {
 
@@ -30,9 +31,22 @@ function StatsTable({content}) {
 {period=="m" && <table class={` ${period=="d" ? 'hidden' :''} _show${currentMenu} ${project==2 ? '_done' :''} ${project==3 ? '_projected':''} _montly _table_stats w-full text-sm text-left rtl:text-right `}>
     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
         <tr className="[&>_th]:px-6 [&>_th]:py-3 [&>_th]:text-center">
-            <th rowSpan={3}><span className="flex translate-y-2 mr-14">Categorias de lançamento</span></th>
+            <th rowSpan={3}><span className="flex translate-y-2 mr-14">{t('common.entries-categories')}</span></th>
 
-            {['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'].map((i,_i)=>(
+            {[
+  t('common.months.january'),
+  t('common.months.february'),
+  t('common.months.march'),
+  t('common.months.april'),
+  t('common.months.may'),
+  t('common.months.june'),
+  t('common.months.july'),
+  t('common.months.august'),
+  t('common.months.september'),
+  t('common.months.october'),
+  t('common.months.november'),
+  t('common.months.december')
+].map((i,_i)=>(
                 <th key={_i} colspan={project==1 ? 3 : 1} className={`${new Date().getFullYear() == year && new Date().getMonth()==_i ? 'bg-blue-50':''}`}>{i}</th>
             )).filter((_,_i)=>currentMenu!=1 || _i==month)}
             
@@ -45,9 +59,9 @@ function StatsTable({content}) {
             <td></td>
             {Array.from({ length: 12 }, () => 0).map((i,_i)=>(
                 <>
-                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i ? 'bg-blue-50':''} ${project==2 ? 'hidden':''} `}>Previsto</td>
-                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i ? 'bg-blue-50':''} ${project==3 ? 'hidden':''} `}>Realizado</td>
-                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i ? 'bg-blue-50':''} ${project!=1 ? 'hidden':''} `}>Atingido (%)</td>
+                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i ? 'bg-blue-50':''} ${project==2 ? 'hidden':''} `}>{t('common.projected')}</td>
+                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i ? 'bg-blue-50':''} ${project==3 ? 'hidden':''} `}>{t('common.done')}</td>
+                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i ? 'bg-blue-50':''} ${project!=1 ? 'hidden':''} `}>{t('common.achieved')} (%)</td>
                 </>
             )).filter((_,_i)=>currentMenu!=1 || _i==month)}
         </tr>
@@ -140,9 +154,9 @@ function StatsTable({content}) {
 <table class={` ${period=="m" ? 'hidden' :''} _table_stats _daily w-full text-sm text-left rtl:text-right `}>
     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
         <tr className="[&>_th]:px-6 [&>_th]:py-3 [&>_th]:text-center">
-            <th rowSpan={3}><span className="flex translate-y-2">Dias</span></th>
+            <th rowSpan={3}><span className="flex translate-y-2">{t('common.days')}</span></th>
 
-            {['Entradas', 'Saídas', 'Saldo'].map((i,_i)=>(
+            {[t('common.inflows'), t('common.outflows'), t('common.balance')].map((i,_i)=>(
                 <th key={_i} colspan={project!=1 ? 1 : 2} className={`${new Date().getFullYear() == year && new Date().getMonth()==_i ? 'bg-blue-50':''}`}>{i}</th>
             ))}
             
@@ -156,8 +170,8 @@ function StatsTable({content}) {
            <td></td>
             {Array.from({ length: 3 }, () => 0).map((i,_i)=>(
                 <>
-                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i ? 'bg-blue-50':''} ${project==2 ? 'hidden':''}`}>Previsto</td>
-                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i ? 'bg-blue-50':''} ${project==3 ? 'hidden':''}`}>Realizado</td>
+                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i ? 'bg-blue-50':''} ${project==2 ? 'hidden':''}`}>{t('common.projected')}</td>
+                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i ? 'bg-blue-50':''} ${project==3 ? 'hidden':''}`}>{t('common.done')}</td>
                 </>
             ))}
         </tr>

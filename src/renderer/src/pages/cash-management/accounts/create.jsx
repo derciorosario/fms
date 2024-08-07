@@ -71,7 +71,7 @@ import { v4 as uuidv4 } from 'uuid';
               
               if(valid){
                   if(items.some(i=>i.name.toLowerCase() == formData.name.toLowerCase() && i.id!=id)){
-                     toast.error('Nome já existe')
+                     toast.error(t('common.name-exists'))
                      return
                   }
                   if(items.some(i=>i.description.toLowerCase() == formData.description.toLowerCase() && i.id!=id)){
@@ -114,11 +114,11 @@ import { v4 as uuidv4 } from 'uuid';
                      }
                  }catch(e){
                         console.log(e)
-                        toast.error('Erro inesperado!')
+                        toast.error(t('common.unexpected-error'))
                  }
                  
               }else{
-               toast.error('Preencha todos os campos obrigatórios')
+               toast.error(t('common.fill-all-requied-fields'))
               }
           }
 
@@ -149,14 +149,14 @@ import { v4 as uuidv4 } from 'uuid';
                        <div>
                         <TextField
                            id="outlined-textarea"
-                           label="Nome *"
-                           placeholder="Digite o nome"
+                           label={t('common.name')}
+                           placeholder={t('common.type-name')}
                            multiline
                            value={formData.name}
                            onBlur={()=>validate_feild('name')}
                            onChange={(e)=>setFormData({...formData,name:e.target.value})}
                            error={(!formData.name) && verifiedInputs.includes('name') ? true : false}
-                           helperText={!formData.name && verifiedInputs.includes('name') ? "Nome obrigatório" :''}
+                           helperText={!formData.name && verifiedInputs.includes('name') ? t('common.required-field') :''}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -184,7 +184,7 @@ import { v4 as uuidv4 } from 'uuid';
                            <LocalizationProvider adapterLocale={'en-gb'} dateAdapter={AdapterDayjs} style={{paddingTop:0}} size="small">
                                  <DatePicker
                                  disabled={id ? true : false}
-                                 helperText={(!formData.last_transation_date) && verifiedInputs.includes('last_transation_date') ? 'Campo obrigatório':''}
+                                 helperText={(!formData.last_transation_date) && verifiedInputs.includes('last_transation_date') ? t('common.required-field') :''}
                                  onBlur={()=>validate_feild('last_transation_date')}
                                  error={((!formData.last_transation_date) && verifiedInputs.includes('last_transation_date')) && (dayjs(formData.last_transation_date).$d.toString() != "Invalid Date" && formData.last_transation_date) ? true : true}
                                  value={dayjs(formData.last_transation_date).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.last_transation_date)) : null}  inputFormat="DD-MM-YYYY" onChange={(e)=>setFormData({...formData,last_transation_date:e.$d})}  size="small" label="Data da última transação"  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, 
@@ -199,7 +199,7 @@ import { v4 as uuidv4 } from 'uuid';
 
                                 <TextField
                                         id="outlined-multiline-static"
-                                        label="Descrição *"
+                                        label={t('common.description')}
                                         multiline
                                         rows={4}
                                         onBlur={()=>validate_feild('description')}

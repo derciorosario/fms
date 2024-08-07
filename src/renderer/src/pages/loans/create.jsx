@@ -512,10 +512,10 @@ import { useAuth } from '../../contexts/AuthContext';
                      }
                  }catch(e){
                         console.log(e)
-                        toast.error('Erro inesperado!')
+                        toast.error(t('common.unexpected-error'))
                  }
               }else{
-               toast.error('Preencha todos os campos obrigatórios')
+               toast.error(t('common.fill-all-requied-fields'))
               }
           }
 
@@ -567,7 +567,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
                           <TextField
                                   id="outlined-multiline-static"
-                                  label="Descrição *"
+                                  label={t('common.description')}
                                   multiline
                                   value={formData.description}
                                   onChange={(e)=>setFormData({...formData,description:e.target.value})}
@@ -608,10 +608,10 @@ import { useAuth } from '../../contexts/AuthContext';
                          <TextField
                             id="outlined-textarea"
                             label="Valor do empréstimo *"
-                            placeholder="Digite o valor"
+                            placeholder={t('common.type-amount')}
                             multiline
                             value={formData.amount}
-                            helperText={(!formData.amount) && verifiedInputs.includes('amount') ? 'Campo obrigatório':''}
+                            helperText={(!formData.amount) && verifiedInputs.includes('amount') ? t('common.required-field') :''}
                             onBlur={()=>validate_feild('amount')}
                             error={(!formData.amount) && verifiedInputs.includes('amount') ? true : false}
                             onChange={(e)=>setFormData({...formData,amount:_cn_op(e.target.value)})}
@@ -626,10 +626,10 @@ import { useAuth } from '../../contexts/AuthContext';
                           <TextField
                               id="outlined-textarea"
                               label="Valor de Juros a Pagar *"
-                              placeholder="Digite o valor"
+                              placeholder={t('common.type-amount')}
                               multiline
                               value={formData.transation_fees}
-                              helperText={(!formData.transation_fees) && verifiedInputs.includes('transation_fees') ? 'Campo obrigatório':''}
+                              helperText={(!formData.transation_fees) && verifiedInputs.includes('transation_fees') ? t('common.required-field') :''}
                               onBlur={()=>validate_feild('transation_fees')}
                               error={(!formData.transation_fees) && verifiedInputs.includes('transation_fees') ? true : false}
                               onChange={(e)=>setFormData({...formData,transation_fees:_cn_op(e.target.value)})}
@@ -851,7 +851,7 @@ import { useAuth } from '../../contexts/AuthContext';
                       sx={{ width: 300 }}
                       renderInput={(params) => <TextField {...params}
                       
-                      helperText={(!formData.payments[_i].account_id) && verifiedInputs.includes('payment_method'+_i) ? 'Campo obrigatório':''}
+                      helperText={(!formData.payments[_i].account_id) && verifiedInputs.includes('payment_method'+_i) ? t('common.required-field') :''}
                       error={(!formData.payments[_i].account_id) && verifiedInputs.includes('payment_method'+_i) ? true : false}             
                       value={formData.payments[_i].account_id} label="Meio de pagamento *" />}
 
@@ -862,10 +862,10 @@ import { useAuth } from '../../contexts/AuthContext';
                               <TextField
                                 id="outlined-textarea"
                                 label="Valor do empréstimo *"
-                                placeholder="Digite o valor"
+                                placeholder={t('common.type-amount')}
                                 multilinep
                                 value={i.amount}
-                                helperText={!i.amount && verifiedInputs.includes('amount') ? 'Campo obrigatório':''}
+                                helperText={!i.amount && verifiedInputs.includes('amount') ? t('common.required-field') :''}
                                 onBlur={()=>validate_feild('amount'+_i)}
                                 error={(!i.amount) && verifiedInputs.includes('amount'+_i) ? true : false}
                                 onChange={(e)=>{

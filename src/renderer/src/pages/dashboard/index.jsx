@@ -6,14 +6,19 @@ import MixedChart from '../../components/Charts/chart-1';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import Doughnut from '../../components/Charts/chart-4'
 import colors from '../../assets/colors.json'
+import Circularchart from '../../components/Charts/circular-chart';
+import { t } from 'i18next';
 
 
 function App() {
  
-  const {_required_data,_get_cash_managment_stats,_loaded,_get_stat,_cn,_categories,_get,_setRequiredData} = useData();
+  const {_get_cash_managment_stats,_loaded,_get_stat,_cn,_categories,_get,_setRequiredData} = useData();
   const {db} = useAuth();
+
+
+
+
 
   let required_data=['bills_to_pay','account_categories','bills_to_receive','payment_methods','transations']
 
@@ -26,7 +31,7 @@ function App() {
       field:'_show_projected',
       id:'monthy_cm',
       groups:[
-        {field:'_show_projected',name:'Mês',items:[{name:'projectado e realizado',id:1},{name:'Realizado',id:2},{name:'Projectado',id:3}],selected_ids:[3]}
+        {field:'_show_projected',name:t('common.month'),items:[{name:'projectado e realizado',id:1},{name:t('common.done'),id:2},{name:t('common.projected'),id:3}],selected_ids:[3]}
       
       ]
     }
@@ -53,35 +58,43 @@ function App() {
   _setRequiredData(required_data)
  },[])
 
+ 
+ const [catsTotal,setCatsTotal]=useState([])
+
+ useEffect(()=>{
+  setCatsTotal(_get_stat('monthly_cat_performace').cats_total)
+  
+ },[_loaded])
+
+
   let {user}=useAuth()
 
-  console.log({user})
 
   return (
     <>
-       <DefaultLayout details={{name:'Olá '+user?.name+"!"}} _isLoading={!initialized}>
+       <DefaultLayout details={{name:t('common.hello')+' '+user?.name+"!"}} _isLoading={!initialized}>
 
         <div className="max-w-[1424px]">
 
-       <div className="flex  [&>_div]:rounded-[0.3rem]  mb-5 [&>_div]:min-h-[80px] [&>_div]:min-w-[200px] [&>_div]:mr-[10px] justify-start">
-                        <div className="flex shadow-sm items-center bg-white border-b-[rgb(59,130,246)]  px-2 py-2">
+        <div className={`max-lg:flex-col  flex [&>_div]:rounded-[0.3rem]  mb-5 [&>_div]:min-h-[80px] [&>_div]:min-w-[200px] justify-start`}>
+                       
+                        <div className={`flex shadow-sm  max-lg:mb-2 max-lg:mr-0 mr-[10px] items-center bg-white border-b-[rgb(59,130,246)]  px-2 py-2`}>
                             <div className="flex">
                                <div className="mr-3 opacity-70  flex items-center justify-center size-14 rounded-full bg-slate-200"><MonetizationOn style={{color:colors.app_orange[500],width:30,height:30}}/></div> 
                                 <div className="flex justify-center flex-col">
-                                    <span className="text-[15px] text-[#A3AED0] font-light mb-2">Saldo de caixa</span>
+                                    <span className="text-[15px] text-[#A3AED0] font-light mb-2">{t('dashboard.cards.cashierBalance')}</span>
                                     <span className="text-[19px] text-[#2B3674] font-semibold">{!_loaded.includes('payment_methods') ? '-' : _cn(_get_stat('accounts_balance').datasets[0].data.map(item => item).reduce((acc, curr) => acc + curr, 0))}</span>
                                 </div>
                                 <span className="absolute hidden bottom-1 right-2 opacity-80 text-[15px]">{0}</span>
-                        
                             </div>
                         </div>  
 
 
-                        <div className="flex  flex-1 [&>_div] [&>_div]:rounded-[0.3rem] [&>_div]:min-h-[90px] [&>_div]:min-w-[170px]">
-                                <div className="flex w-[50%] [&>_div]:w-[50%] items-center bg-white px-2 py-2 border-b-red-600  shadow-sm mr-[10px]">
+                        <div className="flex  max-sm:flex-col flex-1 [&>_div] [&>_div]:rounded-[0.3rem] [&>_div]:min-h-[90px] [&>_div]:min-w-[170px]">
+                                <div className="flex w-[50%] max-sm:w-full max-sm:mb-2 [&>_div]:w-[50%] items-center bg-white px-2 py-2 border-b-red-600  shadow-sm mr-[10px]">
                                     <div className="flex border-r pr-3 relative">
                                           <div className="flex justify-center flex-col">
-                                            <span className="text-[15px] text-[#A3AED0] font-light mb-2">Contas a pagar hoje</span>
+                                            <span className="text-[15px] text-[#A3AED0] font-light mb-2">{t('dashboard.cards.billsToPayToday')}</span>
                                             <span className="text-[19px] text-red-600 font-semibold">{!_loaded.includes('bills_to_pay') ? '-' : _cn(_get_stat('bills_to_pay').today)}</span>
                                           </div>
                                           <span onClick={()=>navigate(`/bills-to-pay?status=pending&start_date=${new Date().toISOString().split('T')[0]}&end_date=${new Date().toISOString().split('T')[0]}`)} className="absolute -bottom-2 right-2 opacity-80 text-[15px] cursor-pointer">
@@ -90,7 +103,7 @@ function App() {
                                     </div>
                                     <div className="flex pl-3 relative">
                                           <div className="flex justify-center flex-col relative">
-                                            <span className="text-[15px] text-red-600   font-light mb-2">Contas a pagar em atraso</span>
+                                            <span className="text-[15px] text-red-600   font-light mb-2">{t('dashboard.cards.billsToPayInDelay')}</span>
                                             <span className="text-[19px] text-red-600 #FF8900 font-semibold">{!_loaded.includes('bills_to_pay') ? '-' : _cn(_get_stat('bills_to_pay').delayed)}</span>
                                           </div>
                                           <span onClick={()=>navigate('/bills-to-pay?status=delayed')} className="absolute -bottom-2 right-2 opacity-80 text-[15px] cursor-pointer">
@@ -100,10 +113,10 @@ function App() {
                                 </div> 
 
                                 
-                                <div className="flex w-[50%] [&>_div]:w-[50%]  items-center bg-white px-2 py-2 border-b-[#3CD856] shadow-sm">
+                                <div className="flex w-[50%] [&>_div]:w-[50%] max-sm:w-full max-sm:mb-2 items-center bg-white px-2 py-2 border-b-[#3CD856] shadow-sm">
                                   <div className="flex border-r pr-3 relative">
                                         <div className="flex justify-center flex-col">
-                                          <span className="text-[15px] text-[#A3AED0] font-light mb-2">Contas a receber hoje</span>
+                                          <span className="text-[15px] text-[#A3AED0] font-light mb-2">{t('dashboard.cards.billsToReceiveToday')}</span>
                                           <span className="text-[19px] text-[#3CD856] font-semibold">{!_loaded.includes('bills_to_pay') ? '-' : _cn(_get_stat('bills_to_receive').today)}</span>
                                         </div>
                                         <span onClick={()=>navigate(`/bills-to-receive?status=pending&start_date=${new Date().toISOString().split('T')[0]}&end_date=${new Date().toISOString().split('T')[0]}`)} className="absolute -bottom-2 right-2 opacity-80 text-[15px] cursor-pointer">
@@ -112,38 +125,118 @@ function App() {
                                   </div>
                                   <div className="flex pl-3 relative">
                                         <div className="flex justify-center flex-col relative">
-                                          <span className="text-[15px] text-[#3CD856] font-light mb-2">Contas a receber em atraso</span>
+                                          <span className="text-[15px] text-[#3CD856] font-light mb-2">{t('dashboard.cards.billsToReceiveInDelay')}</span>
                                           <span className="text-[19px] text-[#3CD856] font-semibold">{!_loaded.includes('bills_to_pay') ? '-' : _cn(_get_stat('bills_to_receive').delayed)}</span>
                                         </div>
                                         <span onClick={()=>navigate('/bills-to-receive?status=delayed')} className="absolute -bottom-2 right-2 opacity-80 text-[15px] cursor-pointer">
                                           <ArrowCircleRightOutlinedIcon  sx={{color:'#A3AED0',width:20}}/>
                                         </span>
                                   </div>
-                              </div>
 
-
-                        </div> 
-
-                        
-
+                            </div>
+          </div> 
        
-       </div>
+  </div>
+   
+  <div className="flex mb-5 mt-3 max-lg:flex-col">
+                
+                <div className="w-[40%] max-lg:w-full bg-white rounded-[0.3rem] shadow-sm  p-2 max-lg:mb-3">
+                  
+                  <div className="flex justify-between border-gray-200 border-b  pb-2">
+                    <div>
+                      <div className={`text-base font-medium  text-gray-500  pb-1`}>{t('dashboard.monthPerformance')}</div>
+                    </div>
+                  </div>
+                
+                
+                  <div class="grid grid-cols-2 gap-3 w-full">
+
+                    <div class="bg-white p-1  rounded-lg">
+                       <Circularchart stroke={'#22b422'} percentage={catsTotal.filter(i=>i.field=="services_in")[0]?.percentage || 0} icon={(<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="#5f6368"><path d="M160-120q-33 0-56.5-23.5T80-200v-440q0-33 23.5-56.5T160-720h160v-80q0-33 23.5-56.5T400-880h160q33 0 56.5 23.5T640-800v80h160q33 0 56.5 23.5T880-640v440q0 33-23.5 56.5T800-120H160Zm240-600h160v-80H400v80Zm400 360H600v80H360v-80H160v160h640v-160Zm-360 0h80v-80h-80v80Zm-280-80h200v-80h240v80h200v-200H160v200Zm320 40Z"/></svg>)}/>
+                       <span className="flex items-center justify-between px-3">
+                          <label className="text-[13px] text-gray-500">{t('categories.services_in')}</label>
+                          <label className="text-[16px] text-green-500 pl-2">{_cn(catsTotal.filter(i=>i.field=="services_in")[0]?.total || 0)}</label>
+                       </span>
+                    </div>
+                    <div class="bg-white p-1  rounded-lg">
+                    <Circularchart stroke={'#22b422'} percentage={catsTotal.filter(i=>i.field=="products_in")[0]?.percentage || 0} icon={(<svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" fill="#5f6368"><path d="M200-80q-33 0-56.5-23.5T120-160v-451q-18-11-29-28.5T80-680v-120q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v120q0 23-11 40.5T840-611v451q0 33-23.5 56.5T760-80H200Zm0-520v440h560v-440H200Zm-40-80h640v-120H160v120Zm200 280h240v-80H360v80Zm120 20Z"/></svg>)}/>
+                       <span className="flex items-center justify-between px-3">
+                          <label className="text-[13px] text-gray-500">{t('categories.expenses_out')}</label>
+                          <label className="text-[16px] text-green-500 pl-2">{_cn(catsTotal.filter(i=>i.field=="products_in")[0]?.total || 0)}</label>
+                       </span>
+                    </div>
+                    <div class="bg-white p-1  rounded-lg border-t">
+                    <Circularchart stroke={'#f34a6a'} percentage={catsTotal.filter(i=>i.field=="expenses_out")[0]?.percentage || 0} icon={(<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960"  fill="#5f6368"><path d="M440-280h80v-40h40q17 0 28.5-11.5T600-360v-120q0-17-11.5-28.5T560-520H440v-40h160v-80h-80v-40h-80v40h-40q-17 0-28.5 11.5T360-600v120q0 17 11.5 28.5T400-440h120v40H360v80h80v40ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm0-80h640v-480H160v480Zm0 0v-480 480Z"/></svg>)}/>
+                       <span className="flex items-center justify-between px-3">
+                          <label className="text-[13px] text-gray-500">{t('categories.products_in')}</label>
+                          <label className="text-[16px] text-red-500 pl-2">{_cn(catsTotal.filter(i=>i.field=="expenses_out")[0]?.total || 0)}</label>
+                       </span>
+                    </div>
+                    <div class="bg-white p-1  rounded-lg border-t">
+                    <Circularchart stroke={'#f34a6a'} percentage={catsTotal.filter(i=>i.field=="state_out")[0]?.percentage || 0} icon={(<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="#5f6368"><path d="M444-200h70v-50q50-9 86-39t36-89q0-42-24-77t-96-61q-60-20-83-35t-23-41q0-26 18.5-41t53.5-15q32 0 50 15.5t26 38.5l64-26q-11-35-40.5-61T516-710v-50h-70v50q-50 11-78 44t-28 74q0 47 27.5 76t86.5 50q63 23 87.5 41t24.5 47q0 33-23.5 48.5T486-314q-33 0-58.5-20.5T390-396l-66 26q14 48 43.5 77.5T444-252v52Zm36 120q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>)}/>
+                       <span className="flex items-center justify-between px-3">
+                          <label className="text-[13px] text-gray-500">{t('categories.state_out')}</label>
+                          <label className="text-[16px] text-red-500 pl-2">{_cn(catsTotal.filter(i=>i.field=="state_out")[0]?.total || 0)}</label>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="relative flex-1 bg-white shadow-sm rounded-[0.3rem] lg:ml-3 flex flex-col">
+                
+                                <div className="px-3 py-2 flex justify-between items-center border-b">
+                                  <span className="font-semibold text-gray-500">{t('dashboard.weekBalance')}</span>
+                               </div>
+
+                               <div className="flex-1 items-end  flex w-full py-2">
+
+                               <div className="h-[200px] w-full">
+                                        <MixedChart gridY={false} horizontal={false} datasets={[
+                                                {
+                                                type: 'bar',
+                                                label: t('common.inflows'),
+                                                backgroundColor: '#39d739',
+                                                borderColor: '#39d739',
+                                                borderWidth: 1,
+                                                yAxisID: 'y',
+                                                data:_get_stat('this_week_transations').inflows_datasets
+                                                },
+                                                {
+                                                type: 'bar',
+                                                label: t('common.outflows'),
+                                                backgroundColor: 'crimson',
+                                                borderColor: 'crimson',
+                                                borderWidth: 1,
+                                                yAxisID: 'y',
+                                                data:_get_stat('this_week_transations').outflows_datasets
+                                                }
+                                                ]} labels={[t('common.weeks.sunday'),t('common.weeks.monday'),t('common.weeks.tuesday'),t('common.weeks.wednesday'),t('common.weeks.thursday'),t('common.weeks.friday'),t('common.weeks.saturday')]}/>
+
+
+
+                                        </div>
+
+                               </div>
+                               
+                         </div>
+                  </div>
+
 
 
 
   
-   <div className="flex mb-2">
+   <div className="flex mb-2 max-lg:flex-col">
 
 
 
 
   {Object.keys(_get_stat('upcomming_payments')).map((i,_i)=>(
 
-<div key={_i} className={`w-[50%]  rounded-[0.3rem] shadow-sm ${_i==0} mr-2 bg-white`}>
+<div key={_i} className={`lg:w-[50%]  rounded-[0.3rem] shadow-sm ${_i==0 ?'lg:mr-2':''} max-lg:mb-2 bg-white`}>
         
 
 <div className="border-b">
-    <span className="flex p-2 px-4 justify-between items-center"><label className={`${i=="inflows" ? 'text-green-500':'text-red-600'} font-semibold`}>{i=="inflows" ? ' Contas a receber' :'Contas a pagar '}</label><label className="text-gray-600 text-[13px]">Nos próximos 7 dias</label></span>
+    <span className="flex p-2 px-4 justify-between items-center"><label className={`${i=="inflows" ? 'text-green-500':'text-red-600'} font-semibold`}>{i=="inflows" ? t('dashboard.billsToPayTable.accountsToReceive') : t('dashboard.billsToPayTable.accountsToPay')}</label><label className="text-gray-600 text-[13px]">{t('dashboard.billsToPayTable.paymentTimeTitle',{days:7})}</label></span>
 </div>        
 
 
@@ -152,17 +245,16 @@ function App() {
   <thead class="text-xs text-gray-700 uppercase bg-gray-50">
       <tr>
           <th scope="col" class="px-6 py-3 font-medium">
-              Origem
+              {t('dashboard.billsToPayTable.origin')}
           </th>
           <th scope="col" class="px-6 py-3 font-medium">
-              Descrição
+              {t('dashboard.billsToPayTable.description')}
           </th>
           <th scope="col" class="px-6 py-3 font-medium">
-              Valor
-             
+              {t('dashboard.billsToPayTable.value')}
           </th>
           <th scope="col" class="px-6 py-3 font-medium">
-             Vencimento
+             {t('dashboard.billsToPayTable.due')}
           </th>
           <th></th>
       </tr>
@@ -183,7 +275,7 @@ function App() {
              <td class="px-6 py-4">
                  {f.payday.split('T')[0]}
              </td>
-             <td className="hidden"><button  className="mr-2 px-2 py-1 bg-blue-400 text-white rounded hover:opacity-70">Ver</button></td>
+             <td className="hidden"><button  className="mr-2 px-2 py-1 bg-blue-400 text-white rounded hover:opacity-70">{t('common.view')}</button></td>
          </tr>
       ))}
   </tbody>
@@ -191,7 +283,7 @@ function App() {
 
 {!_get_stat('upcomming_payments')[i].length && (
   <div className="p-6 flex justify-center">
-          <span className="text-[13px] opacity-70">Nenhum registro</span>
+          <span className="text-[13px] opacity-70">{t('common.no-data')}</span>
   </div>
 )}
 
@@ -223,293 +315,13 @@ function App() {
 
 
 
-  <div className="flex mb-5 mt-3">
-                
-                <div className="max-w-sm w-full bg-white rounded-[0.3rem] shadow-sm  p-4 md:p-6">
-                  <div className="flex justify-between border-gray-200 border-b  pb-3">
-                    <div>
-                      <div className={`text-base font-medium  text-gray-500  pb-1`}>Saldo da semana</div>
-                      <div className={`leading-none text-3xl font-bold ${ _get_stat('this_week_transations').balance < 0 ? 'text-red-600' :'text-gray-900'}`}>{_cn(_get_stat('this_week_transations').balance)}</div>
-                    </div>
-                    <div className="hidden">
-                      <span className="bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md">
-                        <svg className="w-2.5 h-2.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 14">
-                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13V1m0 0L1 5m4-4 4 4"/>
-                        </svg>
-                        23.5% da semana passada
-                      </span>
-                    </div>
-                  </div>
-                
-                  <div className="grid grid-cols-2 py-3">
-                    <dl>
-                      <dt className="text-base font-normal text-gray-500 pb-1">Entradas ({_get_stat('this_week_transations').inflows_total})</dt>
-                      <dd className="leading-none text-xl font-bold text-green-500">{_cn(_get_stat('this_week_transations').inflows)}</dd>
-                    </dl>
-                    <dl>
-                      <dt className="text-base font-normal text-gray-500 pb-1">Saidas ({_get_stat('this_week_transations').outflows_total})</dt>
-                      <dd className="leading-none text-xl font-bold text-red-600">{_get_stat('this_week_transations').outflows ? '-' :''}{_cn(_get_stat('this_week_transations').outflows)}</dd>
-                    </dl>
-                  </div>
-                
-                  <div id="bar-chart">
-                
-                  <MixedChart horizontal={true} datasets={[
-                      {
-                        type: 'bar',
-                        label: 'Entradas',
-                        backgroundColor: '#39d739',
-                        borderColor: '#39d739',
-                        borderWidth: 1,
-                        yAxisID: 'y',
-                        data:_get_stat('this_week_transations').inflows_datasets
-                      },
-                      {
-                        type: 'bar',
-                        label: 'Saidas',
-                        backgroundColor: 'crimson',
-                        borderColor: 'crimson',
-                        borderWidth: 1,
-                        yAxisID: 'y',
-                        data:_get_stat('this_week_transations').outflows_datasets
-                      }
-                  ]} labels={['Domingo','Sabado','Segunda','Terça','Quarta','Quinta','Sexta']}/>
-                
-                  </div>
-                    <div className="grid grid-cols-1 items-center border-gray-200 border-t  justify-between">
-                      <div className="flex justify-between items-center pt-5">
-                        <button
-                          id="dropdownDefaultButton"
-                          data-dropdown-toggle="lastDaysdropdown"
-                          data-dropdown-placement="bottom"
-                          className="inline-flex hidden text-sm font-medium text-gray-500 hover:text-gray-900 text-center  items-center"
-                          type="button">
-                          Last 6 months
-                          <svg className="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
-                          </svg>
-                        </button>
-                        <div id="lastDaysdropdown" className="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg  w-44">
-                            <ul className="py-2 text-sm text-gray-700" aria-labelledby="dropdownDefaultButton">
-                              <li>
-                                <a href="#" className="block px-4 py-2 hover:bg-gray-100">Yesterday</a>
-                              </li>
-                            </ul>
-                        </div>
-                        <a
-                         
-                          onClick={()=>navigate('/reports/cash-management/monthly')}
-                          className="uppercase cursor-pointer  text-sm font-semibold inline-flex items-center rounded-lg text-orange-500   hover:bg-gray-100 px-3 py-2">
-                          Ver detalhes
-                          <svg className="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-                          </svg>
-                        </a>
-                      </div>
-                    </div>
-                </div>
-                
-                
-                
-                <div className="relative flex-1 bg-white shadow-sm rounded-[0.3rem] ml-3">
-                
-                                <div className="px-3 py-2 flex justify-between items-center border-b">
-                                  <span className="font-semibold">Fluxo de caixa mensal {filterOptions.filter(i=>i.id=="monthy_cm")[0].groups[0].items[filterOptions.filter(i=>i.id=="monthy_cm")[0].groups[0].selected_ids[0] - 1].name}</span>
-                
-                                  <select value={filterOptions.filter(i=>i.id=="monthy_cm")[0].groups[0].selected_ids[0]} onChange={(e)=>setFilterOPtions(filterOptions.map(i=>{
-                                      if(i.id=="monthy_cm"){
-                                        return {...i,groups:[
-                                            {...i.groups[0],selected_ids:[parseInt(e.target.value)]}
-                                        ]}
-                                      }else{
-                                        return i
-                                      }
-                                  }))} id="category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded focus:ring-primary-500 focus:border-primary-500 block p-1">
-                                          {filterOptions.filter(i=>i.id=="monthy_cm")[0].groups[0].items.map((i,_i)=>(
-                                              <option value={_i + 1} key={_i} selected={i.selected}>{i.name}</option>
-                                          ))}
-                                  </select>
-                                  
-                               </div>
-                
-                                <div className="min-h-[400px]">
-                                   <MixedChart datasets={dataChartCM.datasets} labels={dataChartCM.labels}/>
-                                </div>
-                              
-                               
-                </div>
-                
-                
-                
-                
-                
-                
-                       </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <div className="flex w-full  mb-2">
-           
-<div class="w-[48.8%] min-w-[560px] mb-3 rounded-[0.3rem] shadow-sm bg-white mr-2 ">
-  
-  <div class="flex justify-between border-b">
-      <div class="flex justify-center items-center p-3">
-          <h5 class="font-semibold  leading-none text-gray-900 ">Desempenho do mês por categorias</h5>
-      </div>
-      <div>
-           
-      </div>
-  </div>
-
-
-
-  <div class="py-6 relative" id="donut-chart">
-      <div className={`${!_get_stat('monthly_cat_performace',{period:'m'}).doughnut.datasets.some(i=>i!=0) == false ? 'hidden':''} absolute left-[10%] top-[50%] -translate-y-[50%]`}>
-      <svg xmlns="http://www.w3.org/2000/svg" height="140px" viewBox="0 -960 960 960" fill="rgba(107,114,128 , 0.09)"><path d="M441-82Q287-97 184-211T81-480q0-155 103-269t257-129v120q-104 14-172 93t-68 185q0 106 68 185t172 93v120Zm80 0v-120q94-12 159-78t79-160h120q-14 143-114.5 243.5T521-82Zm238-438q-14-94-79-160t-159-78v-120q143 14 243.5 114.5T879-520H759Z"/></svg>
-  </div>
-      <Doughnut {..._get_stat('monthly_cat_performace',{period:'m'}).doughnut}/>
-  </div>
-
-  <div class="grid grid-cols-1 items-center border-gray-200   justify-between">
-    <div class="flex justify-between items-center pt-5">
-       <button
-        id="dropdownDefaultButton"
-        data-dropdown-toggle="lastDaysdropdown"
-        data-dropdown-placement="bottom"
-        class="hidden text-sm font-medium text-gray-500  hover:text-gray-900 text-center inline-flex items-center"
-        type="button">
-        Last 7 days
-        <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
-        </svg>
-      </button>
-      <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg w-44">
-          <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownDefaultButton">
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Yesterday</a>
-            </li>
-            
-          </ul>
-      </div>
-      <a
-        onClick={()=>navigate('/reports/cash-management/monthly')}
-        class="uppercase cursor-pointer text-sm font-semibold inline-flex items-center rounded-lg text-orange-500   hover:bg-gray-100  px-3 py-2">
-         Mais detalhes 
-        <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-        </svg>
-      </a>
-    </div>
-  </div>
-</div>
-
-
-  <div class="mb-3 p-2 flex flex-col rounded-[0.3rem] shadow-sm bg-white flex-1">
-      <div class="flex p-2 pt-1 border-b">
-          <h6 class="text-[17px] font-medium leading-none text-gray-900 pt-1">Saldo por contas</h6>
-          
-      </div>
-      <div>
-      <MixedChart {..._get_stat('accounts_balance')} />
-      </div>
-  </div>
-
-
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <div className="flex w-full  mb-2">
-           
-    
-
-    {Object.keys(_get_stat('accounts_cat_balance')).map((i,_i)=>(
-
-
-
-<div key={_i} class={`${_i==0 ? 'w-[48.8%]':'w-[50%]'}  mb-3 rounded-[0.3rem] shadow-sm bg-white ${_i==0 ? 'mr-2':''}`}>
-   
-  <div class="flex justify-between mb-3 border-b">
-      <div class="flex justify-center items-center">
-          <h5 class="p-3 font-semibold text-[17px] leading-none text-gray-900 pe-1">{i=="in" ? 'Entradas por plano de contas' :'Saídas por plano de contas'}</h5>
-          
-      </div>
-  </div>
-
-
-
-  <div class="py-6 relative" id="donut-chart">
-      <div className={`${!_get_stat('accounts_cat_balance')[i].datasets.some(i=>i!=0) == false ? 'hidden':''} absolute left-[10%] top-[50%] -translate-y-[50%]`}>
-      <svg xmlns="http://www.w3.org/2000/svg" height="140px" viewBox="0 -960 960 960" fill="rgba(107,114,128 , 0.09)"><path d="M441-82Q287-97 184-211T81-480q0-155 103-269t257-129v120q-104 14-172 93t-68 185q0 106 68 185t172 93v120Zm80 0v-120q94-12 159-78t79-160h120q-14 143-114.5 243.5T521-82Zm238-438q-14-94-79-160t-159-78v-120q143 14 243.5 114.5T879-520H759Z"/></svg>
-  </div>
-      <Doughnut {..._get_stat('accounts_cat_balance')[i]}/>
-  </div>
-
-  <div class="grid grid-cols-1 items-center border-gray-200  justify-between">
-    <div class="flex justify-between items-center pt-5">
-       <button
-        id="dropdownDefaultButton"
-        data-dropdown-toggle="lastDaysdropdown"
-        data-dropdown-placement="bottom"
-        class="hidden text-sm font-medium text-gray-500 hover:text-gray-900 text-center inline-flex items-center"
-        type="button">
-        Last 7 days
-        <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
-        </svg>
-      </button>
-      <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg  w-44">
-          <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownDefaultButton">
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Yesterday</a>
-            </li>
-          </ul>
-      </div>
-      <a
-        onClick={()=>navigate('/reports/cash-management/monthly')}
-        class="uppercase cursor-pointer text-sm font-semibold inline-flex items-center rounded-lg text-orange-500  hover:bg-gray-100 px-3 py-2">
-         Mais detalhes 
-        <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-        </svg>
-      </a>
-    </div>
-  </div>
-</div>
-
-
-
-    ))}
-
  
 
 
-  </div>
- 
+
+
+
+
 
 
 

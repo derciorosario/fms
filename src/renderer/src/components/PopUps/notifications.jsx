@@ -5,6 +5,7 @@ import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { ArrowRightIcon } from '@mui/x-date-pickers/icons';
 import { useNavigate } from 'react-router-dom';
+import { t } from 'i18next';
 
 export default function NotificationPopUp({show,setOpenPopUps}) {
 
@@ -113,14 +114,14 @@ export default function NotificationPopUp({show,setOpenPopUps}) {
 
   return (
    <>
-     <div className={`_nots transition duration-75 ease-in-out ${show ? 'translate-y-2  z-10' : ' opacity-0 pointer-events-none translate-y-4'} flex absolute flex-col rounded-[0.3rem] right-0 top-[100%] w-[350px] h-[400px] bg-white shadow`}>
+     <div className={`_nots transition duration-75 ease-in-out ${show ? 'translate-y-2  z-10' : ' opacity-0 pointer-events-none translate-y-4'} flex absolute max-md:fixed flex-col rounded-[0.3rem] right-0 top-[100%] max-md:top-0 max-md:w-full w-[350px] h-[400px] max-md:h-[100vh] bg-white shadow`}>
      <div className="flex items-center justify-between p-2 border-b">
-        <span>Notifications</span> 
+        <span>{t('common.notifications')}</span> 
         <span onClick={()=>setOpenPopUps({nots:false,search:false})} className="cursor-pointer hover:opacity-95"><CloseIcon sx={{width:20}}/></span>
     </div> 
 
    {!converted.length && <div className="h-full w-full flex items-center justify-center opacity-50 text-[14px]">
-           <span>Sem notificações</span>
+           <span>{t('common.no-nots')}</span>
     </div>}
 
    <ul class="max-w-md divide-y divide-gray-200 p-3 flex-1 overflow-auto">

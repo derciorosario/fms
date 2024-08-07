@@ -16,6 +16,7 @@ import {useParams, useNavigate,useLocation} from 'react-router-dom';
 import FormLayout from '../../layout/DefaultFormLayout';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '../../contexts/AuthContext';
+import { t } from 'i18next';
 
        
        
@@ -48,7 +49,7 @@ import { useAuth } from '../../contexts/AuthContext';
                      if(item){
                      setFormData(item)
                      }else{
-                     toast.error('Item não encontrado')
+                     toast.error(t('common.item-not-found'))
                      navigate(`/${page}`)
                      }
                })()
@@ -118,13 +119,13 @@ import { useAuth } from '../../contexts/AuthContext';
               
               if(valid){
                   if(items.some(i=>i.email==formData.email && i.id!=id && i.email) || items.some(i=>i.name?.toLowerCase()==formData.name?.toLowerCase() && i.id!=id && i.last_name?.toLowerCase()==formData.last_name?.toLowerCase())){
-                     toast.error('Usuário ou email já existe')
+                     toast.error(t('common.user-or-email-exists'))
                      return
                   }
                    try{
                      if(id && !isPopUp){
                         _update(page,[{...formData}])
-                        toast.success('Actualizado com sucesso')
+                        toast.success(t('common.updated-successfully'))
                      }else{
                        
                         let new_item={...formData,id:uuidv4()}
@@ -137,16 +138,16 @@ import { useAuth } from '../../contexts/AuthContext';
                          if(isPopUp) _setOpenCreatePopUp('')
 
                         setVerifiedInputs([])
-                        toast.success('Adicionado com sucesso')
+                        toast.success(t('common.added-successfully'))
                         setFormData(initial_form)
                      }
                  }catch(e){
                         console.log(e)
-                        toast.error('Erro inesperado!')
+                        toast.error(t('common.unexpected-error'))
                  }
                  
               }else{
-               toast.error('Preencha todos os campos obrigatórios')
+               toast.error(t('common.fill-all-requied-fields'))
               }
           }
 
@@ -170,14 +171,14 @@ import { useAuth } from '../../contexts/AuthContext';
                        <div>
                         <TextField
                            id="outlined-textarea"
-                           label="Nome *"
-                           placeholder="Digite o nome"
+                           label={t('common.name')}
+                           placeholder={t('common.type-name')}
                            multiline
                            value={formData.name}
                            onBlur={()=>validate_feild('name')}
                            onChange={(e)=>setFormData({...formData,name:e.target.value})}
                            error={(!formData.name) && verifiedInputs.includes('name') ? true : false}
-                           helperText={!formData.name && verifiedInputs.includes('name') ? "Nome obrigatório" :''}
+                           helperText={!formData.name && verifiedInputs.includes('name') ? t('common.required-field') :''}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -201,13 +202,13 @@ import { useAuth } from '../../contexts/AuthContext';
                         <TextField
                            id="outlined-textarea"
                            label="Email"
-                           placeholder="Digite o email"
+                           placeholder={t('common.type-email')}
                            multiline
                            value={formData.email}
                            onBlur={()=>validate_feild('email')}
                            onChange={(e)=>setFormData({...formData,email:e.target.value})}
                            error={(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.email)  && verifiedInputs.includes('email') ? true : false}
-                           helperText={verifiedInputs.includes('email') && formData.email ? "Email inválido":''}
+                           helperText={verifiedInputs.includes('email') && formData.email ? t('common.invalid-email'):''}
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
@@ -223,7 +224,7 @@ import { useAuth } from '../../contexts/AuthContext';
                                options={formData.contacts}
                                getOptionLabel={(option) => option}
                                renderInput={(params) => (
-                                  <TextField {...params} label="Contactos" placeholder="Digite os contactos" />
+                                  <TextField {...params} label={t('common.contacts')} placeholder={t('common.type-contacts')} />
                                )}
                                value={formData.contacts}
                                sx={{width:'100%',marginRight:1,'& .MuiAutocomplete-endAdornment':{display:'none'}}}
@@ -237,8 +238,8 @@ import { useAuth } from '../../contexts/AuthContext';
                        <div>
                         <TextField
                            id="outlined-textarea"
-                           label="Contacto"
-                           placeholder="Digite o Contacto"
+                           label={t('common.contact')}
+                           placeholder={t('common.type-contact')}
                            multiline
                            value={formData.contacts[0]}
                            onChange={(e)=>setFormData({...formData,contacts:[e.target.value]})}
@@ -251,8 +252,8 @@ import { useAuth } from '../../contexts/AuthContext';
                        <div>
                         <TextField
                            id="outlined-textarea"
-                           label="Endereço"
-                           placeholder="Digite o endereço"
+                           label={t('common.address')}
+                           placeholder={t('common.type-address')}
                            multiline
                            value={formData.address}
                            onChange={(e)=>setFormData({...formData,address:e.target.value})}
@@ -265,7 +266,7 @@ import { useAuth } from '../../contexts/AuthContext';
                         <TextField
                            id="outlined-textarea"
                            label="Nuit"
-                           placeholder="Digite o nuit"
+                           placeholder={t('common.type-nuit')}
                            multiline
                            value={formData.nuit}
                            onChange={(e)=>setFormData({...formData,nuit:e.target.value})}
@@ -305,7 +306,7 @@ import { useAuth } from '../../contexts/AuthContext';
                        <div className="w-[100%]">
                        <TextField
                                id="outlined-multiline-static"
-                               label="Observações"
+                               label={t('common.notes')}
                                multiline
                                rows={4}
                                value={formData.motes}

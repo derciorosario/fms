@@ -82,7 +82,7 @@ React.useEffect(()=>{
                         <div className="flex border items-center bg-white relative  px-2 py-2">
                                 <div className="mr-3 opacity-70 flex items-center justify-center size-14 rounded-full bg-slate-200"><MonetizationOn style={{color:'rgb(59,130,246)',width:30,height:30}}/></div> 
                                 <div className="flex justify-center flex-col">
-                                    <span className="text-[15px] text-[#A3AED0] ">Recebido</span>
+                                    <span className="text-[15px] text-[#A3AED0] ">{t('common.received')}</span>
                                     <span className="text-[19px] text-[#2B3674]">---- </span>
                                 </div>
                                 <span className="absolute hidden bottom-1 right-2 opacity-80 text-[15px]">{stats.paid_total}</span>
@@ -92,7 +92,7 @@ React.useEffect(()=>{
                         <div className="flex border items-center bg-white  px-2 py-2">
                                 <div className="mr-3 opacity-70 flex items-center justify-center size-14 rounded-full bg-slate-200"><MonetizationOn style={{color:'rgb(59,130,246)',width:30,height:30}}/></div> 
                                 <div className="flex justify-center flex-col">
-                                    <span className="text-[15px] text-[#A3AED0] ">Em falta</span>
+                                    <span className="text-[15px] text-[#A3AED0] ">{t('common.missing')}</span>
                                     <span className="text-[19px] text-[#2B3674]"> ---- </span>
                                     <span className="absolute hidden bottom-1 right-2 opacity-80 text-[15px]">{stats.left_total}</span>
                                 </div>
@@ -103,7 +103,7 @@ React.useEffect(()=>{
                    <div>
                         <div className="flex h-10  items-center px-2 rounded-lg">
                           <span className="text-white"><SearchIcon style={{ color: '#5D5FEF' }}/></span>
-                          <input placeholder="Pesquisar..." type="text" className="outline-none bg-transparent flex-grow px-2 text-indigo-500"/>
+                          <input placeholder={t('common.search')} type="text" className="outline-none bg-transparent flex-grow px-2 text-indigo-500"/>
                        </div>
                    </div>
 
@@ -124,8 +124,8 @@ React.useEffect(()=>{
 
                     <div style={{display:'none'}}>
                     <DropdownOptionBtn text={'Adicionar'} options={[
-                      {name:'Entrada',path:'/cash-management/input/create'},
-                      {name:'Saída',path:'/cash-management/output/create'}
+                      {name:t('common.inflow'),path:'/cash-management/input/create'},
+                      {name:t('common.outflow'),path:'/cash-management/output/create'}
                     ]}/>
                     </div>
 

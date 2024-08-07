@@ -5,9 +5,9 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   
-  let APP_BASE_URL='https://proconta.alinvest-group.com' //'http://localhost:4000'  //https://server-fms.onrender.com
-  let FRONT_URL='https://resplendent-unicorn-206924.netlify.app'
-  let COUCH_DB_CONNECTION='https://admin:secret@procontacouch.derflash.online' //'http://admin:secret@localhost:5984' //'http://admin:secret@13.40.24.65:3000'
+  let APP_BASE_URL='https://procontadev.alinvest-group.com' //'http://localhost:4000'  //https://server-fms.onrender.com
+  let FRONT_URL='https://proconta.alinvest-group.com'
+  let COUCH_DB_CONNECTION='https://admin:secret@procontacouch.derflash.online' //'http://admin:password@localhost:5000' //'http://admin:secret@13.40.24.65:3000'
   
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem('token'));
@@ -20,9 +20,22 @@ export const AuthProvider = ({ children }) => {
   if(!localStorage.getItem('dbs')) localStorage.setItem('dbs',JSON.stringify([]))
   const [remoteDBs,setRemoteDBs]=useState([])
   const [db_names,setDBNames]=useState({})
+  const [goToApp,setGoToApp]=useState(null)
 
 
-  
+  function hasToGoToApp(){
+       if(window.electron) {
+          return true
+       }
+       return Boolean(localStorage.getItem('go_to_app'))
+  }
+
+  useEffect(()=>{
+      setGoToApp(hasToGoToApp())   
+  },[])
+
+
+
 
   async function  update_user_data_from_db(){
 
@@ -34,6 +47,8 @@ export const AuthProvider = ({ children }) => {
       let user=await  db.user.find({selector: { id }})
       user=user.docs[0]
 
+
+
       if(user){
 
         setloadingLocalUser(true)
@@ -43,15 +58,12 @@ export const AuthProvider = ({ children }) => {
         setAuth(true)
 
       }else{
-
-
-        return
-
        
-        setAuth(false)
+        /*setAuth(false)
         setloadingLocalUser(false)
         setLoading(false)
-        window.location.href="/#/login"
+        window.location.href="/#/login"*/
+       
 
       }
      
@@ -126,6 +138,8 @@ export const AuthProvider = ({ children }) => {
 
    async function _change_company(company_id,_user,redirect){
 
+    localStorage.setItem('go_to_app',true)
+    setGoToApp(true)
 
     if(_user){
 
@@ -138,15 +152,6 @@ export const AuthProvider = ({ children }) => {
       _user=_user.docs[0]
       await user_db.put({..._user,selected_company:company_id})
     }
-
-    
-
-
-
-
-
-
-
 
 
     /*
@@ -175,12 +180,11 @@ export const AuthProvider = ({ children }) => {
   }
   
 
-   async function startover(){
+   async function startover(_r){
 
 
       setLoading(true)
      
-      let _db=Object.keys(db)
 
       for (let i = 0; i < remoteDBs.length; i++) {
           let d=await  PouchDB(remoteDBs[i])
@@ -192,7 +196,13 @@ export const AuthProvider = ({ children }) => {
       await d1.destroy()
       await d2.destroy()
       localStorage.removeItem('token');
-      window.location.reload()
+
+      if(_r){
+        return
+      }else{
+        window.location.reload()
+      }
+     
 
   }
 
@@ -218,8 +228,6 @@ async function update_user(userData){
         
         let docs=await u.allDocs({ include_docs: true })
         let user=docs.rows.map(i=>i.doc)[0]
-
-        console.log({userData})
 
         if(user){
          
@@ -320,11 +328,16 @@ async function update_user(userData){
   },[destroying])
 
 
-  const logout =async () => {
+  const logout = async () => {
 
-    localStorage.setItem('destroying',true)
+    /*localStorage.setItem('destroying',true)
     setDestroying(true)
-    await reset()
+    await reset()*/
+
+
+    startover()
+    localStorage.removeItem('token')
+    localStorage.removeItem('go_to_app')
 
   };
 
@@ -403,7 +416,7 @@ async function update_user(userData){
    
 
   return (
-    <AuthContext.Provider value={{ startover,update_user_data_from_db,changingCompany,remoteDBs,setRemoteDBs,_change_company,db,APP_BASE_URL,COUCH_DB_CONNECTION,FRONT_URL,user,update_user,setDestroying,destroying,login, logout, isAuthenticated , loading, setUser, setLoading, token,auth}}>
+    <AuthContext.Provider value={{goToApp,setGoToApp,startover,update_user_data_from_db,changingCompany,remoteDBs,setRemoteDBs,_change_company,db,APP_BASE_URL,COUCH_DB_CONNECTION,FRONT_URL,user,update_user,setDestroying,destroying,login, logout, isAuthenticated , loading, setUser, setLoading, token,auth}}>
       {children}
     </AuthContext.Provider>
   );

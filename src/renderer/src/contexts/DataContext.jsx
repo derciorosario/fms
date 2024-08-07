@@ -2,10 +2,11 @@ import { createContext, useContext, useState ,useEffect, act} from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import PouchDB from 'pouchdb';
+
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import io from 'socket.io-client';
-const socket = io('https://proconta.alinvest-group.com')
+const socket = io('https://procontadev.alinvest-group.com')
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import PouchDBFind from 'pouchdb-find';
@@ -14,18 +15,12 @@ import toast from 'react-hot-toast';
 PouchDB.plugin(PouchDBFind);
 const DataContext = createContext();
 let DBUpdateID=Math.random()
-
 let app_db=new PouchDB('app')
-   
-export const DataProvider = ({ children }) => {
 
+export const DataProvider = ({ children }) => {
     const {user,APP_BASE_URL,remoteDBs,db,FRONT_URL,token,setUser,COUCH_DB_CONNECTION, update_user_data_from_db}=useAuth()
 
     const [_required_data,_setRequiredData]=useState([])
-
-
-    
-
     
     const { t } = useTranslation();
 
@@ -348,16 +343,16 @@ export const DataProvider = ({ children }) => {
 
 
   const _categories=[
-    { name: 'Produtos', field: 'products_in', dre: 'inflows', type: 'in', color: 'rgb(0, 128, 0)', total: 0 },  
-    { name: 'Serviços', field: 'services_in', dre: 'inflows', type: 'in', color: 'rgb(0, 255, 127)', total: 0 },  
-    { name: 'Empréstimos ou Financiamentos', field: 'loans_in', dre: 'inflows', type: 'in', color: 'rgb(0, 255, 127)', total: 0 },  
-    { name: 'Outras receitas', field: 'other-sales-revenue', dre: 'capital', type: 'in', color: 'rgb(0, 255, 127)', total: 0 },  
-    { name: 'Despesas operacionais', field: 'expenses_out', dre: 'expenses', type: 'out', color: 'rgb(255, 0, 0)', total: 0 },  
-    { name: 'Custo de mercadorias vendidas ', field: 'products_out', dre: 'direct-costs', type: 'out', color: 'rgb(220, 20, 60)', total: 0 },  
-    { name: 'Custo de serviços prestados', field: 'services_out', dre: 'direct-costs', type: 'out', color: 'rgb(255, 99, 71)', total: 0 }, 
-    { name: 'Empréstimos', field: 'loans_out', dre: 'loans', type: 'out', color: 'rgb(128, 0, 0)', total: 0 },  
-    { name: 'Investimentos',field: 'investments_out', dre: 'investments', type: 'out', color: 'rgb(255, 215, 0)', total: 0 },  
-    { name: 'Outros custos directos', field: 'state_out', dre: 'direct-costs', type: 'out', color: 'rgb(139, 69, 19)', total: 0}  
+    { name: t('categories.products_in'), field: 'products_in', dre: 'inflows', type: 'in', color: 'rgb(0, 128, 0)', total: 0 },  
+    { name: t('categories.services_in'), field: 'services_in', dre: 'inflows', type: 'in', color: 'rgb(0, 255, 127)', total: 0 },  
+    { name: t('categories.loans_in'), field: 'loans_in', dre: 'inflows', type: 'in', color: 'rgb(0, 255, 127)', total: 0 },  
+    { name: t('categories.other-sales-revenue'), field: 'other-sales-revenue', dre: 'capital', type: 'in', color: 'rgb(0, 255, 127)', total: 0 },  
+    { name: t('categories.expenses_out'), field: 'expenses_out', dre: 'expenses', type: 'out', color: 'rgb(255, 0, 0)', total: 0 },  
+    { name: t('categories.products_out'), field: 'products_out', dre: 'direct-costs', type: 'out', color: 'rgb(220, 20, 60)', total: 0 },  
+    { name: t('categories.services_out'), field: 'services_out', dre: 'direct-costs', type: 'out', color: 'rgb(255, 99, 71)', total: 0 }, 
+    { name: t('categories.loans_out'), field: 'loans_out', dre: 'loans', type: 'out', color: 'rgb(128, 0, 0)', total: 0 },  
+    { name: t('categories.investments_out'),field: 'investments_out', dre: 'investments', type: 'out', color: 'rgb(255, 215, 0)', total: 0 },  
+    { name: t('categories.state_out'), field: 'state_out', dre: 'direct-costs', type: 'out', color: 'rgb(139, 69, 19)', total: 0}  
 ]
  
 
@@ -1386,7 +1381,20 @@ function convert_stat_data_to_daily(data,filterOptions){
 
   function _get_cash_managment_stats(filterOptions,period){
    
-      let labels=period=="m" ? ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'] : Array.from({ length: 31 }, (_,i) => i+1)
+      let labels=period=="m" ? [
+        t('common.months.january'),
+        t('common.months.february'),
+        t('common.months.march'),
+        t('common.months.april'),
+        t('common.months.may'),
+        t('common.months.june'),
+        t('common.months.july'),
+        t('common.months.august'),
+        t('common.months.september'),
+        t('common.months.october'),
+        t('common.months.november'),
+        t('common.months.december')
+      ] : Array.from({ length: 31 }, (_,i) => i+1)
     
       let {done,projected,transations_types} = get_stat_data(filterOptions,period)
 
@@ -1398,7 +1406,7 @@ function convert_stat_data_to_daily(data,filterOptions){
 
    
      let data=[
-        {name:'Total de saldo',field:'balance',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
+        {name:t('common.total-balance'),field:'balance',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
           let id=['balance']
           let row={projected:0,done:0}
           _projected[id]=projected
@@ -1410,20 +1418,9 @@ function convert_stat_data_to_daily(data,filterOptions){
         })},
 
 
-        /*{name:'Saldo do mês anterior',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
-          let month=new Date().getMonth()
-          let year=new Date().getFullYear()
-          let id=['last_balance']
-          let row={projected:0,done:0}
-          _projected[id]=projected
-          _done[id]=done
-          row['projected']=_projected[id][_i].filter(i=>!(i.year==year && i.month>=month)).map(item => item.amount).reduce((acc, curr) =>  acc + curr, 0)
-          row['done']=_done[id][_i].filter(i=>!(i.year==year && i.month==month)).map(item => item.amount).reduce((acc, curr) =>  acc + curr, 0)
-          row['percentage']=!row['done'] && !row['projected'] ? 0 : !row['done'] && row['projected'] ? 0 : row['done'] && !row['projected'] ? 100 : !row['projected'] ? 100 :  (parseFloat(row['done']) / parseInt(row['projected'])) * 100
-          return row
-        })},*/
+       
 
-        {name:'Total de recebimentos',field:'inflow',color:'#16a34a',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
+        {name:t('common.total-of-receivings'),field:'inflow',color:'#16a34a',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
           let id=['inflow']
           let row={projected:0,done:0}
           _projected[id]=projected
@@ -1436,7 +1433,7 @@ function convert_stat_data_to_daily(data,filterOptions){
         }),sub:transations_types.inflows
       },
 
-      {name:'Total de pagamentos',field:'outflow',color:'crimson',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
+      {name:t('common.total-of-payments'),field:'outflow',color:'crimson',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
         let id=['outflow']
         let row={projected:0,done:0}
         _projected[id]=projected
@@ -1454,7 +1451,7 @@ function convert_stat_data_to_daily(data,filterOptions){
     let datasets=[
       {
         type: 'line',
-        label: 'Saldo',
+        label: t('common.balance'),
         data: data.filter(i=>i.field=="balance")[0].items.map(i=>i.done),
         borderColor: 'rgb(59 130 246)',
         backgroundColor: 'rgb(59 130 246)',
@@ -1477,7 +1474,7 @@ function convert_stat_data_to_daily(data,filterOptions){
       },
       {
         type: 'bar',
-        label: 'Recebimentos',
+        label:t('common.receivings'),
         data: data.filter(i=>i.field=="inflow")[0].items.map(i=>i.done),
         backgroundColor: '#39d739',
         borderColor: '#39d739',
@@ -1488,7 +1485,7 @@ function convert_stat_data_to_daily(data,filterOptions){
       },
       {
           type: 'bar',
-          label: 'Recebimentos previstos',
+          label: t('common.projected-receivings'),
           data: data.filter(i=>i.field=="inflow")[0].items.map(i=>i.projected),
           backgroundColor: 'rgb(57 215 57 / 50%)',
           borderColor: '#39d739',
@@ -1499,7 +1496,7 @@ function convert_stat_data_to_daily(data,filterOptions){
         },
       {
         type: 'bar',
-        label: 'Pagamentos',
+        label: t('common.payments'),
         data: data.filter(i=>i.field=="outflow")[0].items.map(i=>i.done),
         backgroundColor: 'crimson',
         borderColor: 'crimson',
@@ -1510,7 +1507,7 @@ function convert_stat_data_to_daily(data,filterOptions){
       },
       {
           type: 'bar',
-          label: 'Pagamentos previstos',
+          label: t('common.projected-payments'),
           data: data.filter(i=>i.field=="outflow")[0].items.map(i=>i.projected),
           backgroundColor: 'rgb(237 20 61 / 50%)',
           borderColor: 'crimson',
@@ -1534,7 +1531,20 @@ function convert_stat_data_to_daily(data,filterOptions){
 
 function _get_budget_managment_stats(filterOptions,period){
    
-  let labels=period=="m" ? ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'] : Array.from({ length: 31 }, (_,i) => i+1)
+  let labels=period=="m" ? [
+    t('common.months.january'),
+    t('common.months.february'),
+    t('common.months.march'),
+    t('common.months.april'),
+    t('common.months.may'),
+    t('common.months.june'),
+    t('common.months.july'),
+    t('common.months.august'),
+    t('common.months.september'),
+    t('common.months.october'),
+    t('common.months.november'),
+    t('common.months.december')
+  ] : Array.from({ length: 31 }, (_,i) => i+1)
 
   let {done,projected_budget,transations_types_budget,projected} = get_stat_data(filterOptions,period)
 
@@ -1547,7 +1557,7 @@ function _get_budget_managment_stats(filterOptions,period){
 
  let data=[
 
-    {name:'Total de saldo',field:'balance',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
+    {name:t('common.total-balance'),field:'balance',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
       let id=['balance']
       let row={projected:0,done:0}
       _projected[id]=projected_budget
@@ -1559,7 +1569,7 @@ function _get_budget_managment_stats(filterOptions,period){
     })},
 
 
-    {name:'Categorias de entrada',field:'inflow',color:'#16a34a',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
+    {name:t('common.inflow-categories'),field:'inflow',color:'#16a34a',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
       let id=['inflow']
       let row={projected:0,done:0}
       _projected[id]=projected_budget
@@ -1571,7 +1581,7 @@ function _get_budget_managment_stats(filterOptions,period){
     }),sub:transations_types_budget.inflows
   },
 
-  {name:'Categorias de saida',field:'outflow',color:'crimson',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
+  {name:t('common.outflow-categories'),field:'outflow',color:'crimson',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
     let id=['outflow']
     let row={projected:0,done:0}
     _projected[id]=projected
@@ -1589,7 +1599,7 @@ function _get_budget_managment_stats(filterOptions,period){
 let datasets=[
   {
     type: 'line',
-    label: 'Saldo',
+    label: t('common.balance'),
     data: data.filter(i=>i.field=="balance")[0].items.map(i=>i.done),
     borderColor: 'rgb(59 130 246)',
     backgroundColor: 'rgb(59 130 246)',
@@ -1600,7 +1610,7 @@ let datasets=[
   },
   {
     type: 'line',
-    label: 'Saldo previsto',
+    label: t('common.projected-balance'),
     data:data.filter(i=>i.field=="balance")[0].items.map(i=>i.projected),
     borderColor: 'rgb(107 114 128)',
     backgroundColor: 'rgb(107 114 128)',
@@ -1612,7 +1622,7 @@ let datasets=[
   },
   {
     type: 'bar',
-    label: 'Recebimentos',
+    label: t('common.receivings'),
     data: data.filter(i=>i.field=="inflow")[0].items.map(i=>i.done),
     backgroundColor: '#39d739',
     borderColor: '#39d739',
@@ -1623,7 +1633,7 @@ let datasets=[
   },
   {
       type: 'bar',
-      label: 'Recebimentos previstos',
+      label:  t('common.projected-receivings'),
       data: data.filter(i=>i.field=="inflow")[0].items.map(i=>i.projected),
       backgroundColor: 'rgb(57 215 57 / 50%)',
       borderColor: '#39d739',
@@ -1634,7 +1644,7 @@ let datasets=[
     },
   {
     type: 'bar',
-    label: 'Pagamentos',
+    label: t('common.payments'),
     data: data.filter(i=>i.field=="outflow")[0].items.map(i=>i.done),
     backgroundColor: 'crimson',
     borderColor: 'crimson',
@@ -1645,7 +1655,7 @@ let datasets=[
   },
   {
       type: 'bar',
-      label: 'Pagamentos previstos',
+      label: t('common.projected-payments'),
       data: data.filter(i=>i.field=="outflow")[0].items.map(i=>i.projected),
       backgroundColor: 'rgb(237 20 61 / 50%)',
       borderColor: 'crimson',
@@ -1677,7 +1687,7 @@ function _get_dre_stats(filterOptions,period){
 
 
   let data=[
-    { icon:`add`, name:'Receitas',color:'#16a34a',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
+    { icon:`add`, name:t('common.revenues'),color:'#16a34a',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
       let id=['inflows']
       let row={projected:0,done:0}
       _projected[id]=projected_in
@@ -1705,7 +1715,7 @@ function _get_dre_stats(filterOptions,period){
 ,
 
   
-  {icon:'igual',name:'Margem bruta',field:'outflow',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
+  {icon:'igual',name:t('common.brute-margin'),field:'outflow',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
     let row={projected:0,done:0,percentage:0}
     let projected_inflows=_projected['inflows'][_i].map(item => parseFloat(item.amount)).reduce((acc, curr) =>  acc + curr, 0)
     let done_inflows=_done['inflows'][_i].map(item => parseFloat(item.amount)).reduce((acc, curr) =>  acc + curr, 0)
@@ -1726,7 +1736,7 @@ function _get_dre_stats(filterOptions,period){
   })
 },
 
-{icon:'remove',name:'Despesas',field:'outflow',color:'crimson',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
+{icon:'remove',name:t('common.expenses'),field:'outflow',color:'crimson',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
   let id=['expenses']
   let row={projected:0,done:0,percentage:0}
   if(!_projected[id]) _projected[id]=JSON.parse(JSON.stringify(projected_out))
@@ -1740,7 +1750,7 @@ function _get_dre_stats(filterOptions,period){
  }),sub:transations_types.outflows.filter(i=>i.dre=="expenses")
 },
 
-{icon:'igual',name:'Fluxo de Caixa Operacional (EBITDA)',field:'outflow',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
+{icon:'igual',name:t('common.operacional-cash-management')+' (EBITDA)',field:'outflow',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
   let id=['EBITDA']
   let row={projected:0,done:0,percentage:0}
   if(!_projected[id]) _projected[id]=Array.from({ length: p_length }, () => 1)
@@ -1762,7 +1772,7 @@ function _get_dre_stats(filterOptions,period){
 
 
 
-{icon:'remove',name:'Depreciações',field:'outflow',color:'crimson',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
+{icon:'remove',name:t('common.depreciations'),field:'outflow',color:'crimson',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
   let id=['amortizations']
   let row={projected:0,done:0,percentage:0}
   if(!_projected[id]) _projected[id]=JSON.parse(JSON.stringify(amortizations))
@@ -1788,7 +1798,7 @@ function _get_dre_stats(filterOptions,period){
 },
 
 
-{icon:'igual',name:'Fluxo de Caixa de Investimento  (EBIT)',field:'outflow',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
+{icon:'igual',name:t('common.investment-cash-managment')+'  (EBIT)',field:'outflow',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
   let id=['EBIT']
   let row={projected:0,done:0,percentage:0}
   if(!_projected[id]) _projected[id]=Array.from({ length: p_length }, () => 1)
@@ -1810,7 +1820,7 @@ function _get_dre_stats(filterOptions,period){
 
 
 
-{icon:'remove',name:'Juros',field:'outflow',color:'crimson',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
+{icon:'remove',name:t('common.fees'),field:'outflow',color:'crimson',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
     let id=['fees']
     let row={projected:0,done:0,percentage:0}
     if(!_projected[id]) _projected[id]=JSON.parse(JSON.stringify(projected_out))
@@ -1825,7 +1835,7 @@ function _get_dre_stats(filterOptions,period){
   }),sub:transations_types.outflows.filter(i=>i.dre=="loans")
 },
 
-{icon:'igual',name:'Fluxo de Caixa de Financiamento (EBT)',field:'outflow',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
+{icon:'igual',name:t('common.finacial-cash-management')+' (EBT)',field:'outflow',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
   let id=['EBT']
   let row={projected:0,done:0,percentage:0}
   if(!_projected[id]) _projected[id]=Array.from({ length: p_length }, () => 1)
@@ -1869,7 +1879,7 @@ function _get_dre_stats(filterOptions,period){
 
 
 
-{icon:'igual',name:'Resultado Líquido',field:'outflow',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
+{icon:'igual',name:t('common.liquid-result'),field:'outflow',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
   let id=['final']
   let row={projected:0,done:0,percentage:0}
   if(!_projected[id]) _projected[id]=Array.from({ length: p_length }, () => 1)
@@ -2004,9 +2014,22 @@ const _print = (data,type,from) =>{
 function _print_exportExcel(data,type,currentMenu,period,project_only,month,title,from){
 
   let _d=[]              
-  let months=['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'].filter((_,_i)=>currentMenu!=1 || _i==month)
+  let months=[
+    t('common.months.january'),
+    t('common.months.february'),
+    t('common.months.march'),
+    t('common.months.april'),
+    t('common.months.may'),
+    t('common.months.june'),
+    t('common.months.july'),
+    t('common.months.august'),
+    t('common.months.september'),
+    t('common.months.october'),
+    t('common.months.november'),
+    t('common.months.december')
+  ].filter((_,_i)=>currentMenu!=1 || _i==month)
   if(period=="m"){
-        let header=['Categoria de lançamento']
+        let header=[t('common.entry-category')]
         let extended_months_to_two_col=[]
 
         months.forEach((m,_i)=>{
@@ -2024,8 +2047,8 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
       
         for (let f = 0; f < (currentMenu==1 ? 1 : 12); f++) {
            
-            if(project_only==3 || project_only==1) sub_header.push('Previsto')
-            if(project_only==2 || project_only==1) sub_header.push('Realizado')
+            if(project_only==3 || project_only==1) sub_header.push(t('common.projected'))
+            if(project_only==2 || project_only==1) sub_header.push(t('common.done'))
         }
 
         _d.push(sub_header)
@@ -2081,17 +2104,17 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
 
   }else if(period=="d"){
 
-        let header=['Dias']
+        let header=[t('common.days')]
         
       
         
         let sub_header=['']
         for (let f = 0; f < (currentMenu==1 ? 4 : 12); f++) {
-          if(project_only==3 || project_only==1) sub_header.push('Previsto')
-          if(project_only==2 || project_only==1) sub_header.push('Realizado')
+          if(project_only==3 || project_only==1) sub_header.push(t('common.projected'))
+          if(project_only==2 || project_only==1) sub_header.push(t('common.done'))
         }
 
-        ['Saidas','Entradas','Resultado','Saldo'].forEach(i=>{
+        [t('common.outflows'),t('common.inflows'),t('common.result'),t('common.balance')].forEach(i=>{
             header.push(i)
             if(project_only==1) header.push('')
         })
@@ -2116,7 +2139,7 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
   if(type=="excel"){
     _d.unshift([''])
     _d.unshift([title])
-    exportToExcelArray(_d,`Relatorio ${period=="m" ? 'mensal' :'diário'} de fluxo de caixa - ${_convertDateToWords(_today(),null,'all')}  ${new Date().getHours()}_${new Date().getMinutes()}`)
+    exportToExcelArray(_d, t('common.cash-management-reports') + (p=="m" ? t('common.monthy') : t('common.daily')).toLowerCase()+` - ${_convertDateToWords(_today(),null,'all')}  ${new Date().getHours()}_${new Date().getMinutes()}`)
   }else{
     _print(currentMenu==0 ? [] : _d,'array',from)
   }  
@@ -2130,7 +2153,20 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
     try{
           let period=data?.period
 
-          let labels=period=="m" ? ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'] : Array.from({ length: 31 }, (_,i) => i+1)
+          let labels=period=="m" ? [
+            t('common.months.january'),
+            t('common.months.february'),
+            t('common.months.march'),
+            t('common.months.april'),
+            t('common.months.may'),
+            t('common.months.june'),
+            t('common.months.july'),
+            t('common.months.august'),
+            t('common.months.september'),
+            t('common.months.october'),
+            t('common.months.november'),
+            t('common.months.december')
+          ] : Array.from({ length: 31 }, (_,i) => i+1)
 
 
         if(name=="upcomming_payments"){
@@ -2140,7 +2176,7 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
         
          return {inflows,outflows}
 
-        }
+         }
 
 
         if(name=="bills_to_pay"){
@@ -2171,7 +2207,7 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
             let total=0
          
             let categories=JSON.parse(JSON.stringify(_categories))
-            categories.push({name:'Outros',field:'others',color:'gray',total:0})
+            categories.push({name:t('common.others'),field:'others',color:'gray',total:0})
 
             
            /* _bills_to_pay.forEach(t=>{
@@ -2218,12 +2254,19 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
                 let cat=categories.filter(i=>i.field==d)[0]
                 let _t=datasets[d].map(item => parseFloat(item)).reduce((acc, curr) => acc + curr, 0)
                 categories[categories.findIndex(i=>i.field==d)].total=_t
-                _datasets.push({data:datasets[d],label:cat.name,type:'bar',backgroundColor:cat.color,yAxisID: 'y'}) 
+                _datasets.push({data:datasets[d],label:cat.name,type:'bar',backgroundColor:cat.color,yAxisID: 'y',field:cat.field}) 
             })
 
-           categories=categories.filter(i=>i.total || i.field=='others')
+             categories=categories.filter(i=>i.total || i.field=='others')
 
-            return {bar:{labels,datasets:_datasets},doughnut:{labels:categories.map(i=>`${i.name}`),datasets:categories.map(i=>i.total),backgroundColor:categories.map(i=>i.color),borderColor:categories.map(()=>'#ddd')}}
+              let cats_total=_datasets.map(i=>{
+                let t=i.data.reduce((acc, curr) => acc + curr, 0)
+                return {field:i.field,total:t,percentage:t/total * 100}
+              })
+
+              
+
+            return {cats_total,bar:{labels,datasets:_datasets},doughnut:{labels:categories.map(i=>`${i.name}`),datasets:categories.map(i=>i.total),backgroundColor:categories.map(i=>i.color),borderColor:categories.map(()=>'#ddd')}}
            
        }
 
@@ -2264,8 +2307,8 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
       if(name=="accounts_cat_balance"){
            
             let accounts=_account_categories.map(i=>({...i,total:0,color:generate_color(),type:i.type}))
-            accounts.push({total:0,color:'gray',type:'in',name:'Outros',id:'others-in'})
-            accounts.push({total:0,color:'gray',type:'out',name:'Outros',id:'others-out'})
+            accounts.push({total:0,color:'gray',type:'in',name:t('common.others'),id:'others-in'})
+            accounts.push({total:0,color:'gray',type:'out',name:t('common.others'),id:'others-out'})
 
 
             accounts.forEach((a,i)=>{
@@ -2514,8 +2557,18 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
 
   function _convertDateToWords(dateString,_day,get) {
     const months = [
-        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+      t('common.months.january'),
+      t('common.months.february'),
+      t('common.months.march'),
+      t('common.months.april'),
+      t('common.months.may'),
+      t('common.months.june'),
+      t('common.months.july'),
+      t('common.months.august'),
+      t('common.months.september'),
+      t('common.months.october'),
+      t('common.months.november'),
+      t('common.months.december')
     ];
 
     

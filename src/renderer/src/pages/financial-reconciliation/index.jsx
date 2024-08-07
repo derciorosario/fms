@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import DefaultLayout from '../../layout/DefaultLayout';
-import { useNavigate } from 'react-router-dom';
-import MonetizationOn from '@mui/icons-material/MonetizationOn';
 import DeleteDialog from '../../components/Dialogs/deleteItem'
 import { useData  } from '../../contexts/DataContext';
 import BasicTable from '../../components/Tables/basic';
 import TotalCard from '../../components/Cards/default_totals';
+import { t } from 'i18next';
 
 function App() {
   const {_transations,_cn} = useData();
@@ -102,33 +101,33 @@ React.useEffect(()=>{
 
 return (
   <>
-       <DefaultLayout  details={{name:'Conciliação financeira'}}>
+       <DefaultLayout  details={{name:t('common.finacial-conciliation')}}>
         
               <TotalCard page={`transations`} items={
                   [
                     {
-                      name:'Saldo',value:statResponses.global.total,
+                      name:t('common.balance'),value:statResponses.global.total,
                     },
                     {
-                      name:'Conciliado',value:statResponses.global.confirmed,
+                      name:t('common.conciliated'),value:statResponses.global.confirmed,
                     },
                     {
-                      name:'Não conciliado',value:statResponses.global.not_confirmed,
+                      name:t('common.not-conciliated'),value:statResponses.global.not_confirmed,
                     },
                     {
-                      name:'Entradas',value:statResponses.global.inflows,
+                      name:t('common.inflows'),value:statResponses.global.inflows,
                     },
                     {
-                      name:'Saidas',value:statResponses.global.outflows,
+                      name:t('common.outflows'),value:statResponses.global.outflows,
                     },
                     
                   ]
               }/>
 
          <BasicTable res={[
-            {name:'Saldo',value:statResponses.result.total},
-            {name:'Conciliado',value:statResponses.result.confirmed},
-            {name:'Não conciliado',value:statResponses.result.not_confirmed},
+            {name:t('common.balance'),value:statResponses.result.total},
+            {name:t('common.conciliated'),value:statResponses.result.confirmed},
+            {name:t('common.not-conciliated'),value:statResponses.result.not_confirmed},
            ]} _setFilteredContent={_setFilteredContent} _filtered_content={_filtered_content}  page={'financial-reconciliation'}/>
            
         </DefaultLayout>
@@ -165,8 +164,8 @@ return (
           }/>
 
          <BasicTable res={[
-            {name:'Saldo',value:statResponses.result.total},
-            {name:'Conciliado',value:statResponses.result.confirmed},
+            {name:t('common.balance'),value:statResponses.result.total},
+            {name:t('common.conciliated'),value:statResponses.result.confirmed},
             {name:'Não conciliado',value:statResponses.result.not_confirmed}
          ]} _setFilteredContent={_setFilteredContent} _filtered_content={_filtered_content}  page={'financial-reconciliation'}/>
            

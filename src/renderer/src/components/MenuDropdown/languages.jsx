@@ -58,7 +58,7 @@ export default function FadeMenu() {
 
          <div className="hidden"> <LanguageIcon sx={{opacity:'.8'}}/></div>
                       
-         <span className="mx-2 capitalize text-gray-800">{selectedLang}</span>
+         <span className="mx-2 capitalize text-gray-800">{selectedLang.toUpperCase()}</span>
         <KeyboardArrowDownIcon sx={{color:'rgb(31 41 55 / 70%)'}}/>
       </Button>
       <Menu
@@ -72,7 +72,7 @@ export default function FadeMenu() {
         TransitionComponent={Fade}
       >
         {langs.filter(i=>i!=selectedLang).map((i,_i)=>(
-              <MenuItem onClick={()=>changeLanguage(i)}><span className=" capitalize min-w-[60px] flex text-gray-800">{i}</span></MenuItem>
+              <MenuItem onClick={()=>changeLanguage(i)}><span className=" capitalize min-w-[60px] flex text-gray-800">{i.toUpperCase()}</span></MenuItem>
         ))}
         
         {/**<MenuItem onClick={handleClose}>Español</MenuItem>

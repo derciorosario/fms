@@ -533,7 +533,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                         
                            await _update('transations',[{...formData,amount}])
                            setRefreshAvailableCredit(uuidv4())
-                           toast.success('Transação actualizada')
+                           toast.success(t('common.transation-updated'))
                      }else{
                        
                      _add('transations',[{...formData,
@@ -550,7 +550,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                       setBill(null)
                       setVerifiedInputs([])
 
-                      toast.success('Transação adicionada')
+                      toast.success(t('common.transation-added'))
                       setFormData(_initial_form.transations)
 
 
@@ -587,12 +587,12 @@ import DefaultUpload from '../../../components/Files/default-upload';
                       }
                  }catch(e){
                         console.log(e)
-                        toast.error('Erro inesperado!')
+                        toast.error(t('common.unexpected-error'))
                  }
 
                  data._updateFilters({bill_to_pay:'',bill_to_receive:''},setSearchParams)
               }else{
-               toast.error('Preencha todos os campos obrigatórios')
+               toast.error(t('common.fill-all-requied-fields'))
               }
           }
 
@@ -633,22 +633,22 @@ import DefaultUpload from '../../../components/Files/default-upload';
   return (
     <>
        {showNextPaymentDialog &&  <TransationNextDate last_date={accountDetails.payday?.split('T')?.[0]} show={showNextPaymentDialog} setShow={setShowNextPaymentDialog} SubmitForm={SubmitForm} formData={formData} setFormData={setFormData}/>}
-       <FormLayout loading={!initialized || loading} name={'Transação'} formTitle={id ? 'Actualizar' : 'Adicionar '+(type == 'in' ? '' : '')}>
+       <FormLayout loading={!initialized || loading} name={'Transação'} formTitle={id ? t('common.update') : t('common.add')+(type == 'in' ? '' : '')}>
 
 
                  <div className="ml-5 flex items-center mb-3">
-                    <span className="border-l-2 pl-1 text-gray-300 mr-3">{!id ?'Nova ':'Actualizar '}{  type=="in" ? 'entrada':'saída'}</span>
+                    <span className="border-l-2 pl-1 text-gray-300 mr-3">{!id ? t('common.new_') : t('common.add') } {  (type=="in" ?  t('common.inflow') :t('common.outflow')).toLocaleLowerCase()}</span>
                     <button onClick={(e)=>{
                                 data._updateFilters({bill_to_pay:'',bill_to_receive:''},setSearchParams)
                                 setFormData(_initial_form.transations)
                                 handleLoaded()
                                 navigate(`/cash-management/${type == "in" ? "out" : "in"}flow/create`)
                               }} className={`flex bg-gray-400 hover:opacity-80 focus:outline-none text-white  border-b font-medium  rounded-[0.3rem] text-[13px] px-3 py-[6px] text-center`}>
-                          {type=="out" ? 'Adicionar entrada':'Adicionar saída'}
+                          {type=="out" ? t('common.add-inflow'):t('common.add-outflow')}
                     </button>
                  </div>
                 
-                {(!id && bill==null) && <div className={`${(!initialized || loading) ?' pointer-events-none':''} hidden flex ml-2 mb-2`}>
+                {(!id && bill==null) && <div className={`${(!initialized || loading) ?' pointer-events-none':''} hidden  flex ml-2 mb-2`}>
                    <label className="cursor-pointer">
                       <Radio
                           checked={type=="in"}
@@ -661,7 +661,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                       />
 
 
-                      <span className=" text-gray-500">Entrada</span>
+                      <span className=" text-gray-500">{t('common.inflow')}</span>
                    </label>
 
                    <label className="ml-2 cursor-pointer">
@@ -675,14 +675,14 @@ import DefaultUpload from '../../../components/Files/default-upload';
                             navigate('/cash-management/outflow/create')
                          }}
                       />
-                      <span className=" text-gray-500">Saida</span>
+                      <span className=" text-gray-500">{t('common.outflow')}</span>
                    </label>
                 </div>}
 
 
                 <FormLayout.Cards topInfo={[
-                      {name:'Em falta',value:parseFloat(accountDetails.paid) > parseFloat(accountDetails.amount) ? 0 :_cn(parseFloat(accountDetails.amount ? accountDetails.amount : 0) - parseFloat(accountDetails.paid ? accountDetails.paid : 0))},
-                      {name:type=="in" ? 'Recebido' : 'Pago',value:_cn(accountDetails.paid ? parseFloat(accountDetails.paid) : 0)},
+                      {name:t('common.missing'),value:parseFloat(accountDetails.paid) > parseFloat(accountDetails.amount) ? 0 :_cn(parseFloat(accountDetails.amount ? accountDetails.amount : 0) - parseFloat(accountDetails.paid ? accountDetails.paid : 0))},
+                      {name:type=="in" ? t('common.received') : t('common.paid'),value:_cn(accountDetails.paid ? parseFloat(accountDetails.paid) : 0)},
                       {name:'Total',value:_cn(!accountDetails.amount ? 0 : parseFloat(accountDetails.amount))},
                   ].filter(i=>formData.account.id && !i.id || i.id).filter(i=>formData.transation_account.id && i.id || !i.id)}/>
 
@@ -703,7 +703,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                      setFormData({...formData,link_payment:e.target.checked,account:{id:null,name:''}})
                     }}
                     />
-                    <span className={`${!accountOptions.length ? 'opacity-80' :''}`}>Selecionar {type == 'in' ? 'recebimento' : 'pagamento'} agendado  {(accountOptions.length==0 && !id && initialized) && <label className="text-[14px]">(Nenhuma disponível)</label>}</span>
+                    <span className={`${!accountOptions.length ? 'opacity-80' :''}`}>{type == 'in' ? t('common.select-agended-bill-to-receive') : t('common.select-agended-bill-to-receive')}  {(accountOptions.length==0 && !id && initialized) && <label className="text-[14px]">({t('common.none-available')})</label>}</span>
                    </label>
                </div>
 }
@@ -723,7 +723,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                             setFormData({...formData,account:{...formData.account,name:newValue,id:_id}})
                           
                           }}
-                          noOptionsText="Sem opções"
+                          noOptionsText={t('common.no-options')}
                           defaultValue={null}
                           inputValue={formData.account.name}
                           onInputChange={(event, newInputValue) => {
@@ -744,9 +744,9 @@ import DefaultUpload from '../../../components/Files/default-upload';
                           sx={{ width: 300 }}
                           disabled={id}
                           renderInput={(params) => <TextField  {...params}
-                          helperText={(!formData.account.id) && verifiedInputs.includes('account') && formData.link_payment ? 'Campo obrigatório':''}
+                          helperText={(!formData.account.id) && verifiedInputs.includes('account') && formData.link_payment ? t('common.required-field') : ''}
                           error={(!formData.account.id) && formData.link_payment && verifiedInputs.includes('account') ? true : false}             
-                           value={formData.account.name} label={type == 'in' ? 'conta a receber' : 'conta a pagar'} />}
+                           value={formData.account.name} label={type == 'in' ? t('common.bill-to-receive') : t('common.bill-to-pay')} />}
                       />   
                        </div>
 
@@ -760,7 +760,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                <div className="w-[100%]">
                 <TextField
                         id="outlined-multiline-static"
-                        label="Descrição *"
+                        label={t('common.description')}
                         multiline
                         value={formData.description}
                         onChange={(e)=>setFormData({...formData,description:e.target.value})}
@@ -769,7 +769,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                         '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                         onBlur={()=>validate_feild('description')}
                         error={(!formData.description) && verifiedInputs.includes('description')}
-                        helperText={(!formData.description) && verifiedInputs.includes('description') ? "Insira a descrição" :''}
+                        helperText={(!formData.description) && verifiedInputs.includes('description') ? t('common.required-field') : ''}
                     
                         />
                 </div>
@@ -783,14 +783,14 @@ import DefaultUpload from '../../../components/Files/default-upload';
                      <InputLabel htmlFor="grouped-select"
                        error={(!formData.account_origin) && verifiedInputs.includes('account_origin') ? true : false}             
                      
-                     >Categoria</InputLabel>
+                     >{t('common.category')}</InputLabel>
                      <Select 
                         disabled={formData.loan_id || accountDetails.loan_id ? true : false}
                         onBlur={()=>validate_feild('account_origin')}
                         
                         defaultValue="" id="grouped-select"
                         value={formData.account_origin}
-                        label="Categoria"
+                        label={t('common.category')}
                         onChange={(e)=>{
                           setFormData({...formData,account_origin:e.target.value,reference: ((e.target.value=="loans_in" || !e.target.value || (e.target.value!="loans_in" && formData.account_origin=="loans_in")))          ||         (e.target.value=="loans_out" || !e.target.value || ((e.target.value!="loans_out" && formData.account_origin=="loans_out"))) ? {id:null,name:null} : formData.reference})
                         }}
@@ -799,15 +799,15 @@ import DefaultUpload from '../../../components/Files/default-upload';
                      
                    
                         <MenuItem value="">
-                           <em>Selecione uma opção</em>
+                           <em>{t('')}</em>
                         </MenuItem>
                               {_categories.filter(i=>i.type=="in" && !i.disabled).map(i=>(
-                                      <MenuItem value={i.field} sx={{display:type == 'in' ? 'flex' : 'none'}} key={i.field} sty><span className=" w-[7px] rounded-full h-[7px] bg-[#16a34a] inline-block mr-2"></span> <span>{i.name}</span></MenuItem>
+                                      <MenuItem value={i.field} sx={{display:type == 'in' ? 'flex' : 'none'}} key={i.field} sty><span className=" w-[7px] rounded-full h-[7px] bg-[#16a34a] inline-block mr-2"></span> <span>{t(`categories.${i.field}`)}</span></MenuItem>
                               ))}
 
 
                              {_categories.filter(i=>i.type=="out" && !i.disabled).map(i=>(
-                                <MenuItem value={i.field} sx={{display:type == 'out' ? 'flex' : 'none'}} key={i.field}><span className=" w-[7px] rounded-full h-[7px] bg-red-500 inline-block mr-2"></span> <span>{i.name}</span></MenuItem>
+                                <MenuItem value={i.field} sx={{display:type == 'out' ? 'flex' : 'none'}} key={i.field}><span className=" w-[7px] rounded-full h-[7px] bg-red-500 inline-block mr-2"></span> <span>{t(`categories.${i.field}`)}</span></MenuItem>
                              ))}
 
 
@@ -816,7 +816,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                      </FormControl>
                  </div>
 
-                  {(accountDetails.id && accountDetails.account_origin!=formData.account_origin)  && <span className="opacity-70 text-orange-400 text-[13px] ml-3">Mudou de ({_categories.filter(i=>i.field==accountDetails.account_origin)[0].name})</span>}
+                  {(accountDetails.id && accountDetails.account_origin!=formData.account_origin)  && <span className="opacity-70 text-orange-400 text-[13px] ml-3">{t(`common.changed-from`)} ({_categories.filter(i=>i.field==accountDetails.account_origin)[0].name})</span>}
 
 
 
@@ -839,7 +839,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                       
                       }
                     }}
-                    noOptionsText="Sem opções"
+                    noOptionsText={t('common.no-options')}
                     defaultValue={null}
                     inputValue={formData.transation_account.name}
                     onInputChange={(event, newInputValue) => {
@@ -866,9 +866,9 @@ import DefaultUpload from '../../../components/Files/default-upload';
 
                     disabled={false}
                     renderInput={(params) => <TextField {...params}
-                    helperText={accountDetails.id && accountDetails.account_id!=formData.transation_account.id && formData.transation_account.name ? `Mudou de (${_account_categories.filter(i=>i.id==accountDetails.account_id)[0]?.name})` :(!formData.transation_account.name) && verifiedInputs.includes('transation_account') ? 'Campo obrigatório':''}
+                    helperText={accountDetails.id && accountDetails.account_id!=formData.transation_account.id && formData.transation_account.name ? `${t('common.changed-to')} (${_account_categories.filter(i=>i.id==accountDetails.account_id)[0]?.name})` :(!formData.transation_account.name) && verifiedInputs.includes('transation_account') ? t('common.required-field') : ''}
                     error={(!formData.transation_account.name) && verifiedInputs.includes('transation_account') ? true : false}             
-                    value={formData.transation_account.name} label="Nome da conta" />}
+                    value={formData.transation_account.name} label={t('common.account-name')} />}
                     
                     />   
                    </div>
@@ -891,7 +891,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                     }
 
                                 }}
-                                noOptionsText="Sem opções"
+                                noOptionsText={t('common.no-options')}
                                 defaultValue={null}
                                 inputValue={(formData.account_origin) ? formData.reference.name  : "" }
                                 onInputChange={(event, newInputValue) => {
@@ -908,12 +908,12 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                 sx={{width:300,'& .MuiFormHelperText-root': {color: !formData.reference.id && formData.reference.name ? 'green' : 'crimson'}}}
                                 disabled={(!formData.account_origin ? true : false) }
                                 renderInput={(params) => <TextField {...params}
-                                helperText={!formData.reference.id && formData.reference.name ? `(Novo ${type=="in" ? (formData.account_origin=="loans_in" ? "Investidor" : "Cliente")  : (formData.account_origin == "loans_out" ? 'Investidor' :'Fornecedor')} será adicionado) `: ''}
-                                value={formData.reference.name}  label={'Beneficiário'}   />}
+                                helperText={!formData.reference.id && formData.reference.name ? `(${t('common.new')} ${type=="in" ? (formData.account_origin=="loans_in" ? t('common.investor') : t('common.client'))  : (formData.account_origin == "loans_out" ? t('common.investor') :t('common.supplier'))} ${t('common.will-be-added')}) `: ''}
+                                value={formData.reference.name}  label={t('common.beneficie')}   />}
                                 />   
                             </div>
 
-                            {/**label={type=="in" ? (!formData.account_origin ? 'Cliente / Investidor' : formData.account_origin=="loans_in" ? "Investidor" : "Cliente")  : (!formData.account_origin ? 'Fornecedor / Investidor' : formData.account_origin == "loans_out" ? 'Investidor' :'Fornecedor')} */}
+                            {/**label={type=="in" ? (!formData.account_origin ? 'Cliente / Investidor' : formData.account_origin=="loans_in" ? t('common.investor') : t('common.client'))  : (!formData.account_origin ? 'Fornecedor / Investidor' : formData.account_origin == "loans_out" ? 'Investidor' :'Fornecedor')} */}
 
 
 
@@ -934,7 +934,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
 
 
                          {availableCredit[_i] && <div className="text-[13px] absolute right-[30px] top-0 translate-y-[-100%] flex items-center">
-                              <span className='text-[12px] text-gray-500'>Saldo: </span>  <span className={`${availableCredit[_i]._available < 0 ?'text-red-600':''}`}>{_cn(availableCredit[_i]._available)}</span>
+                              <span className='text-[12px] text-gray-500'>{t('common.balance')}: </span>  <span className={`${availableCredit[_i]._available < 0 ?'text-red-600':''}`}>{_cn(availableCredit[_i]._available)}</span>
                         </div>}  
 
                         
@@ -954,7 +954,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
 
                           
                           }}
-                          noOptionsText="Sem opções"
+                          noOptionsText={t('common.no-options')}
                           defaultValue={null}
                           inputValue={i.name}
                           onInputChange={(event, newInputValue) => {
@@ -979,9 +979,9 @@ import DefaultUpload from '../../../components/Files/default-upload';
                         options={paymentMethodsOptions.filter(f=>!formData.payments.some(j=>j.account_id==f.id) || f.name==t('common.add_new')).map(i=>i.name)}
                         sx={{ width: 300 }}
                         renderInput={(params) => <TextField {...params}
-                        helperText={(!formData.payments[_i].account_id) && verifiedInputs.includes('payment_method'+_i) ? 'Campo obrigatório':''}
+                        helperText={(!formData.payments[_i].account_id) && verifiedInputs.includes('payment_method'+_i) ? t('common.required-field') : ''} 
                         error={(!formData.payments[_i].account_id) && verifiedInputs.includes('payment_method'+_i) ? true : false}             
-                        value={formData.payments[_i].account_id} label="Meio de pagamento*" />}
+                        value={formData.payments[_i].account_id} label={t('common.payment-method')} />}
                     
                     />   
                         </div>
@@ -989,11 +989,11 @@ import DefaultUpload from '../../../components/Files/default-upload';
                         <div>
                                 <TextField
                                   id="outlined-textarea"
-                                  label="Valor *"
-                                  placeholder="Digite o valor"
+                                  label={t('common.amount')}
+                                  placeholder={t('common.type-amount')}
                                   multilinep
                                   value={i.amount}
-                                  helperText={i.amount && formData.payments.map(i=>i.amount ? parseFloat(i.amount): 0).reduce((acc, curr) => acc + curr, 0) > (parseFloat(accountDetails.amount) - parseFloat(accountDetails.paid)) && formData.link_payment && accountDetails.status!="paid" ? "Maior que o agendado" :(!i.amount) && verifiedInputs.includes('amount') ? 'Campo obrigatório':''}
+                                  helperText={i.amount && formData.payments.map(i=>i.amount ? parseFloat(i.amount): 0).reduce((acc, curr) => acc + curr, 0) > (parseFloat(accountDetails.amount) - parseFloat(accountDetails.paid)) && formData.link_payment && accountDetails.status!="paid" ? "Maior que o agendado" :(!i.amount) && verifiedInputs.includes('amount') ? t('common.required-field') : ''} 
                                   onBlur={()=>validate_feild('amount'+_i)}
                                   error={(!i.amount) && verifiedInputs.includes('amount'+_i) ? true : false}
                                   onChange={(e)=>{
@@ -1011,7 +1011,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
 
                   ))}
 
-                   <div onClick={add_payment_method} className="ml-4 border cursor-pointer hover:opacity-80 hover:ring-1 ring-slate-400 table rounded-[5px] bg-gray-100 px-2 py-1"><AddIcon sx={{color:'#374151',width:20}}/><span className=" text-gray-700">Acrescentar meio de pagamento</span></div>
+                   <div onClick={add_payment_method} className="ml-4 border cursor-pointer hover:opacity-80 hover:ring-1 ring-slate-400 table rounded-[5px] bg-gray-100 px-2 py-1"><AddIcon sx={{color:'#374151',width:20}}/><span className=" text-gray-700">{t('common.invoice-emission-date')}</span></div>
 
 
                 <span className="flex border-b mt-10"></span>
@@ -1027,7 +1027,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                         setFormData({...formData,has_fees:!Boolean(formData.has_fees)})
                       }}
                     />
-                    <span>Adicionar multa</span>
+                    <span>{t('common.add-fees')}</span>
                    </label>
                </div>
 
@@ -1038,13 +1038,13 @@ import DefaultUpload from '../../../components/Files/default-upload';
                           <div>
                                 <TextField
                                         id="outlined-textarea"
-                                        label="Multa"
+                                        label={t('common.fine')}
                                         placeholder="Multa"
                                         multiline
                                         onBlur={()=>validate_feild('fine')}
                                         error={(!formData.fine) && verifiedInputs.includes('fine') && formData.has_fees ? true : false}
                                         value={formData.fine}
-                                        helperText={(!formData.fine) && verifiedInputs.includes('fine') && formData.has_fees ? 'Campo obrigatório':''}
+                                        helperText={(!formData.fine) && verifiedInputs.includes('fine') && formData.has_fees ? t('common.required-field') : ''} 
                                         onChange={(e)=>setFormData({...formData,fine:_cn_n(e.target.value)})}
                                         sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                         '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
@@ -1074,7 +1074,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                           setShowMoreOptions(!showMoreOptions)
                       }}>
                           <span className={`${showMoreOptions ? ' rotate-180' :' '}`}><ExpandMoreOutlinedIcon sx={{color:'gray'}}/></span>
-                          <span>Mostar mais opções</span>
+                          <span>{t('common.show-more-options')}</span>
                       </label> :  ''}
 
                     
@@ -1087,7 +1087,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                 
                                 <div className="-translate-y-0">
                                     <LocalizationProvider  adapterLocale={'en-gb'} dateAdapter={AdapterDayjs} style={{paddingTop:0}} size="small">
-                                        <DatePicker  value={dayjs(formData.invoice_emission_date).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.invoice_emission_date)) : null} onChange={(e)=>setFormData({...formData,invoice_emission_date:e.$d})}  label="Data de emissão da fatura"  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
+                                        <DatePicker  value={dayjs(formData.invoice_emission_date).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.invoice_emission_date)) : null} onChange={(e)=>setFormData({...formData,invoice_emission_date:e.$d})}  label={t('common.invoice-emission-date')}  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                             '& .MuiStack-root': { paddingTop:0},'& .MuiInputLabel-root':{ top:-8}}}
                                             />
                                     </LocalizationProvider>
@@ -1098,8 +1098,8 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                     <div>
                                             <TextField
                                             id="outlined-textarea"
-                                            label="Número da fatura"
-                                            placeholder="Digite o número da fatura"
+                                            label={t('invoice.invoice-number')}
+                                            placeholder={t('common.type-invoice-number')}
                                             multiline
                                             value={formData.invoice_number}
                                             onChange={(e)=>setFormData({...formData,invoice_number:e.target.value})}

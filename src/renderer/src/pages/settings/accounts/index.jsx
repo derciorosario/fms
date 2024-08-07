@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import DefaultLayout from '../../../layout/DefaultLayout';
 import { useData  } from '../../../contexts/DataContext';
 import BasicTable from '../../../components/Tables/basic';
-import TotalCard from '../../../components/Cards/default_totals';
+import { t } from 'i18next';
 
 function App() {
   const {_account_categories,_cn} = useData();
@@ -40,7 +40,7 @@ React.useEffect(()=>{
   
   return (
     <>
-     <DefaultLayout details={{name:'Plano de contas'}}>
+     <DefaultLayout details={{name:t('common.account-plan')}}>
           
        
 

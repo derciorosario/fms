@@ -113,12 +113,11 @@
     "has":"Possui",
     "delete-and-include":"Excluir e incluir",
     "delete-and-keep":"Excluir e manter"
-    
-
-    
   },
 
  "common":{
+  "add_new":"+ Adicionar",
+  "add_new_":"Adicionar nova",
   "email-mask":"nome@empresa.com",
   "user-added":"Usuário cadastrado com successo",
   "invite-used-or-ivalid":"Convite usado ou invalido",
@@ -131,7 +130,7 @@
   "access-invite":"Convite de adesão",
   "step":"Etapa",
   "access-key":"Chave de acesso",
-  "user-not-fount":"Usuário não encontrado",
+  "user-not-found":"Usuário não encontrado",
   "email-not-ass":"Não está associado a nenhuma empresa!",
   "email-sent-2":"Email enviado",
   "fill-fields":"Por favor, preencha os campos",

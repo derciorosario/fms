@@ -168,13 +168,20 @@ export const AuthProvider = ({ children }) => {
 
 
     setChangingCompany(true)
-    if(redirect){
-        console.log({redirect})
-        window.location.href=redirect+"&&?rondom="+Math.random().toString()
-        setTimeout(()=>window.location.reload(),500)
-    }else{
-      setTimeout(()=>window.location.href="/",500)
 
+    if(redirect){
+        window.location.href=redirect+"&&?rondom="+Math.random().toString()
+        if(window.electron){
+          window.electron.ipcRenderer.send('restart')
+        }else{
+          setTimeout(()=>window.location.reload(),500)
+        }
+    }else{
+        if(window.electron){
+          window.electron.ipcRenderer.send('restart')
+        }else{
+          setTimeout(()=>window.location.href="/",500)
+        }
     }
    
   }

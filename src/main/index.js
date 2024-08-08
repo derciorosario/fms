@@ -46,7 +46,8 @@ function createWindow() {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      //webSecurity: false
     }
   });
 
@@ -86,6 +87,7 @@ function createWindow() {
 
   mainWindow.on('ready-to-show', () => {
     create_upload_folder();
+  
     mainWindow.show();
   });
 
@@ -114,6 +116,7 @@ app.whenReady().then(() => {
   
 
   ipcMain.on('open-file-in-folder',async (event, filename) => {
+    let basePath=app.getPath('userData')
     fs.access(join(basePath, '/uploads/'+filename.replaceAll('%20', ' ')), fs.constants.F_OK, (err1) => {
       if(!err1){
         shell.showItemInFolder(join(basePath, '/uploads/'+filename.replaceAll('%20', ' ')));
@@ -127,6 +130,7 @@ app.whenReady().then(() => {
  
 
   ipcMain.on('open-file',async (event, filename) => {
+    let basePath=app.getPath('userData')
     fs.access(join(basePath, '/uploads/'+filename.replaceAll('%20', ' ')), fs.constants.F_OK, (err1) => {
       if(!err1){
         shell.openPath(join(basePath, '/uploads/'+filename.replaceAll('%20', ' ')))
@@ -139,6 +143,7 @@ app.whenReady().then(() => {
 
 
   ipcMain.on('check-file-exists',async (event, filename) => {
+    let basePath=app.getPath('userData')
      fs.access(join(basePath, '/uploads/'+filename.replaceAll('%20', ' ')), fs.constants.F_OK, (err1) => {
          mainWindow.webContents.send('file-exists-result', !err1);
     })
@@ -150,7 +155,7 @@ app.whenReady().then(() => {
  //const uploadsDir = path.join(__dirname, '/uploads')
 
  ipcMain.on('read-file', async (event, file) => {
- 
+  let basePath=app.getPath('userData')
   try {
     const filePath = path.join(basePath, '/uploads', file.generated_name.replaceAll('%20', ' '));
 
@@ -227,10 +232,29 @@ app.whenReady().then(() => {
     });
   });
 
+
+
+
+
+ipcMain.on('restart', async () => {
+    // let win = BrowserWindow.getAllWindows()[0]; 
+      //win.reload();
+
+
+    app.relaunch(); 
+    app.exit();
+
+
+    //app.relaunch({ args: ['--relaunch'] });
+    //app.exit(0);
+
+});
+
   
 
-  ipcMain.on('file-upload',async (event, file) => {
 
+  ipcMain.on('file-upload',async (event, file) => {
+    let basePath=app.getPath('userData')
     console.log({v:app.getPath('userData')})
      //join(file.path),join(app.getPath('userData'), '/uploads/')
    /* fs.copyFile(join(file.path),join(__dirname, '/uploads/'), (err) => {

@@ -56,10 +56,10 @@ function FirstUsePerson({formData,setFormData,setUpload,upload}) {
         </div>
 
         <div class={`md:col-span-2 ${formData.company.contact_code!="258" ? 'hidden':''}`}>
-            <label for="state">{t('common.city-pronvice')} </label>
+            <label for="state">{t('common.city-or-pronvice')} </label>
             <div class="h-10 bg-gray-50  flex border border-gray-200 rounded items-center mt-1">
             <select onChange={(e)=>setFormData({...formData,company:{...formData.company,state:e.target.value}})} value={formData.company.state} className="w-full h-full px-2">
-                        <option selected value="" disabled>Selecione</option>
+                        <option selected value="" disabled>{t('common.select')}</option>
                         <option value="maputo">Maputo</option>
                         <option value="maputo-provincia">Maputo (Província)</option>
                         <option value="gaza">Gaza</option>

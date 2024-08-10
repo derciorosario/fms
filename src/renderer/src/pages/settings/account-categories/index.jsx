@@ -108,11 +108,7 @@ function App() {
 
              
         </div>
-    {/** 
-        <FormLayout.SendButton text={{
-            create:'Actualizar'
-        }} SubmitForm={SubmitForm} loading={loading} valid={true} id={false}/>
-     **/ }
+    
   </FormLayout>
   </>
   )

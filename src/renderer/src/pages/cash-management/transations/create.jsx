@@ -115,7 +115,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                               })
                           }else{
                               navigate(`/cash-management/${type}flow`)
-                              toast.error(`Item não encontrado`)
+                              toast.error(t('common.item-not-found'))
                           }
 
                           handleLoaded('form','add')
@@ -227,6 +227,14 @@ import DefaultUpload from '../../../components/Files/default-upload';
 
       },[_openDialogRes,_payment_methods,_account_categories,_investors,_clients,_suppliers])
 
+
+      useEffect(()=>{
+            setFormData(prev=>({...prev,type}))
+      },[pathname])
+
+
+
+      console.log({formData})
        
 
          
@@ -633,7 +641,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
   return (
     <>
        {showNextPaymentDialog &&  <TransationNextDate last_date={accountDetails.payday?.split('T')?.[0]} show={showNextPaymentDialog} setShow={setShowNextPaymentDialog} SubmitForm={SubmitForm} formData={formData} setFormData={setFormData}/>}
-       <FormLayout loading={!initialized || loading} name={'Transação'} formTitle={id ? t('common.update') : t('common.add')+(type == 'in' ? '' : '')}>
+       <FormLayout loading={!initialized || loading} name={type == 'in' ? t('common.inflow') : t('common.outflow')} formTitle={id ? t('common.update') : t('common.add')+(type == 'in' ? '' : '')}>
 
 
                  <div className="ml-5 flex items-center mb-3">
@@ -703,7 +711,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                      setFormData({...formData,link_payment:e.target.checked,account:{id:null,name:''}})
                     }}
                     />
-                    <span className={`${!accountOptions.length ? 'opacity-80' :''}`}>{type == 'in' ? t('common.select-agended-bill-to-receive') : t('common.select-agended-bill-to-receive')}  {(accountOptions.length==0 && !id && initialized) && <label className="text-[14px]">({t('common.none-available')})</label>}</span>
+                    <span className={`${!accountOptions.length ? 'opacity-80' :''}`}>{type == 'in' ? t('common.select-agended-bill-to-receive') : t('common.select-agended-bill-to-pay')}  {(accountOptions.length==0 && !id && initialized) && <label className="text-[14px]">({t('common.none-available')})</label>}</span>
                    </label>
                </div>
 }
@@ -993,7 +1001,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                   placeholder={t('common.type-amount')}
                                   multilinep
                                   value={i.amount}
-                                  helperText={i.amount && formData.payments.map(i=>i.amount ? parseFloat(i.amount): 0).reduce((acc, curr) => acc + curr, 0) > (parseFloat(accountDetails.amount) - parseFloat(accountDetails.paid)) && formData.link_payment && accountDetails.status!="paid" ? "Maior que o agendado" :(!i.amount) && verifiedInputs.includes('amount') ? t('common.required-field') : ''} 
+                                  helperText={i.amount && formData.payments.map(i=>i.amount ? parseFloat(i.amount): 0).reduce((acc, curr) => acc + curr, 0) > (parseFloat(accountDetails.amount) - parseFloat(accountDetails.paid)) && formData.link_payment && accountDetails.status!="paid" ? t('common.more-than-missing') :(!i.amount) && verifiedInputs.includes('amount') ? t('common.required-field') : ''} 
                                   onBlur={()=>validate_feild('amount'+_i)}
                                   error={(!i.amount) && verifiedInputs.includes('amount'+_i) ? true : false}
                                   onChange={(e)=>{
@@ -1011,7 +1019,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
 
                   ))}
 
-                   <div onClick={add_payment_method} className="ml-4 border cursor-pointer hover:opacity-80 hover:ring-1 ring-slate-400 table rounded-[5px] bg-gray-100 px-2 py-1"><AddIcon sx={{color:'#374151',width:20}}/><span className=" text-gray-700">{t('common.invoice-emission-date')}</span></div>
+                   <div onClick={add_payment_method} className="ml-4 border cursor-pointer hover:opacity-80 hover:ring-1 ring-slate-400 table rounded-[5px] bg-gray-100 px-2 py-1"><AddIcon sx={{color:'#374151',width:20}}/><span className=" text-gray-700">{t('common.add-payment-method')}</span></div>
 
 
                 <span className="flex border-b mt-10"></span>
@@ -1054,22 +1062,10 @@ import DefaultUpload from '../../../components/Files/default-upload';
 
               </FormLayout.Section>
 
-
-
-
-              
-
-
-
-        
-
-
-
-                            
                                   <span className="flex border-b"></span>
 
                     <div className="flex px-[6px] items-center mt-3 pb-2 pl-3">
-                      {(!formData.files[0]) || !id ? <label className="flex items-center cursor-pointer hover:opacity-90" onClick={()=>{
+                      {!id ? <label className="flex items-center cursor-pointer hover:opacity-90" onClick={()=>{
                           if(!showMoreOptions) setTimeout(()=>_scrollToSection('_show_more_option'),100)
                           setShowMoreOptions(!showMoreOptions)
                       }}>

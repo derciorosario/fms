@@ -5,7 +5,7 @@ import ArrowCircleRightOutlinedIcon from '@mui/icons-material/ArrowCircleRightOu
 import MixedChart from '../../components/Charts/chart-1';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import colors from '../../assets/colors.json'
 import Circularchart from '../../components/Charts/circular-chart';
 import { t } from 'i18next';
@@ -14,16 +14,16 @@ import { t } from 'i18next';
 function App() {
  
   const {_get_cash_managment_stats,_loaded,_get_stat,_cn,_categories,_get,_setRequiredData} = useData();
-  const {db} = useAuth();
+  const {db,reload} = useAuth();
+  
+  const {pathname}=useLocation()
 
 
-
-
+  useEffect(()=>{
+      if(reload==pathname)   window.electron.ipcRenderer.send('reload')
+  },[reload,pathname])
 
   let required_data=['bills_to_pay','account_categories','bills_to_receive','payment_methods','transations']
-
-
-  
   const [initialized,setInitialized]=useState(false)
   
   const [filterOptions,setFilterOPtions]=useState([
@@ -60,10 +60,12 @@ function App() {
 
  
  const [catsTotal,setCatsTotal]=useState([])
-
+ const [billsToPay,setBillToPay]=useState({})
+ const [billsToReceive,setBillToReceive]=useState({})
  useEffect(()=>{
   setCatsTotal(_get_stat('monthly_cat_performace').cats_total)
-  
+  setBillToPay(_get_stat('bills_to_pay'))
+  setBillToReceive(_get_stat('bills_to_receive'))
  },[_loaded])
 
 
@@ -94,8 +96,8 @@ function App() {
                                 <div className="flex w-[50%] max-sm:w-full max-sm:mb-2 [&>_div]:w-[50%] items-center bg-white px-2 py-2 border-b-red-600  shadow-sm mr-[10px]">
                                     <div className="flex border-r pr-3 relative">
                                           <div className="flex justify-center flex-col">
-                                            <span className="text-[15px] text-[#A3AED0] font-light mb-2">{t('dashboard.cards.billsToPayToday')}</span>
-                                            <span className="text-[19px] text-red-600 font-semibold">{!_loaded.includes('bills_to_pay') ? '-' : _cn(_get_stat('bills_to_pay').today)}</span>
+                                            <span className="text-[15px] text-[#A3AED0] font-light mb-2">{t('dashboard.cards.billsToPayToday')} <label className={`${!billsToPay.today_total ? 'hidden':''}`}>({billsToPay.today_total})</label></span>
+                                            <span className="text-[19px] text-red-600 font-semibold">{!_loaded.includes('bills_to_pay') ? '-' : _cn(billsToPay.today)}</span>
                                           </div>
                                           <span onClick={()=>navigate(`/bills-to-pay?status=pending&start_date=${new Date().toISOString().split('T')[0]}&end_date=${new Date().toISOString().split('T')[0]}`)} className="absolute -bottom-2 right-2 opacity-80 text-[15px] cursor-pointer">
                                           <ArrowCircleRightOutlinedIcon  sx={{color:'#A3AED0',width:20}}/>
@@ -103,8 +105,8 @@ function App() {
                                     </div>
                                     <div className="flex pl-3 relative">
                                           <div className="flex justify-center flex-col relative">
-                                            <span className="text-[15px] text-red-600   font-light mb-2">{t('dashboard.cards.billsToPayInDelay')}</span>
-                                            <span className="text-[19px] text-red-600 #FF8900 font-semibold">{!_loaded.includes('bills_to_pay') ? '-' : _cn(_get_stat('bills_to_pay').delayed)}</span>
+                                            <span className="text-[15px] text-red-600   font-light mb-2">{t('dashboard.cards.billsToPayInDelay')} <label className={`${!billsToPay.delayed_total ? 'hidden':''}`}>({billsToPay.delayed_total})</label></span>
+                                            <span className="text-[19px] text-red-600 #FF8900 font-semibold">{!_loaded.includes('bills_to_pay') ? '-' : _cn(billsToPay.delayed)}</span>
                                           </div>
                                           <span onClick={()=>navigate('/bills-to-pay?status=delayed')} className="absolute -bottom-2 right-2 opacity-80 text-[15px] cursor-pointer">
                                           <ArrowCircleRightOutlinedIcon  sx={{color:'#A3AED0',width:20}}/>
@@ -116,8 +118,8 @@ function App() {
                                 <div className="flex w-[50%] [&>_div]:w-[50%] max-sm:w-full max-sm:mb-2 items-center bg-white px-2 py-2 border-b-[#3CD856] shadow-sm">
                                   <div className="flex border-r pr-3 relative">
                                         <div className="flex justify-center flex-col">
-                                          <span className="text-[15px] text-[#A3AED0] font-light mb-2">{t('dashboard.cards.billsToReceiveToday')}</span>
-                                          <span className="text-[19px] text-[#3CD856] font-semibold">{!_loaded.includes('bills_to_pay') ? '-' : _cn(_get_stat('bills_to_receive').today)}</span>
+                                          <span className="text-[15px] text-[#A3AED0] font-light mb-2">{t('dashboard.cards.billsToReceiveToday')} <label className={`${!billsToReceive.today_total ? 'hidden':''}`}>({billsToReceive.today_total})</label></span>
+                                          <span className="text-[19px] text-[#3CD856] font-semibold">{!_loaded.includes('bills_to_receive') ? '-' : _cn(billsToReceive.today)} </span>
                                         </div>
                                         <span onClick={()=>navigate(`/bills-to-receive?status=pending&start_date=${new Date().toISOString().split('T')[0]}&end_date=${new Date().toISOString().split('T')[0]}`)} className="absolute -bottom-2 right-2 opacity-80 text-[15px] cursor-pointer">
                                           <ArrowCircleRightOutlinedIcon  sx={{color:'#A3AED0',width:20}}/>
@@ -125,8 +127,8 @@ function App() {
                                   </div>
                                   <div className="flex pl-3 relative">
                                         <div className="flex justify-center flex-col relative">
-                                          <span className="text-[15px] text-[#3CD856] font-light mb-2">{t('dashboard.cards.billsToReceiveInDelay')}</span>
-                                          <span className="text-[19px] text-[#3CD856] font-semibold">{!_loaded.includes('bills_to_pay') ? '-' : _cn(_get_stat('bills_to_receive').delayed)}</span>
+                                          <span className="text-[15px] text-[#3CD856] font-light mb-2">{t('dashboard.cards.billsToReceiveInDelay')} <label className={`${!billsToReceive.delayed_total ? 'hidden':''}`}>({billsToReceive.delayed_total})</label></span>
+                                          <span className="text-[19px] text-[#3CD856] font-semibold">{!_loaded.includes('bills_to_receive') ? '-' : _cn(billsToReceive.delayed)}</span>
                                         </div>
                                         <span onClick={()=>navigate('/bills-to-receive?status=delayed')} className="absolute -bottom-2 right-2 opacity-80 text-[15px] cursor-pointer">
                                           <ArrowCircleRightOutlinedIcon  sx={{color:'#A3AED0',width:20}}/>
@@ -236,7 +238,7 @@ function App() {
         
 
 <div className="border-b">
-    <span className="flex p-2 px-4 justify-between items-center"><label className={`${i=="inflows" ? 'text-green-500':'text-red-600'} font-semibold`}>{i=="inflows" ? t('dashboard.billsToPayTable.accountsToReceive') : t('dashboard.billsToPayTable.accountsToPay')}</label><label className="text-gray-600 text-[13px]">{t('dashboard.billsToPayTable.paymentTimeTitle',{days:7})}</label></span>
+    <span className="flex p-2 px-4 justify-between items-center"><label className={`${i=="inflows" ? 'text-green-500':'text-red-600'} font-semibold`}>{i=="inflows" ? t('dashboard.billsToPayTable.accountsToReceive') : t('dashboard.billsToPayTable.accountsToPay')} {_get_stat('upcomming_payments')[i].length!=0 && <span>({_get_stat('upcomming_payments')[i].length})</span>}</label><label className="text-gray-600 text-[13px]">{t('dashboard.billsToPayTable.paymentTimeTitle',{days:7})}</label></span>
 </div>        
 
 

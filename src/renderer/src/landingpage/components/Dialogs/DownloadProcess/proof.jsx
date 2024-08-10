@@ -50,7 +50,7 @@ function SendProof({message,setMessage}) {
         setSuccess(false)
 
         if(size/1024/1024 > 2){
-            toast.error('Arquivo não pode der maior que 2MB')
+            toast.error(t('common.file-was-to-be-more-than')+' 2MB')
             return
         }
         const invoice_number=Math.random().toString().slice(2,10)
@@ -112,7 +112,7 @@ function SendProof({message,setMessage}) {
 
 
   return (
-    <div className={`bg-white z-20 transition-all ease-in ${data.form.method!=t('common.transfer') ? 'hidden':''}  flex items-center flex-col justify-center w-[500px] max-md:w-full mx-auto`}>
+    <div className={`bg-white z-20 transition-all ease-in ${data.form.method!='transfer' ? 'hidden':''}  flex items-center flex-col justify-center w-[500px] max-md:w-full mx-auto`}>
 
          <div className={`${data.loading  || message? 'hidden':'flex'} max-lg:flex-col`}>
         

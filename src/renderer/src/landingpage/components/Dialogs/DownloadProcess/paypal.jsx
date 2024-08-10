@@ -3,6 +3,7 @@ import { t } from 'i18next';
 import CircularIndeterminate from '../../loaders/progress';
 import colors from '../../../assets/colors.json'
 import { useHomeData } from '../../../../contexts/HomeDataContext';
+import toast from 'react-hot-toast';
 
 // Helper function to load external scripts
 const loadScript = (url) => {
@@ -41,6 +42,7 @@ const PayPalButton = ({method,setMedthod,activePage,setActvePage}) => {
        setActvePage(activePage + 1)
        d.setkey(key)
        localStorage.setItem('form',JSON.stringify({...d.form,restart:true}))
+       toast.success('messages.payment-done')
 
   }
 
@@ -56,8 +58,8 @@ const PayPalButton = ({method,setMedthod,activePage,setActvePage}) => {
   }, [d.form])
 
   useEffect(() => {
-    d.setLoading(true)
-  }, [])
+    if(d.form.method=='Paypal')  d.setLoading(true)
+  }, [d.form.method])
 
 
 

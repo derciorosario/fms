@@ -52,6 +52,7 @@ export default function SelectCompany({items,show,res}) {
                 </button>
 
                 <span onClick={()=>{
+                    document.getElementById('login-email-input').focus()
                     res(false)
                     setSelected(null)
                 }} className="underline text-gray-500 cursor-pointer flex items-center w-full hover:opacity-80 justify-center my-5">{t('common.choose-another-email')}</span>

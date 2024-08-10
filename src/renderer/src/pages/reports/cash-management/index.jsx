@@ -16,6 +16,7 @@ import DefaultButton from '../../../components/Buttons/default';
 import colors from '../../../assets/colors.json'
 import { useAuth } from '../../../contexts/AuthContext';
 import { t } from 'i18next';
+import i18n from '../../../i18n';
 
 function App() {
 
@@ -54,6 +55,7 @@ function App() {
       open:false,
       field:'_account_categories',
       name:t('common.accounts'),
+      t_name:'accounts',
       get_deleted:true,
       db_name:'account_categories',
       igual:true,
@@ -67,6 +69,7 @@ function App() {
     {
       field:'_show_projected',
       name:t('common.view_'),
+      t_name:'view_',
       page:'cash-managemnt-stats',
       not_fetchable:true,
       igual:true,
@@ -75,13 +78,14 @@ function App() {
       hide_search:true,
       single:true,
       groups:[
-        {field:'_show_projected',name:t('common.month'),items:[{name:t('common.projectedAndDone'),id:1},{name:t('common.done'),id:2,selected:true},{name:t('common.projected'),id:3}],selected_ids:[2],default_ids:[2]}
+        {field:'_show_projected',name:t('common.month'),items:[{name:t('common.projectedAndDone'),t_name:'projectedAndDone',id:1},{name:t('common.done'),t_name:'done',id:2,selected:true},{name:t('common.projected'),t_name:'projected',id:3}],selected_ids:[2],default_ids:[2]}
       ]
     },
 
     {
         field:'_week_and_month',
         name:t('common.period'),
+        t_name:'period',
         page:'cash-managemnt-stats',
         igual:true,
         not_fetchable:true,
@@ -89,7 +93,7 @@ function App() {
         single:true,
         hide_clear:true,
         groups:[
-          {field:'_week_and_month',name:t('common.view_'),items:[{id:'week',name:t('common.daily'),to:'/reports/cash-management/daily',selected:pathname.includes('/daily') ? true : false},{id:'month',name:t('common.monthly'),selected:pathname.includes('/monthly') ? true :false,to:'/reports/cash-management/monthly'}],selected_ids:['month']}
+          {field:'_week_and_month',name:t('common.view_'),items:[{id:'week',name:t('common.daily'),t_name:'daily',to:'/reports/cash-management/daily',selected:pathname.includes('/daily') ? true : false},{id:'month',name:t('common.monthly'),t_name:'monthly',selected:pathname.includes('/monthly') ? true :false,to:'/reports/cash-management/monthly'}],selected_ids:['month']}
         ]
       },
    
@@ -104,9 +108,6 @@ useEffect(()=>{
 
 
 useEffect(()=>{
-
-
-
    let months=[
     t('common.months.january'),
     t('common.months.february'),
@@ -174,36 +175,12 @@ useEffect(()=>{
   ]))
 
  
-},[_transations,_bills_to_pay,_bills_to_receive,pathname,currentMenu])
+},[_transations,_bills_to_pay,_bills_to_receive,pathname,currentMenu,i18n.language])
 
-
-const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
-    open:false,
-    igual:true,
-    startDate:null,
-    endDate:null,
-    name:t('common.period'),
-    search:'',
-    field:'_transations',
-    groups:[{field:'period',name:t('common.period'),items:[
-      {id:'this_week',name:t('common.this-week')},
-      {id:'this_month',name:t('common.this-month')},
-      {id:'last_month',name:t('common.last-month')},
-      {id:'this_year',name:t('common.this-year')}
-    ],selected_ids:[]}]
-     
-  })
 
   
   const [chartDataSets,setChartDataSets]=useState([])
   const [chartLabels,setChartLabels]=useState([])
-
-
-  
-
-
- 
- 
 
 
   useEffect(()=>{

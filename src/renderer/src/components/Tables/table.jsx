@@ -81,7 +81,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
 
 
     if(!row.payment.confirmed && action=="confirm" && ((!row.payment.confirmed_amount || row.payment.confirmed_amount <= 0 || isNaN(row.payment.confirmed_amount)) && row.payment.confirmed_amount!=undefined)){
-      toast.error('Valor deve ser maior que 0')
+      toast.error(t('messages.amount-as-to-be-more-than-0'))
       return
     }
 
@@ -997,7 +997,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
     },
     {
       field: 'payment_type',
-      headerName: t('common.transation-type'),
+      headerName: t('common.transaction-type'),
       width: 150,
       renderCell: (params) => (
          <span style={{backgroundColor:params.row.type=='in' ? '#C9E8E8': 'rgb(255 244 198)', color: '#111' , padding:'0.5rem 0.8rem',borderRadius:'0.2rem',height:20,minWidth:'60px',justifyContent:'center'}}> {params.row.type=="in" ? 'Entrada' : 'Saída'} </span>

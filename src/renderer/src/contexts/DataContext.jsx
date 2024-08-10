@@ -6,7 +6,7 @@ import PouchDB from 'pouchdb';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import io from 'socket.io-client';
-const socket = io('https://procontadev.alinvest-group.com')
+const socket = io('https://procontadev.alinvest-group.com')//https://procontadev.alinvest-group.com
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import PouchDBFind from 'pouchdb-find';
@@ -18,7 +18,7 @@ let DBUpdateID=Math.random()
 let app_db=new PouchDB('app')
 
 export const DataProvider = ({ children }) => {
-    const {user,APP_BASE_URL,remoteDBs,db,FRONT_URL,token,setUser,COUCH_DB_CONNECTION, update_user_data_from_db}=useAuth()
+    const {setReload,user,APP_BASE_URL,remoteDBs,db,FRONT_URL,token,setUser,COUCH_DB_CONNECTION, update_user_data_from_db}=useAuth()
 
     const [_required_data,_setRequiredData]=useState([])
     
@@ -215,8 +215,13 @@ export const DataProvider = ({ children }) => {
             setUser({...new_user_content,_rev:user.rev})
 
             if(user.selected_company==company_id){
-               toast.error('Usuário removido')
-               window.location.href="/#/login"
+               toast.error(t('common.user-removed'))
+               if(window.electron){
+                setReload('/login')
+              }else{
+                window.location.href="/#/login"
+                window.location.reload()
+              }
             }
            
       })
@@ -565,7 +570,6 @@ useEffect(()=>{
             let new_companies=user.companies.filter(i=>i!=user.selected_company)
             let user_db=new PouchDB('user-'+user.id)
 
-            console.log({new_companies})
 
             if(new_companies.length){
 
@@ -580,9 +584,15 @@ useEffect(()=>{
 
          
           
-            toast.error('Usuário removido')
-            window.location.href="/#/login"
-            window.location.reload()
+            toast.error(t('common.user-removed'))
+
+            if(window.electron){
+              setReload('/login')
+            }else{
+              window.location.href="/#/login"
+              window.location.reload()
+            }
+          
 
          
      }
@@ -740,6 +750,8 @@ function _showCreatePopUp(page,from,details){
  async function _update(from,array){
       let selected=dbs.filter(i=>i.name==from)[0]
 
+      console.log({from,array})
+
       array=array.map(i=>{
         delete i.__v
         return i
@@ -748,10 +760,12 @@ function _showCreatePopUp(page,from,details){
       try{
       let docs=await db[selected.name].get(array[0]._id)
       await db[selected.name].put({...array[0],updated_by:user.id,_rev:docs._rev})
+      console.log({ok:true,a:array[0],from})
       await _get(from)
       return {ok:true}
 
       }catch(e){
+             console.log({e})
              return {ok:false,error:e}
       }
 
@@ -2209,29 +2223,7 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
             let categories=JSON.parse(JSON.stringify(_categories))
             categories.push({name:t('common.others'),field:'others',color:'gray',total:0})
 
-            
-           /* _bills_to_pay.forEach(t=>{
-              let month=new Date(t.payday).getMonth()
-              let day=new Date(t.payday).getDate()
-              if(!datasets[t.account_origin]) datasets[t.account_origin]=Array.from({ length: (period=="m" ? 12 : 7) }, () => 0)
-              let amount=(t.amount)
-              if(t.account_origin){
-                 datasets[t.account_origin][period=="m" ? month : day]+=amount
-              }
-              total+=amount
-            })
-
-            _bills_to_receive.forEach(t=>{
-              let month=new Date(t.payday).getMonth()
-              let day=new Date(t.payday).getDate()
-              if(!datasets[t.account_origin]) datasets[t.account_origin]=Array.from({ length: (period=="m" ? 12 : 7) }, () => 0)
-              let amount=t.amount
-              if(t.account_origin){
-                 datasets[t.account_origin][period=="m" ? month : day]+=amount
-              }
-              total+=amount
-            })*/
-
+     
 
             _transations.forEach(t=>{
               let month=new Date(t.createdAt).getMonth()
@@ -2239,9 +2231,11 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
 
              
               let ref=t.account_origin
-              if(!datasets[ref]) datasets[ref]=Array.from({ length: (period=="m" ? 12 : 7) }, () => 0)
+              if(!datasets[ref]) {
+               datasets[ref]=Array.from({ length: (period=="m" ? 12 : 31) }, () => 0)
+              }
             
-              let amount=(t.type=='out' ? t.amount : (t.amount))
+              let amount=parseFloat((t.type=='out' ? t.amount : (t.amount)))
               if(t.account_origin){
                  datasets[ref][period=="m" ? month : day]+=amount
               }
@@ -2261,10 +2255,8 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
 
               let cats_total=_datasets.map(i=>{
                 let t=i.data.reduce((acc, curr) => acc + curr, 0)
-                return {field:i.field,total:t,percentage:t/total * 100}
-              })
-
-              
+                return {field:i.field,total:t,percentage:(t/total * 100).toFixed(1)}
+              })  
 
             return {cats_total,bar:{labels,datasets:_datasets},doughnut:{labels:categories.map(i=>`${i.name}`),datasets:categories.map(i=>i.total),backgroundColor:categories.map(i=>i.color),borderColor:categories.map(()=>'#ddd')}}
            
@@ -2370,7 +2362,11 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
        }
 
         }catch(e){
-              window.location.reload()
+          if(window.electron){
+            window.electron.ipcRenderer.send('relaunch')
+          }else{
+            window.location.reload()
+          }
        }
        
   }
@@ -2383,20 +2379,24 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
   }
 
   function _cn_n(string){
-
-
-   
-
-
+     string=string.toString()
     if (string.startsWith('0')) {
       string = string.replace('0', '');
     }
     return string.replace(/[^0-9]/g, '')
   }
+  function _cc(string){
+    string=string.toString()
+    if (string.startsWith('0')) {
+      string = string.replace('0', '');
+    }
+    return string.replace(/[^0-9.]/g, '')
+  }
+
 
   function _cn_op(string,allow_negative) {
 
-
+    string=string.toString().replaceAll(',','')
     if(string.startsWith('.')){
         return string.slice(1,string.length).replaceAll(' ','')
     }
@@ -2586,7 +2586,22 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
 }
 
 
+function formatNumber(num) {
+   num=num.toString()
+  // Allow dots and digits
+   let cleanNum = num.toString().replace(/[^0-9.]/g, '');
 
+   // Split the number into integer and decimal parts
+   let [integerPart, decimalPart] = cleanNum.split('.');
+
+   // Format the integer part with commas
+   let formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+   // Reassemble the number with the decimal part if it exists
+   let res=decimalPart ? `${formattedIntegerPart}.${decimalPart}` : formattedIntegerPart.toString()
+   return num.endsWith('.') ? res+'.' : res ;
+
+}
 
 function _search(search,array,filterOptions,periodFilters,settings={}){
 
@@ -2815,10 +2830,12 @@ if(filterOptions){
     uploadedToClound,
     replicate,
     daysBetween,
+    _cc,
     dbs,
     _app,
     _add_to_update_list,
     store_uploaded_file_info,
+    formatNumber,
     online
   };
 

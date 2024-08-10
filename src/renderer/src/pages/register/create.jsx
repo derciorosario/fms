@@ -38,6 +38,8 @@ import { t } from 'i18next';
         
           let page=pathname.includes('/client') || (_openDialogRes?.details?.client) ? 'clients' : pathname.includes('/supplier') || _openDialogRes?.details?.supplier ? 'suppliers' :'investors';
 
+
+          console.log({page,_openDialogRes})
           
           useEffect(()=>{
             if(!id || id==formData.id || isPopUp || !db.managers) return 
@@ -164,7 +166,7 @@ import { t } from 'i18next';
        
          return (
            <>
-              <FormLayout loading={!initialized || loading} isPopUp={isPopUp} maxWidth={isPopUp ? '700px' : null} name={ `${id && !isPopUp ? 'Actualizar ' : 'Novo '} ${page=="clients" ? "Cliente" : page=="suppliers" ? "Fornecedor" : "Investidor"}`} formTitle={id!="create" && !isPopUp ? 'Actualizar' : `Adicionar  ${page=="clients" ? "Cliente" : page=="suppliers" ? "Fornecedor" : "Investidor"}` }>
+              <FormLayout loading={!initialized || loading} isPopUp={isPopUp} maxWidth={isPopUp ? '700px' : null} name={ `${id && !isPopUp ? t('common.update')+" " : t('common.add-new_')+' '} ${page=="clients" ?  t('common.client') : page=="suppliers" ?  t('common.supplier') :  t('common.investor')}`} formTitle={id!="create" && !isPopUp ? t('common.update')+" " : `${t('common.add-new_')}  ${page=="clients" ?  t('common.client') : page=="suppliers" ?  t('common.supplier') : t('common.investor')}` }>
                   
                   <FormLayout.Section>
 

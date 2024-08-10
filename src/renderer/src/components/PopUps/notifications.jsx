@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { ArrowRightIcon } from '@mui/x-date-pickers/icons';
 import { useNavigate } from 'react-router-dom';
 import { t } from 'i18next';
+import i18n from '../../i18n';
 
 export default function NotificationPopUp({show,setOpenPopUps}) {
 
@@ -81,17 +82,18 @@ export default function NotificationPopUp({show,setOpenPopUps}) {
            let message
            let link
            let days_b=data.daysBetween(new Date(data._today()),new Date(i.date.split('T')[0]))
+           let l=i18n.language
              
            
            if(i.content.id=="upcomming-bills"){
               let on=data.daysBetween(new Date(data._today()),new Date(i.date.split('T')[0])) + parseInt(i.content.days) >= 1
-             title="Contas"
+             title=t('common.accounts')
               if(i.content.bills_to_pay.length && i.content.bills_to_receive.length){
-                    message=`Tens ${i.content.bills_to_pay.length} contas a pagar e ${i.content.bills_to_receive.length} a receber ${on ? 'se aproximando':''}`
+                    message=`${l=="pt" ? 'Tens':'You have'} ${i.content.bills_to_pay.length} ${on && l=="en" ? 'upcomming':''} ${l=="pt" ? 'conta(s) a pagar e':'account(s) to pay and'} ${i.content.bills_to_receive.length} ${l=="pt" ? 'a receber':'to receive'} ${on && l=="pt" ? 'se aproximando':''}`
               }else if(i.content.bills_to_pay.length){
-                    message=`Tens ${i.content.bills_to_pay.length} contas a pagar ${on ? 'se aproximando':''}`
+                    message=`${l=="pt" ? 'Tens':'You have'} ${i.content.bills_to_pay.length} ${on && l=="en" ? 'upcomming':''} ${l=="pt" ? 'conta(s) a pagar':'account(s) to pay'} ${on && l=="pt" ? 'se aproximando':''}`
               }else{
-                    message=`Tens ${i.content.bills_to_receive.length} contas a receber ${one ? 'se aproximando':''}`
+                    message=`${l=="pt" ? 'Tens':'You have'} ${i.content.bills_to_receive.length} ${on && l=="en" ? 'upcomming':''} ${l=="pt" ? 'conta(s) a receber':'account(s) to receive'} ${on && l=="pt" ? 'se aproximando':''}`
               }
 
               if(on){
@@ -99,12 +101,12 @@ export default function NotificationPopUp({show,setOpenPopUps}) {
               }
            }
 
-           return {title,message,date:(days_b==0 ? 'Hoje' : days_b== -1 ? 'Ontem' :  i.date.split('T')[0]) + " " + i.date.split('T')[1].slice(0,5) ,link}
+           return {title,message,date:(days_b==0 ? t('common.today') : days_b== -1 ? t('common.yesterday') :  i.date.split('T')[0]) + " " + i.date.split('T')[1].slice(0,5) ,link}
       }).reverse()
 
       setConverted(_nots)
 
-  },[nots])
+  },[nots,i18n.language])
 
   React.useEffect(()=>{
    data._get(required_data.filter(i=>!data._loaded.includes(i)))    

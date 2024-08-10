@@ -34,24 +34,22 @@ import DefaultUpload from '../../../components/Files/default-upload';
           const navigate = useNavigate()
 
           const data = useData()
-          const {user,db,_change_company} = useAuth()
+          const {user,db,_change_company,reload} = useAuth()
           
           const [initialized,setInitialized]=React.useState()
           const required_data=['account_categories','bills_to_pay','bills_to_receive']
-          
 
           const { id } = useParams()
-
-         
-
           let {pathname} = useLocation()
+
+          useEffect(()=>{
+            if(reload==pathname)   window.electron.ipcRenderer.send('reload')
+          },[reload,pathname])
 
 
           let type=pathname.includes('/bills-to-pay') ? 'pay' : 'receive';
 
-
           const [countFormUpdates,setCountFormUpdates]=React.useState(0)
-         
 
            function  calculateEndDate (startDate, days) {
 
@@ -88,7 +86,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
          const [paydayHelper,setPaydayHelper]=React.useState('custom')
          const [loading, setLoading] = React.useState(false);
          const [valid, setValid] = React.useState(false);
-         const {makeRequest,_add,_update,_loaded,_initial_form,_get,_setRequiredData,_required_data} = useData();
+         const {formatNumber, makeRequest,_add,_update,_loaded,_initial_form,_get,_setRequiredData,_required_data} = useData();
          const [accountCategorieOptions, setAccountCategorieOptions] = React.useState([]);
          const account_name = React.useRef(null);
          const [accountCategories,setAccountCategories]=React.useState([])
@@ -113,12 +111,14 @@ import DefaultUpload from '../../../components/Files/default-upload';
                   item=item.docs[0]
 
                   if(item){
+
+                    console.log({item})
                    setFormData({...item,
-                      paid:item.paid ? item.paid : ''
+                      paid:item.paid ? item.paid : '',amount:data.formatNumber(item.amount)
                    })
                   }else{
                     navigate(`/bills-to-${type}`)
-                    toast.error(`Item não encontrado`)
+                    toast.error(t('common.item-not-found'))
                   }
                   
                 })()
@@ -128,15 +128,6 @@ import DefaultUpload from '../../../components/Files/default-upload';
 
 
           
-
-
-
-
-       
-
-
-
-        
          
           const [deletePayments,setDeletePayments]=React.useState({
             showDialog:false,
@@ -236,29 +227,10 @@ import DefaultUpload from '../../../components/Files/default-upload';
                setFormData({...formData,
                 installments:Array.from({ length: parts }, (i,_i) => {
                       
-                      return {fees:'',id:uuidv4(),amount:parseFloat(formData.amount / parts),date:_i==0 ? formData.payday : null,paid:0,status:'pending'}
+                      return {fees:'',id:uuidv4(),amount:parseFloat(data._cc(formData.amount)) / parts,date:_i==0 ? formData.payday : null,paid:0,status:'pending'}
                 })})
 
-                //if(id) return
-
-
-              /* if(formData.payday && formData.amount && (formData.payday.toString()!="Invalid Date")){
-                   let parts=formData.total_installments ? parseInt(formData.total_installments) : 1
-
-                   if(formData.installments.length==parts){
-                        setFormData({...formData,installments:formData.installments.map(i=>({...i,fees:'',amount:parseFloat(formData.amount / parts)}))})
-                   }else{
-
-                    setFormData({...formData,
-                      installments:Array.from({ length: parts }, () => {
-                            return {fees:'',id:uuidv4(),amount:parseFloat(formData.amount / parts),date:parts == 1 ? formData.payday : null,paid:0,status:'pending'}
-                    })})
-
-                   }
-                  
-               }else{
-                   setFormData({...formData,installments:[]})
-               }*/
+             
 
           },[formData.due_date,formData.payday,formData.total_installments,formData.amount])
 
@@ -313,7 +285,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                if(!valid) return
                await SubmitForm()
                navigate(`/cash-management/${type!='pay' ? 'in' :'out'}flow/create?bill_to_${type}=${formData.id}`)
-          }
+         }
 
 
           async function confirmDeletePayments(res){
@@ -360,7 +332,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                  await db['bills_to_'+type].put(item)
                  setFormData(item)
                  setDeletePayments(prev=>({...prev,showDialog:false}))
-                 toast.success('Pagamentos anulados')
+                 toast.success(t('common.payments-cancelled'))
           }
 
          
@@ -412,9 +384,10 @@ import DefaultUpload from '../../../components/Files/default-upload';
                    try{
                      if(id){
 
-                        let status=formData.paid >= formData.amount && parseFloat(formData.amount) && id ? 'paid' : formData.status!="paid" &&  new Date(data._today()) > new Date(formData.payday) && id ? 'delayed' : 'pending'
+                        let status=formData.paid >= parseFloat(data._cc(formData.amount)) && parseFloat(data._cc(formData.amount)) && id ? 'paid' : formData.status!="paid" &&  new Date(data._today()) > new Date(formData.payday) && id ? 'delayed' : 'pending'
                         
                         if(formData.loan_id){
+
                             let loan = await db.loans.find({selector: {id:formData.loan_id}})
                             loan=loan.docs[0]
                           
@@ -425,18 +398,16 @@ import DefaultUpload from '../../../components/Files/default-upload';
                               loan.account_id=formData.account_id
                               loan.account_name=formData.account_name
                               loan.total_installments=parseInt(formData.total_installments || 1),
-                              loan.transation_fees=formData.amount
-                              loan.installment_amount=parseFloat(formData.amount) / parseFloat(formData.total_installments || 1)
+                              loan.transation_fees=data._cc(formData.amount)
+                              loan.installment_amount=parseFloat(data._cc(formData.amount)) / parseFloat(formData.total_installments || 1)
                               await _update('loans',[loan])
                             }
                         }
-
-                        await _update('bills_to_'+type,[{...formData,status}])
-                        toast.success('Conta actualizada')
+                        await _update('bills_to_'+type,[{...formData,status,amount:data._cc(formData.amount)}])
+                        toast.success(t('common.updated-successfully'))
                      }else{
 
                         let linked_id=uuidv4()
-
                         let date_intervals=data._divideDatesInPeriods(formData.payday, formData.repeat_details.times,formData.repeat_details.period)
 
                         let data_to_add=Array.from({ length:parseInt(formData.repeat_details.times) }, () => []).map((i,_i)=>{
@@ -447,14 +418,14 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                     
                                 return {...formData,
                                         payday:_i==0 ? formData.payday : new Date(date_intervals[_i][0]),
-                                        amount:parseFloat(formData.amount),
+                                        amount:parseFloat(data._cc(formData.amount)),
                                         paid:parseFloat(formData.paid ? formData.paid : 0),
                                         installments:installments,
                                         reference:{...formData.reference,id:reference_id,type:formData.account_origin=="loans_out" || formData.account_origin=="loans_in" ? 'investors' : type=="receive" ? 'clients': 'suppliers' },
                                         linked_id,
                                         index:_i,
                                         total_installments:parseInt(formData.total_installments ? formData.total_installments : 1),
-                                        status:parseFloat(formData.paid) == parseFloat(formData.amount) ? 'paid' : formData.status,
+                                        status:parseFloat(formData.paid) == parseFloat(data._cc(formData.amount)) ? 'paid' : formData.status,
                                         id:uuidv4(),_id:new Date().toISOString() + "-" + _i}
 
                         })
@@ -463,7 +434,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                         await  _add('bills_to_'+type,data_to_add)
 
                         setVerifiedInputs([])
-                        toast.success('Conta adicionada')
+                        toast.success(t('common.added-successfully'))
                         setFormData(_initial_form.bills)
                         setPaydayHelper('custom')
 
@@ -541,6 +512,8 @@ import DefaultUpload from '../../../components/Files/default-upload';
               setValid(v)
          },[formData])
 
+         console.log({formData})
+
 
           return  (
              <>
@@ -595,10 +568,9 @@ import DefaultUpload from '../../../components/Files/default-upload';
 
 
                      <FormLayout.Cards topInfo={[
-                          //{name:'Saldo da conta',value:_cn(formData.amount && formData.paid ? parseFloat(formData.amount) - parseFloat(formData.paid) : formData.amount ? parseFloat(formData.amount) : 0)},
                           {name:type=="pay" ? t('common.paid'): t('common.received'),value:data._cn(formData.paid ? parseFloat(formData.paid) : 0)},
-                          {name:t('common.state'),value:formData.paid >= formData.amount && parseFloat(formData.amount) && id ? t('common.paid') : formData.status!="paid" &&  new Date(data._today()) > new Date(formData.payday) && id ? t('common.delayed') : t('common.pending'),color:formData.status!="paid" && id && new Date(data._today()) > new Date(formData.payday) ? 'crimson' :formData.paid >= formData.amount && formData.paid && id ? 'green' :null},
-                          {id:'left',name:t('common.missing-amount'),value:parseFloat(formData.paid) > parseFloat(formData.amount) ? 0 :data._cn(parseFloat(formData.amount ? formData.amount : 0) - parseFloat(formData.paid ? formData.paid : 0))},
+                          {name:t('common.state'),value:formData.paid >= parseFloat(data._cc(formData.amount)) && parseFloat(data._cc(formData.amount)) && id ? t('common.paid') : formData.status!="paid" &&  new Date(data._today()) > new Date(formData.payday) && id ? t('common.delayed') : t('common.pending'),color:formData.status!="paid" && id && new Date(data._today()) > new Date(formData.payday) ? 'crimson' :formData.paid >= parseFloat(data._cc(formData.amount)) && formData.paid && id ? 'green' :null},
+                          {id:'left',name:t('common.missing-amount'),value:data._cn(parseFloat(formData.paid) > parseFloat(data._cc(formData.amount)) ? 0 : parseFloat(data._cc(formData.amount ? formData.amount : 0) - parseFloat(formData.paid ? formData.paid : 0)))},
                           {id:'fees',name:t('common.fine'),value:data._cn(formData.fees)},
                           
                      ].filter(i=>(i.id!='fees' || formData.fees) && (i.id!="left" || id))}/>
@@ -654,7 +626,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                 options={accountCategorieOptions}
                                 sx={{ width: 300 }}
                                 renderInput={(params) => <TextField {...params}
-                                helperText={!accountCategories.some(a=>a.id==formData.account_id) && formData.account_name && initialized ? "(Nova conta será adicionada)" :''}
+                                helperText={!accountCategories.some(a=>a.id==formData.account_id) && formData.account_name && initialized ? `(${t('common.new_')} ${t('common.account')} ${t('common.will-be-added')})` :''}
                                 sx={{'& .MuiFormHelperText-root': {color:!accountCategories.some(a=>a.id==formData.account_id) && formData.account_name ? 'green' : 'crimson'}}}
                                 value={formData.account_name} label={t('common.account-name')} />}
                         />   
@@ -693,16 +665,12 @@ import DefaultUpload from '../../../components/Files/default-upload';
 
                             <div className="relative"> 
 
-                              {/**<div  onClick={()=>data._showCreatePopUp('register','bills',{[`${type=="in" ? (formData.account_origin=="loans_in" ? "investor" : "client")  : (formData.account_origin == "loans_out" ? 'investor' :'supplier')}`]:true})}
-                                  className={`text-[13px] ${!formData.account_origin ? ' opacity-25 pointer-events-none':"hover:opacity-55 cursor-pointer"} absolute   right-0 top-[-0.1rem] translate-y-[-100%] flex items-center`}>
-                                          <Add sx={{width:16,height:16,opacity:0.6}}/>
-                              </div> */}
 
                                 <Autocomplete size="small"
                                 value={formData.reference.name && formData.account_origin ? formData.reference.name : null}
                                 onChange={(event, newValue) => {
                                     if(newValue==t('common.add_new')){
-                                      data._showCreatePopUp('register','bills',{[`${type=="in" ? (formData.account_origin=="loans_in" ? "investor" : "client")  : (formData.account_origin == "loans_out" ? 'investor' :'supplier')}`]:true})
+                                      data._showCreatePopUp('register','bills',{[`${type=="receive" ? (formData.account_origin=="loans_in" ? "investor" : "client")  : (formData.account_origin == "loans_out" ? 'investor' :'supplier')}`]:true})
                                    }else{
                                       newValue=newValue ? newValue : ''
                                       let reference_id=referenceOptions.filter(i=>i.name?.toLowerCase()==newValue?.toLowerCase())[0]?.id
@@ -710,7 +678,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                 
                                     }
                                    }}
-                                noOptionsText="Sem opções"
+                                noOptionsText={t('common.on-options')}
                                 defaultValue={null}
                                 inputValue={(formData.account_origin) ? formData.reference.name  : "" }
                                 onInputChange={(event, newInputValue) => {
@@ -729,7 +697,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                 renderInput={(params) => <TextField {...params}
 
                                 onBlur={()=>validate_feild('reference')}
-                                helperText={!formData.reference.id && formData.reference.name ? `(Novo ${type=="in" ? (formData.account_origin=="loans_in" ? "Investidor" : "Cliente")  : (formData.account_origin == "loans_out" ? 'Investidor' :'Fornecedor')} será adicionado) `: ''}
+                                helperText={!formData.reference.id && formData.reference.name ? `(${t('common.add-new_')} ${type=="receive" ? (formData.account_origin=="loans_in" ?  t('common.investor')+" " :  t('common.client'))  : (formData.account_origin == "loans_out" ?  t('common.investor') : t('common.supplier'))} ${t('common.will-be-added')}) `: ''}
                                 sx={{'& .MuiFormHelperText-root': {color: !formData.reference.id && formData.reference.name ? 'green' : 'crimson'}}}
                                 value={formData.reference.name}  label={t('common.beneficie')}
                                 
@@ -748,7 +716,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                             multiline
                                             value={formData.amount}
                                             onBlur={()=>validate_feild('amount')}
-                                            onChange={(e)=>setFormData({...formData,amount:data._cn_op(e.target.value)})}
+                                            onChange={(e)=>setFormData({...formData,amount:data.formatNumber(data._cn_op(e.target.value)) })}
                                             error={(!formData.amount) && verifiedInputs.includes('amount') ? true : false}
                                             sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                             '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
@@ -756,22 +724,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                    </div>
 
 
-                        <div className="hidden">
-                                    <TextField
-                                    id="outlined-textarea"
-                                    label="Valor pago"
-                                    placeholder="Digite o valor pago"
-                                    multiline
-                                    onBlur={()=>validate_feild('paid')}
-                                    error={parseFloat(formData.amount) < parseFloat(formData.paid)  ? true : false}
-                                    helperText={parseFloat(formData.amount) < parseFloat(formData.paid) ? "Não deve ser maior que o valor a pagar" :''}
-                                    value={formData.paid}
-                                    onChange={(e)=>setFormData({...formData,paid:data._cn_op(e.target.value)})}
-                                    sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
-                                    '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
-                                    />
-                        </div>
-
+                      
 
                             <div className="flex items-center justify-center">
                             <div className="w-full">
@@ -905,8 +858,8 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                         '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                                         >
                                         
-                                        <MenuItem value={'month'}>{t('common.months')}</MenuItem>
-                                        <MenuItem value={'week'}>{t('common.weeks')}</MenuItem>
+                                        <MenuItem value={'month'}>{t('common.months_')}</MenuItem>
+                                        <MenuItem value={'week'}>{t('common.weeks_')}</MenuItem>
                                         <MenuItem value={'year'}>{t('common.years')}</MenuItem>
                                         </Select>
                                         </FormControl>

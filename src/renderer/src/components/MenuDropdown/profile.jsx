@@ -32,7 +32,6 @@ export default function AccountMenu() {
 
     setAnchorEl(null);
     
-    
    if(typeof to=="string") {
       if(to=="/logout"){
 
@@ -117,7 +116,7 @@ export default function AccountMenu() {
            <ListItemIcon>
            <Person/>
           </ListItemIcon>
-           Perfil
+           {t('common.profile')}
         </MenuItem>
         <Divider />
         {/**<MenuItem onClick={handleClose}>
@@ -128,29 +127,25 @@ export default function AccountMenu() {
         </MenuItem> */}
 
 
-
-        {!window.electron && <MenuItem onClick={()=>{
+      <MenuItem onClick={()=>{
              handleClose('/login')
            }}>
           <ListItemIcon>
             <SwitchAccountOutlined/>
           </ListItemIcon>
              {t('common.change-account')}
-       </MenuItem>}
-
-         
-
-
-        <MenuItem onClick={()=>{
-            handleClose('/logout')
-        }}>
-          <ListItemIcon>
-            <Logout fontSize="small" />
-          </ListItemIcon>
-           {t('common.logout')}
-        </MenuItem>
-
-
+       </MenuItem>
+        
+ 
+        {!window.electron &&  <MenuItem onClick={()=>{
+              handleClose('/logout')
+          }}>
+            <ListItemIcon>
+              <Logout fontSize="small" />
+            </ListItemIcon>
+            {t('common.logout')}
+          </MenuItem>
+        }
         
         <MenuItem onClick={()=>{
              handleClose('/lock')

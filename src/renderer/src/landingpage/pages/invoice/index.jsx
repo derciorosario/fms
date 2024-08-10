@@ -110,10 +110,12 @@ useEffect(()=>{
                  <div className="max-w-[600px] px-3 pb-3 mx-auto flex items-center justify-between">
                      <h2 className="text-[27px]">{t('common.invoice')}</h2>
                      <button onClick={()=>{
-                         window.print()
-                     }} className=" bg-white rounded-[0.3rem] px-2 mt-6 py-1 cursor-pointer text-gray-600 shadow hover:underline mb-3"> {t('invoice.print')}</button>
+
+                        data.downloadPDF('_invoice',`${t('common.invoice')} #${invoice.invoice_number}`)
+                        
+                     }} className=" bg-white rounded-[0.3rem] px-2 mt-6 py-1 cursor-pointer text-gray-600 shadow hover:underline mb-3">{t('common.download')}</button>
                     </div>
-                 <div className={`bg-white max-w-[600px] p-10 mx-auto ${pathname.includes('/invoice/') ? '_print':''}`}>
+                 <div id="_invoice" className={`bg-white max-w-[600px] p-10 mx-auto ${pathname.includes('/invoice/') ? '_print print-table':''}`}>
                         <div className="flex justify-between mb-10">
                                <span className="text-[26px] font-bold">PROCONTA</span>
                                <span className="text-[23px]">{t('common.invoice')}</span>
@@ -122,8 +124,8 @@ useEffect(()=>{
                         <div className="sm:flex justify-between">
                              <div className="max-sm:mb-5">
                                  <span className="text-[21px] font-semibold">{t('invoice.invoice-for')}</span>
-                                 <p className="break-words block max-w-[220px] text-[17px] mb-2">{invoice?.to_name}</p>
-                                 <p className="break-words block max-w-[220px] text-[17px]">{invoice?.to_number}</p>
+                                 <p className="break-words block max-w-[220px] text-[17px] mb-2">{invoice?.to_email}</p>
+                                 <p className="break-words block max-w-[220px] text-[17px]">{invoice?.to_name}</p>
                              </div>
 
                              <div>

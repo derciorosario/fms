@@ -2,11 +2,10 @@ import * as React from 'react';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import TextField from '@mui/material/TextField';
-import InputLabel from '@mui/material/InputLabel';
 import dayjs from 'dayjs';
 import 'dayjs/locale/en-gb';
 import colors from '../../assets/colors.json'
+import { t } from 'i18next';
 
 
 export default function CircularIndeterminate({items,setFormData,formData,page,disabled}) {
@@ -52,16 +51,16 @@ export default function CircularIndeterminate({items,setFormData,formData,page,d
         <thead class="text-xs text-gray-900 uppercase rounded-[1rem]  bg-gray-50">
             <tr className="[&>_th]:px-3 [&>_th]:py-2">
                 <th scope="col">
-                    Valor a {page == 'pay' ? 'pagar' :'receber'}
+                    {page == 'pay' ? t('common.amount-to-pay') : t('common.amount-to-receive')}
                 </th>
                 <th scope="col">
-                    {page == 'pay' ? 'Pago' :'Recebido'}
+                    {page == 'pay' ? t('common.paid') : t('common.received')}
                 </th>
                 <th scope="col">
-                    Data de {page == 'pay' ? 'pagamento' :'recebimento'}
+                    {page == 'pay' ? t('common.receivingday') : t('common.payday')}
                 </th>
                 <th scope="col">
-                    Estado
+                    {t('common.state')}
                 </th>
             </tr>
         </thead>

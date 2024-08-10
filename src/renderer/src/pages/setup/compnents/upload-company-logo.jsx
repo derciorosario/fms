@@ -111,6 +111,8 @@ const handleFileChange = async (event) => {
 
   }
 
+  console.log({v:data.APP_BASE_URL+"/file/"+upload.file.generated_name?.replaceAll(' ','%20')})
+
 
   return (
     <>

@@ -69,7 +69,7 @@ function FirstUse() {
        password:'',
        state:'',
        address:'',
-       contact_code:'258',
+       contact_code:'1',
        contact:''
     },
     company:{
@@ -77,7 +77,7 @@ function FirstUse() {
        address:'',
        email:'',
        nuit:'',
-       contact_code:'258',
+       contact_code:'1',
        contact:'',
        key:'',
        logo:{}
@@ -141,10 +141,10 @@ async function get_invite_info(id){
       let response = await data.makeRequest({method:'get',url:`api/get-invite-info/`+id, error: ``},0);
      
       if(response.invalid){
-        toast.error('Convite invalido!')
+        toast.error(t('common.invite-invalid'))
         setInviteStatus('invalid')
       }else if(response.used){
-        toast.error('Convite usado!')
+        toast.error(t('common.invite-used'))
         setInviteStatus('used')
       }else if(response.data){
         setInviteStatus('not_started')  
@@ -272,7 +272,7 @@ async function get_invite_info(id){
         }
 
         localStorage.setItem('token',data.token)
-
+        localStorage.setItem('go_to_app',true)
         setlogin(true)
         localStorage.setItem('first-company-created-message',true)
         setFormData(initial_form)
@@ -489,10 +489,9 @@ async function get_invite_info(id){
                     <p className="text-gray-400 mt-3 text-[15px]">{t('messages.personal-info-msg')}</p>
             
             </div> : <div className={`mb-10`}>
-                    <p class="font-semibold text-[19px] mt-7">{t('common.access-invite')}</p>
 
-                    
-                    <p className="text-gray-400 mt-3 text-[15px]"><span className="mr-3 inline-flex text-amber-400">{!invite ? 'Convite não encontrado!' : inviteStatus=="invalid"  ? "Este convite não é valido" : inviteStatus=="not_started" ? "Confirme os dados adicionados no convite antes de prosseguir" : inviteStatus!=null ?  "Está conta ja foi registrada":"Verifique sua internet (a conectar...)"}</span>  </p>
+                    <p class="font-semibold text-[19px] mt-7">{t('common.access-invite')}</p>
+                    <p className="text-gray-400 mt-3 text-[15px]"><span className="mr-3 inline-flex text-app_orange-500">{!invite ? 'Convite não encontrado!' : inviteStatus=="invalid"  ? "Este convite não é valido" : inviteStatus=="not_started" ? t('messages.confirm-invite-data') : inviteStatus!=null ?  "Está conta ja foi registrada":"Verifique sua internet (a conectar...)"}</span>  </p>
                     <span className="flex mt-4 justify-end">
                       {(inviteStatus=="used" || inviteStatus=="started") && <>
                         <label onClick={()=>navigate('/recover-password')} className="hover:opacity-75 inline-flex text-app_orange-400 underline cursor-pointer">{t('common.recover-password')}</label>
@@ -503,6 +502,7 @@ async function get_invite_info(id){
                       <label className="hover:opacity-70 cursor-pointer inline-flex text-app_orange-400 underline" onClick={()=>navigate('/new-company')}>{t('common.register-company')}</label>
                     </span>
             </div>}
+            
 
             {/*{login && <label className="inline-flex items-center mb-4 -translate-x-2 cursor-pointer hover:opacity-95">
               <Checkbox

@@ -79,8 +79,8 @@ function App() {
       
 
 <div className="border-b">
-  <span className="flex p-2 px-4 justify-between items-center"><label className={`${i=="inflows" ? 'text-green-500':'text-red-600'} font-semibold`}>{i=="inflows" ? t('dashboard.billsToPayTable.accountsToReceive') : t('dashboard.billsToPayTable.accountsToPay')}</label><label className="text-gray-600 text-[13px]">{t('dashboard.billsToPayTable.paymentTimeTitle',{days:7})}</label></span>
-</div>        
+    <span className="flex p-2 px-4 justify-between items-center"><label className={`${i=="inflows" ? 'text-green-500':'text-red-600'} font-semibold`}>{i=="inflows" ? t('dashboard.billsToPayTable.accountsToReceive') : t('dashboard.billsToPayTable.accountsToPay')} {_get_stat('upcomming_payments')[i].length!=0 && <span>({_get_stat('upcomming_payments')[i].length})</span>}</label><label className="text-gray-600 text-[13px]">{t('dashboard.billsToPayTable.paymentTimeTitle',{days:7})}</label></span>
+</div>       
 
 
 <div class="relative overflow-x-auto w-[100%] max-h-[300px]">

@@ -269,7 +269,7 @@ import { t } from 'i18next';
 
                 }catch(e){
                      console.log(e)
-                     toast.error('Erro inesperado')
+                     toast.error(t('common.unexpected-error'))
                 }
               }
          }
@@ -296,7 +296,7 @@ import { t } from 'i18next';
         
          return (
            <>
-              <FormLayout loading={(!initialized || (id && !_all_loaded.includes('managers'))) ? true : false} name={ `${id ? 'Actualizar '+(formData.headquarter_id ? 'filial':'empresa') : 'Nova '+(isFilial ?'filial':'empresa')}`} formTitle={id ? 'Actualizar' : 'Adicionar'}>
+              <FormLayout loading={(!initialized || (id && !_all_loaded.includes('managers'))) ? true : false} name={ `${id ? t('common.update')+' '+(formData.headquarter_id ? 'filial':t('common.company')) : t('common.new')+' '+(isFilial ?'filial':t('common.company'))}`} formTitle={id ? t('commpn.update') :  t('commpn.add-new_')}>
 
 
               

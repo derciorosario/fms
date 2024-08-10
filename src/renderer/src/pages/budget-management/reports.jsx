@@ -140,10 +140,10 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
     search:'',
     field:'_transations',
     groups:[{field:'period',name:t('common.period'),items:[
-      {id:'this_week',name:'Esta semana'},
-      {id:'this_month',name:'Este mês'},
-      {id:'last_month',name:'Mês passado'},
-      {id:'this_year',name:'Este ano'}
+      {id:'this_week',name:t('common.this-week')},
+      {id:'this_month',name:t('common.this-month')},
+      {id:'last_month',name:t('common.last-month')},
+      {id:'this_year',name:t('common.this-year')}
     ],selected_ids:[]}]
      
   })
@@ -181,7 +181,7 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
     
         <div className="flex flex-wrap bg-white p-3 mb-2 shadow z-10">
                
-                <Button>Actualizar</Button>
+                <Button>{t('common.update')}</Button>
             
                 {/**<DatePickerRange open={datePickerPeriodOptions.open} options={datePickerPeriodOptions} setFilterOPtions={setDatePickerPeriodOptions}/>**/ }   
 

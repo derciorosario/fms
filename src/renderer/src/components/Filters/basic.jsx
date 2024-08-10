@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate ,useSearchParams} from 'react-router-dom';
 import colors from '../../assets/colors.json'
 import { t } from 'i18next';
+import i18n from '../../i18n';
 export default function filter({open,options,filterOptions,setFilterOPtions,shownFilters}) {
 
   const navigate = useNavigate();
@@ -47,6 +48,26 @@ const  handleClickFilter = () => {
     await sendFilters(new_filters)
     if(item.to) navigate(item.to)
   }
+
+
+
+
+  React.useEffect(()=>{
+    setFilterOPtions(prev=>([...prev.map(f=>{
+      if(f.t_name){
+        return {
+           ...f,name:t(`common.${f.t_name}`),groups:f.groups.map(g=>{
+                return {...g,items:g.items.map(i=>{
+                    return {...i,name:i.t_name ? t(`common.${i.t_name}`) : i.name}
+                })}
+           })
+        }
+      }else{
+        return f
+      }
+    })]))
+
+  },[i18n.language])
 
 
   const data=useData()

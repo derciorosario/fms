@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import Table from './table'
 import SearchIcon from '@mui/icons-material/Search';
@@ -11,11 +10,10 @@ import DatePickerRange from '../Filters/date-picker-range';
 import CloseIcon from '@mui/icons-material/Close';
 import toast from 'react-hot-toast';
 import PouchDB from 'pouchdb';
-import { useSearchParams, useLocation } from 'react-router-dom';
+import { useSearchParams, } from 'react-router-dom';
 import colors from '../../assets/colors.json'
 import DefaultButton from '../Buttons/default';
-import { FilterAlt, ImportExport } from '@mui/icons-material';
-import { Filter1Outlined } from '@mui/icons-material';
+import { FilterAlt} from '@mui/icons-material';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import { v4 as uuidv4 } from 'uuid';
 import ConfirmDialog from '../Dialogs/confirmLinked';
@@ -79,6 +77,7 @@ const {  i18n } = useTranslation();
         open:false,
         field:'_payment_items',
         name:t('common.payment-method'),
+        t_name:'payment-method',
         get_deleted:true,
         db_name:'payment_methods',
         igual:true,
@@ -91,6 +90,7 @@ const {  i18n } = useTranslation();
         open:false,
         field:'_account_categories',
         name:t('common.accounts'),
+        t_name:'accounts',
         get_deleted:true,
         db_name:'account_categories',
         igual:true,
@@ -103,6 +103,7 @@ const {  i18n } = useTranslation();
         open:false,
         field:'_managers',
         name:t('common.managers'),
+        t_name:'managers',
         igual:true,
         search:'',
         groups:[{field:'_managers',name:t('common.managers'),items:[],selected_ids:[],default_ids:[]}]
@@ -111,25 +112,28 @@ const {  i18n } = useTranslation();
         open:false,
         field:'payment_status',
         name:t('common.payment-state'),
+        t_name:'payment-state',
         not_fetchable:true,
         igual:true,
         search:'',
-        groups:[{field:'payment_status',param:'status',name:t('common.payment-state'),items:[{id:'pending',name:t('common.pending')},{id:'paid',name:t('common.paid')},{id:'delayed',name:t('common.delayed')}],selected_ids:[],default_ids:[]}]
+        groups:[{field:'payment_status',param:'status',name:t('common.payment-state'),items:[{id:'pending',name:t('common.pending'),t_name:'pending'},{id:'paid',name:t('common.paid'),t_name:'paid'},{id:'delayed',name:t('common.delayed'),t_name:'delayed'}],selected_ids:[],default_ids:[]}]
       },
       {
         open:false,
         field:'if_consiliated',
         name:t('common.conciliated'),
+        t_name:'conciliated',
         not_fetchable:true,
         igual:true,
         search:'',
-        groups:[{field:'if_consiliated',name:t('common.conciliated'),items:[{id:true,name:t('common.yes')},{id:false,name:t('common.no')}],selected_ids:[],default_ids:[]}]
+        groups:[{field:'if_consiliated',name:t('common.conciliated'),items:[{id:true,name:t('common.yes'),t_name:'yes'},{id:false,name:t('common.no'),t_name:'no'}],selected_ids:[],default_ids:[]}]
       },
 
       {
         open:false,
         field:'categories',
         name:t('common.account-categories'),
+        t_name:'account-categories',
         not_fetchable:true,
         igual:true,
         search:'',
@@ -142,12 +146,13 @@ const {  i18n } = useTranslation();
       {
         field:'date_by',
         name:t('common.date-by'),
+        t_name:'date-by',
         igual:true,
         not_fetchable:true,
         search:'',
         single:true,
         groups:[
-          {field:'date_by',name:t('common.date-by'),items:[{id:'createdAt',name:t('common.creation'),selected:true},{id:'payday',name:t('common.due')}],selected_ids:['createdAt'],default_ids:['createdAt']}
+          {field:'date_by',name:t('common.date-by'),items:[{id:'createdAt',name:t('common.creation'),t_name:'creation',selected:true},{id:'payday',name:t('common.due'),t_name:'due'}],selected_ids:['createdAt'],default_ids:['createdAt']}
         ]
       },
 
@@ -156,12 +161,22 @@ const {  i18n } = useTranslation();
         open:false,
         field:'transation_type',
         name:t('common.transaction-type'),
+        t_name:'transaction-type',
         not_fetchable:true,
         igual:true,
         search:'',
-        groups:[{field:'transation_type',name:t('common.transaction-type'),param:'payment_type',items:[{id:'in',name:t('common.inflow')},{id:'out',name:t('common.outflow')}],selected_ids:[],default_ids:[]}]
+        groups:[{field:'transation_type',name:t('common.transaction-type'),param:'payment_type',items:[{id:'in',name:t('common.inflow'),t_name:'inflow'},{id:'out',name:t('common.outflow'),t_name:'outflow'}],selected_ids:[],default_ids:[]}]
       }
   ])
+
+
+
+  useEffect(()=>{
+
+    
+
+  },[i18n.language])
+
 
 
   useEffect(()=>{
@@ -185,11 +200,13 @@ const {  i18n } = useTranslation();
     field:'_transations',
 
     groups:[{field:'period',name:t('common.period'),items:[
-      {id:'this_month',name:'Este mês',selected:true},
-      {id:'last_month',name:'Mês passado'},
-      {id:'this_week',name:'Esta semana'},
-      {id:'last_week',name:'Semana passada'},
-      {id:'this_year',name:'Este ano'}
+    
+      
+      {id:'this_month',name:t('common.this-month'),selected:true},
+      {id:'this_week',name:t('common.this-week')},
+      {id:'las_week',name:t('common.last-week')},
+      {id:'last_month',name:t('common.last-month')},
+      {id:'this_year',name:t('common.this-year')}
     ],selected_ids:['this_month']}]
      
   })
@@ -275,12 +292,6 @@ const {  i18n } = useTranslation();
         _settings.has_add_btn=false
       }
     }
-
-
-    
-
-   
-
 
      setSettings(_settings)
      setDatePickerPeriodOptions({...datePickerPeriodOptions,field:_settings.from})
@@ -376,43 +387,38 @@ useEffect(()=>{
   let items=JSON.parse(JSON.stringify(itemsToDelete))
 
   if(from=="bills_to_pay"){
-
     f=items.filter(i=>(!i.loan_id || i.IsLoanDeleted) && !i.paid).map(i=>i.id)
     s=items.filter(i=>i.loan_id && !i.IsLoanDeleted && !i.paid).map(i=>i.id)
     t=items.filter(i=>(i.loan_id && !i.IsLoanDeleted && i.paid) || ((!i.loan_id || i.IsLoanDeleted) && i.paid)).map(i=>i.id)
-
-  }if(from=="companies"){
-
+  }else if(from=="companies"){
     f=[]
     s=items.map(i=>i.id)
-   
   }else if(from=="bills_to_receive"){
+    f=items.filter(i=>!i.paid).map(i=>i.id)
     t=items.filter(i=>(i.loan_id && !i.IsLoanDeleted && i.paid) || ((!i.loan_id || i.IsLoanDeleted) && i.paid)).map(i=>i.id)  
-  }else if(from=="inflows"){
 
+  }else if(from=="inflows"){
     f=items.filter(i=>!i.loan_id || i.IsLoanDeleted).map(i=>i.id)
     s=items.filter(i=>i.loan_id && !i.IsLoanDeleted).map(i=>i.id)
-
   }else if(from=="managers"){
-
     f=items.filter(i=>i.companies.filter(f=>user.companies.includes(f)).length == 1).map(i=>i.id)
     s=items.filter(i=>i.companies.filter(f=>user.companies.includes(f)).length > 1).map(i=>i.id)
-
   }else if(page=="loans"){
-
     f=items.filter(i=>i.IsBillDeleted || i.IsInflowDeleted).map(i=>i.id)
     s=items.filter(i=>!i.IsBillDeleted && !i.IsInflowDeleted).map(i=>i.id)
-
   }else{
     f=items.map(i=>i.id)
   }
 
   if(f.length){
     setDeleteInfo({...deleteInfo,selected_items:'first'})
+    console.log(1)
   }else  if(f.length==0 && s.length && items.length){
     setDeleteInfo({...deleteInfo,selected_items:'second'})
+    console.log(2)
   }else if(s.length==0 && t.length && items.length){
     setDeleteInfo({...deleteInfo,selected_items:'third'})
+    console.log(3)
   }else{
     setDeleteInfo({...deleteInfo,selected_items:null})
   }
@@ -423,6 +429,8 @@ useEffect(()=>{
 
 
 },[itemsToDelete])
+
+console.log({deleteInfo,itemsToDelete,firstItemsToDelete,secondItemsToDelete,thirdItemsToDelete})
 
 
 useEffect(()=>{
@@ -440,19 +448,19 @@ useEffect(()=>{
                   setShowDeleteDialog(false)
 
                   if(from=="bills_to_pay"){
-                     message=`${!mul && !firstItemsToDelete.length ? t('confirm.this') :(!firstItemsToDelete.length ? t('confirm.the_s') : length) } ${mul && firstItemsToDelete.length || firstItemsToDelete.length && !mul ? t('confirm.of_'):''}  agendamento${mul || (!mul && firstItemsToDelete.length) ? 's':''}  ${mul || (firstItemsToDelete.length && !mul) ? t('confirm.selected_'):''} ${(!mul && firstItemsToDelete.length) && !(firstItemsToDelete.length && !mul) ? t('confirm.selected'):''} ${mul ? 'foram':'foi'} gerado${mul ? 's':''} ${t('confirm.after-the-creation')} ${!mul ? t('confirm.of_one'):t('common.of')} ${t('common.outflow')}${mul ? 's':''} ${t('common.of')} ${t('common.loan')}${mul ? 's':''}. ${mul && !firstItemsToDelete.length ? `(${length} itens ${t('confirm.selected')})`:''}`
+                     message=`${!mul && !firstItemsToDelete.length ? t('confirm.this') :(!firstItemsToDelete.length ? t('confirm.the_s') : length) } ${mul && firstItemsToDelete.length || firstItemsToDelete.length && !mul ? t('confirm.of_'):''}  ${t(`common.${mul ? 'entries':'entry'}`)}${mul || (!mul && firstItemsToDelete.length) ? 's':''}  ${mul || (firstItemsToDelete.length && !mul) ? t('confirm.selected_'):''} ${(!mul && firstItemsToDelete.length) && !(firstItemsToDelete.length && !mul) ? t('confirm.selected'):''} ${mul ? t('confirm.were'):t('confirm.was')} ${t('confirm.generated')}${mul ? 's':''} ${t('confirm.after-the-creation')} ${!mul ? t('confirm.of_one'):t('confirm.of')} ${t('common.outflow')}${mul ? 's':''} ${t('confirm.of')} ${t('common.loan')}${mul ? 's':''}. ${mul && !firstItemsToDelete.length ? `(${length} itens ${t('confirm.selected')})`:''}`
                   }
                   if(from=="inflows"){
-                    message=`${!mul && !firstItemsToDelete.length ? t('confirm.this_') :(!firstItemsToDelete.length ? t('confirm.the_s_') : length) } ${mul && firstItemsToDelete.length ||  firstItemsToDelete.length && !mul ? t('confirm.of_'):''}  entrada${mul || (!mul && firstItemsToDelete.length) ? 's':''}  ${mul || (firstItemsToDelete.length && !mul) ? t('confirm.selected_') :''} ${(!mul && firstItemsToDelete.length) && !(firstItemsToDelete.length && !mul) ? t('confirm.slected_a'):''} ${mul ? 'foram':'foi'} gerada${mul ? 's':''} ${t('confirm.after-the-creation')} ${!mul ? t('confirm.of_one_'):t('common.of')} t('common.inflow.of_one_')${mul ? 's':''} ${t('confirm.of')} ${t('common.loan')}${mul ? 's':''}. ${mul && !firstItemsToDelete.length ? `(${length} itens ${t('confirm.selected')})`:''}`
+                    message=`${!mul && !firstItemsToDelete.length ? t('confirm.this_') :(!firstItemsToDelete.length ? t('confirm.the_s_') : length) } ${mul && firstItemsToDelete.length ||  firstItemsToDelete.length && !mul ? t('confirm.of_'):''}  ${t('common.inflow')}${mul || (!mul && firstItemsToDelete.length) ? 's':''}  ${mul || (firstItemsToDelete.length && !mul) ? t('confirm.selected_') :''} ${(!mul && firstItemsToDelete.length) && !(firstItemsToDelete.length && !mul) ? t('confirm.slected_a'):''} ${mul ? t('confirm.were'):t('confirm.was')} ${t('confirm.generated_')}${mul ? 's':''} ${t('confirm.after-the-creation')} ${!mul ? t('confirm.of_one_'):t('confirm.of')} ${t('common.inflow')}${mul ? 's':''} ${t('confirm.of')} ${t('common.loan')}${mul ? 's':''}. ${mul && !firstItemsToDelete.length ? `(${length} itens ${t('confirm.selected')})`:''}`
                   }
                   if(from=="managers"){
-                    message=`${!mul && !firstItemsToDelete.length ? t('confirm.this') :(!firstItemsToDelete.length ? t('confirm.the_s') : length) } ${mul && firstItemsToDelete.length || firstItemsToDelete.length && !mul ? t('confirm.of_'):''}  ${t('confirm.generated')}${mul || (!mul && firstItemsToDelete.length) ? 's':''}  ${mul || (firstItemsToDelete.length && !mul) ? t('confirm.selected_'):''} ${(!mul && firstItemsToDelete.length) && !(firstItemsToDelete.length && !mul) ? t('confirm.selected') :''} ${mul ? t('confirm.are'):t('confirm.is')} em mais de 1 empresa. ${mul && !firstItemsToDelete.length ? `(${length} itens ${t('common.selected')})`:''}`
+                    message=`${!mul && !firstItemsToDelete.length ? t('confirm.this') :(!firstItemsToDelete.length ? t('confirm.the_s') : length) } ${mul && firstItemsToDelete.length || firstItemsToDelete.length && !mul ? t('confirm.of_'):''}  ${t('confirm.generated')}${mul || (!mul && firstItemsToDelete.length) ? 's':''}  ${mul || (firstItemsToDelete.length && !mul) ? t('confirm.selected_'):''} ${(!mul && firstItemsToDelete.length) && !(firstItemsToDelete.length && !mul) ? t('confirm.selected') :''} ${mul ? t('confirm.are'):t('confirm.is')} ${t('common.in-more-than-one-company')}. ${mul && !firstItemsToDelete.length ? `(${length} itens ${t('common.selected')})`:''}`
                    }
                   if(from=="companies"){
                     message=t('messages.delete-company-msg')
                   }
                   if(from=="loans"){
-                    message=`${!mul && !firstItemsToDelete.length ? t('confirm.this') :(!firstItemsToDelete.length ?  t('confirm.the_') : length) } ${mul && firstItemsToDelete.length ||  firstItemsToDelete.length && !mul ? t('confirm.of_s'):''}  t('common.loan')${mul || (!mul && firstItemsToDelete.length) ? 's':''}  ${mul || (firstItemsToDelete.length && !mul) ? t('confirm.selected'):''} ${(!mul && firstItemsToDelete.length) && !(firstItemsToDelete.length && !mul) ? t('confirm.selected'):''} ${mul ? 'possuem':'possui'} entrada${mul ? 's':''} ${t('common.or')} ${t('common.inflow')}${mul ? 's':''}. ${mul ? `(${length} itens ${t('common.selected')})`:''}`
+                    message=`${!mul && !firstItemsToDelete.length ? t('confirm.this') :(!firstItemsToDelete.length ?  t('confirm.the_') : length) } ${mul && firstItemsToDelete.length ||  firstItemsToDelete.length && !mul ? t('confirm.of_s'):''}  ${t('common.loan')}${mul || (!mul && firstItemsToDelete.length) ? 's':''}  ${mul || (firstItemsToDelete.length && !mul) ? t('confirm.selected'):''} ${(!mul && firstItemsToDelete.length) && !(firstItemsToDelete.length && !mul) ? t('confirm.selected'):''} ${mul ? t('confirm.have'):t('confirm.has')} ${t('common.inflow')}${mul ? 's':''} ${t('confirm.or')} ${t('common.inflow')}${mul ? 's':''}. ${mul ? `(${length} itens ${t('common.selected')})`:''}`
                     buttons=[
                       {id:'go',type:'danger',name:`${t('confirm.delete-and-include')} ${mul ? t('confirm.the_s_')+" "+t('common.inflow-and-outflows'):t('common.inflow-and-outflows')}`},
                       {
@@ -471,14 +479,14 @@ useEffect(()=>{
       }else if(deleteInfo.selected_items=="third"){
 
         setShowDeleteDialog(false)
-
+ 
         if(from=="bills_to_pay" || from=="bills_to_receive"){
-           let t=from=="bills_to_pay" ? 'out' : 'in'
-           message=`${!mul && !secondItemsToDelete.length ? t('confirm.this') :(!secondItemsToDelete.length ? t('confirm.the_s') : length) } ${mul && secondItemsToDelete.length || secondItemsToDelete.length && !mul ? t('confirm.of_s'):''}  ${t('common.entries')}${mul || (!mul && secondItemsToDelete.length) ? 's':''}  ${mul || (secondItemsToDelete.length && !mul) ? t('confirm.selected_s'):''} ${(!mul && secondItemsToDelete.length) && !(secondItemsToDelete.length && !mul) ? t('confirm.selected'):''} ${mul ? t('confirm-have'):t('confirm-has')} ${t=="in" ? t('common.inflow'):t('common.outflow')}${mul ? 's':''}. ${mul ? `(${length} itens ${t('confirm.selected_s')})`:''}`
+           let _t=from=="bills_to_pay" ? 'outflow' : 'inflow'
+           message=`${!mul && !secondItemsToDelete.length ? t('confirm.this') :(!secondItemsToDelete.length ? t('confirm.the_s') : length) } ${mul && secondItemsToDelete.length || secondItemsToDelete.length && !mul ? t('confirm.of_s'):''}  ${t(`common.${mul ? 'entries':'entry'}`)}${mul || (!mul && secondItemsToDelete.length) ? 's':''}  ${mul || (secondItemsToDelete.length && !mul) ? t('confirm.selected_s'):''} ${(!mul && secondItemsToDelete.length) && !(secondItemsToDelete.length && !mul) ? t('confirm.selected'):''} ${mul ? t('confirm.have'):t('confirm.has')} ${_t=="inflow" ? t('common.inflow'):t('common.outflow')}${mul ? 's':''}. ${mul ? `(${length} itens ${t('confirm.selected_s')})`:''}`
            buttons=[
-            {id:'go',type:'danger',name:`${t('confirm.delete-and-include')} ${mul ? t('confirm.the_s_')+" "+t('common.inflow-and-outflows'):t('common.inflow-and-outflows')}`},
+            {id:'go',type:'danger',name:`${t('confirm.delete-and-include')} ${mul ? t('confirm.the_s_')+" "+t('common.'+_t):t('common.'+_t)}`},
             {
-            id:'keep',type:'alert',name:`${t('confirm.delete-and-keep')} ${mul ? t('confirm.the_s_')+" "+t('common.inflow-and-outflows') :t('common.inflow-and-outflows')}`,
+            id:'keep',type:'alert',name:`${t('confirm.delete-and-keep')} ${mul ? t('confirm.the_s_')+" "+t('common.'+_t) :t('common.'+_t)}`,
             },{
              id:false,type:'cancel',name:t('common.cancel'),
          }]
@@ -585,10 +593,19 @@ useEffect(()=>{
                    let loan_id=bills[i].loan_id
 
                    if(deleteInfo.selected_items=="third" && res=="go"){
+
                     let _transations=transations.filter(i=>i.account.id==id)
                     for (let i = 0; i < _transations.length; i++) {
                       if(_transations[i])  await db.transations.put({..._transations[i],deleted:true})
                     } 
+
+                   }else{
+
+                    let _transations=transations.filter(i=>i.account.id==id)
+                    for (let i = 0; i < _transations.length; i++) {
+                      if(_transations[i])  await db.transations.put({..._transations[i],link_payment:false})
+                    } 
+
                    }
 
                    if(loan_id && deleteInfo.selected_items=="second" && res=="go"){
@@ -688,8 +705,11 @@ useEffect(()=>{
        if(deleteInfo.selected_items=="first" && secondItemsToDelete.length){
         setTimeout(()=>{
           setDeleteInfo({...deleteInfo,selected_items:'second'})
+        },200)     
+       }else if(deleteInfo.selected_items=="first" && thirdItemsToDelete.length){
+        setTimeout(()=>{
+          setDeleteInfo({...deleteInfo,selected_items:'third'})
         },200)
-          
        }else if(deleteInfo.selected_items=="second" && thirdItemsToDelete.length){
         setTimeout(()=>{
           setDeleteInfo({...deleteInfo,selected_items:'third'})
@@ -700,7 +720,7 @@ useEffect(()=>{
        }
         setDeleteLinked(initial_delete_linked) 
         setDeleteLoading(false)
-        toast.success('Excluido com sucesso!')
+        toast.success(t('common.deleted-successfully'))
      }
    }
 

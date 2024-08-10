@@ -9,7 +9,6 @@ function SelectPaymentMethod({activePage,setActvePage}) {
   const data=useHomeData()
   const [message,setMessage] =  useState('')
   
-  console.log(data.form)
   return (
     <div className="mt-0 mb-20 w-full">
 
@@ -19,11 +18,9 @@ function SelectPaymentMethod({activePage,setActvePage}) {
             }} className="text-gray-500 underline cursor-pointer ml-3">{t('messages.choose-another-payment')}</span> 
         </div>}
 
-        <PayPalButton activePage={activePage} setActvePage={setActvePage}/>
+        {data.form.method=="Paypal" && <PayPalButton activePage={activePage} setActvePage={setActvePage}/>}
         <SendProof setMessage={setMessage} message={message}/>
 
-
-      
        
         {!data.form.method && <div className="flex flex-col justify-center items-center">
             
@@ -55,13 +52,13 @@ function SelectPaymentMethod({activePage,setActvePage}) {
                          <span className=" font-semibold">{t('common.method')}:</span>
                     
                          <div className="mt-4">
-                            {['Paypal',t('common.transfer')].map(i=>(
+                            {['Paypal','transfer'].map(i=>(
                                 <div  class="flex items-center mb-2" key={i}>
                                     <input onClick={()=>{
                                         data.setForm({...data.form,method:i})
                                     }} id={`default-checkbox`+i} type="checkbox" checked={data.form.method==i ? true : false} value="" class="w-4 h-4 cursor-pointer text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
                                     <span for={`default-checkbox`+i} class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300 cursor-pointer">
-                                        {i}
+                                        {i=="transfer" ? t('common.transfer') : i}
                                         <label className="ml-2 opacity-80">{i=='Paypal' ? `(${t('common.taxes-may-apply')})`:''}</label>
                                     </span>
                                 </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Route, Routes, HashRouter } from 'react-router-dom';
+
 import Dashboard from './pages/dashboard/index';
 import BillsToPay from './pages/payments/bills-to-pay/index'
 import BillsToReceive from './pages/payments/bills-to-receive/index'
@@ -63,6 +64,12 @@ import FirstStart from './pages/setup/index'
 import UserPreferences from './pages/user-preferences/index'
 
 import NotFound from './pages/404/index';
+
+import Faq from '../src/landingpage/pages/faq/index';
+import Invoice from '../src/landingpage/pages/invoice/index';
+
+
+
 
 function App() {
 
@@ -146,13 +153,18 @@ function App() {
         <Route path="reports/global" element={<ProtectedRoute redirectTo="/login"> <AccountsAndBalanceReports/> </ProtectedRoute>} />
     
         <Route path="/reset" element={<ProtectedRoute redirectTo="/reset"> <Dashboard/></ProtectedRoute>} />
-    
+        
         <Route path="/login" element={ <Login/>} />
         <Route path="/recover-password" element={ <Login/>} />
         <Route path="/admin" element={ <Admin/>} />
         <Route path="/new-company" element={ <FirstStart/>} />
         <Route path="/confirm-invite" element={ <FirstStart/>} />
         <Route path="/logout" element={<ProtectedRoute redirectTo="/logout">  </ProtectedRoute>} />
+
+        <Route path="/faq" element={ <Faq/>} />
+
+        <Route path="/invoice/:invoice_number" element={ <Invoice/>} />
+        
         <Route path="*" element={<NotFound />} />
       </Routes>
 

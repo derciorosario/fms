@@ -40,6 +40,7 @@ const DefaultLayout = ({ children , details ,isPopUp,loading,_isLoading}) => {
       <>
 
       <PrintTable/>
+      
      <div className={`${_menu ? '__open':''}`}>
       {/* <!-- ===== Page Wrapper Start ===== --> */}
       <div className="flex h-screen overflow-hidden">

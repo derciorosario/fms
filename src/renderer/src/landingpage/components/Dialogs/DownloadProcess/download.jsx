@@ -13,9 +13,9 @@ function Download() {
     const handleCopyClick = (text) => {
         toast.remove()
         navigator.clipboard.writeText(text).then(() => {
-            toast.success('Texto copiado!');
+            toast.success(t('messages.text-copied'));
         }).catch(err => {
-            toast.success('Texto copiado!');
+            toast.error('Error');
         });
     }
 

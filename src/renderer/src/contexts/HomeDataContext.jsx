@@ -2,6 +2,7 @@ import { createContext, useContext,useState,useEffect, useRef} from 'react';
 import axios from 'axios';
 import Preloader from '../landingpage/assets/icon.png'
 import html2pdf from 'html2pdf.js';
+import { t } from 'i18next';
 
 const HomeDataContext = createContext();
 export const HomeDataProvider = ({ children }) => {
@@ -71,12 +72,12 @@ export const HomeDataProvider = ({ children }) => {
 
 
 
-    const downloadPDF = () => {
+    const downloadPDF = (id,name) => {
 
-      const element = document.getElementById('content-to-download');
+      const element = document.getElementById(id);
       const options = {
         margin: 1,
-        filename: `${t('common.invoice')}${form.invoice?.invoice_number ? form.invoice?.invoice_number : ''}.pdf`,
+        filename: `${name}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
@@ -156,6 +157,7 @@ export const HomeDataProvider = ({ children }) => {
 
 
       const _scrollToSection = (to) => {
+          return
           const Section = document.getElementById(to);
           if (Section) {
             Section.scrollIntoView({ behavior: (to=="home" || to=="about" || to=="contact") ? 'smooth':'instant' });

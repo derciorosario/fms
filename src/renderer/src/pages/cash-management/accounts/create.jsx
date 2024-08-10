@@ -75,25 +75,25 @@ import { v4 as uuidv4 } from 'uuid';
                      return
                   }
                   if(items.some(i=>i.description.toLowerCase() == formData.description.toLowerCase() && i.id!=id)){
-                     toast.error('Descrição já existe')
+                     toast.error(t('common.description-exists'))
                      return
                   }
 
                    try{
                      if(id){
                         _update('accounts',[{...formData}])
-                        toast.success('Conta actualizada')
+                        toast.success(t('common.updated-successfully'))
                      }else{
                         let id=uuidv4()
                         _add('accounts',[{...formData,id,_id:uuidv4()}])
                         setVerifiedInputs([])
-                        toast.success('Conta adicionada')
+                        toast.success(t('common.added-successfully'))
                         if(parseInt(formData.initial_amount)){
                            _add('transations',[{
                               id:uuidv4(),
                               _id:uuidv4(),
                               type:parseFloat(formData.initial_amount) < 0 ? 'out' : 'in',
-                              description:`Valor inicial (${formData.name})`,
+                              description:t('common.initial-value')+` (${formData.name})`,
                               deleted:false,
                               amount:parseInt(formData.initial_amount.replaceAll('-','')),
                               payment_origin:'initial',
@@ -164,10 +164,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 
                         <div>
+
                           <TextField
                            id="outlined-textarea"
-                           label="Valor inicial *"
-                           placeholder="Valor inicial"
+                           label={t('common.initial-amount')}
+                           placeholder=""
                            multiline
                            disabled={id ? true : false}
                            value={formData.initial_amount}
@@ -178,6 +179,7 @@ import { v4 as uuidv4 } from 'uuid';
                            sx={{width:'100%','& .MuiInputBase-root':{height:40}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                            '& .MuiFormLabel-filled.MuiInputLabel-root': { top:0},'& .MuiInputLabel-root':{ top:-8}}}
                            />
+
                         </div>
 
                         <div>
@@ -187,12 +189,12 @@ import { v4 as uuidv4 } from 'uuid';
                                  helperText={(!formData.last_transation_date) && verifiedInputs.includes('last_transation_date') ? t('common.required-field') :''}
                                  onBlur={()=>validate_feild('last_transation_date')}
                                  error={((!formData.last_transation_date) && verifiedInputs.includes('last_transation_date')) && (dayjs(formData.last_transation_date).$d.toString() != "Invalid Date" && formData.last_transation_date) ? true : true}
-                                 value={dayjs(formData.last_transation_date).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.last_transation_date)) : null}  inputFormat="DD-MM-YYYY" onChange={(e)=>setFormData({...formData,last_transation_date:e.$d})}  size="small" label="Data da última transação"  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, 
+                                 value={dayjs(formData.last_transation_date).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.last_transation_date)) : null}  inputFormat="DD-MM-YYYY" onChange={(e)=>setFormData({...formData,last_transation_date:e.$d})}  size="small" label={t('common.last-transaction-date')}  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, 
                                        '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                        '& .MuiStack-root': { paddingTop:0},'& .MuiInputLabel-root':{ top:-8}}}
                                        />
                            </LocalizationProvider>
-                        </div>
+                       </div>
                
        
                        <div className="w-[100%]">

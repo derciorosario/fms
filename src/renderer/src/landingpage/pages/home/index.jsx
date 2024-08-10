@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Header from '../../components/header'
 import DefaultLayout from '../../layout/DefaultLayout'
 import IntroImage from '../../assets/images/intro.png'
@@ -12,14 +12,37 @@ import DownloadProcess from '../../components/Dialogs/DownloadProcess'
 import toast from 'react-hot-toast';
 import DownloadPopUp from '../../components/Dialogs/download-popup'
 import { useNavigate } from 'react-router-dom'
+import TransaparentPageLoader from '../../../components/progress/transparentPageloader'
 
 function index() {
   const [showVideo,setShowVideo]=useState(false)
   const [showDownloadProcess,setShowDownloadProcess]=useState(false)
   const navigate=useNavigate()
   const data=useHomeData()
+  const [openStart,setOpenSart]=useState(null)
+  const [loading,setLoading]=useState(false)
+  const [translateTextY,setTranslateTextY]=useState(0)
+  const elementRef = useRef(null);
 
-  function validate_email(){
+
+  const [isMobileSize,setIsMobileSize]=useState(window.innerWidth <= 1024)
+  useEffect(()=>{
+      if(isMobileSize){
+        if(!openStart) setOpenSart('demo')
+      }
+  },[isMobileSize])
+  function handleResize(){
+      setIsMobileSize(window.innerWidth <= 1024)
+  }
+  useEffect(() => {
+      window.addEventListener("resize", handleResize);
+     /* return () => {
+        document.removeEventListener("resize", handleResize);
+      };*/
+  }, []);
+
+
+  async function validate_email(){
     toast.remove()
 
     if(!data.form.email1) {
@@ -32,21 +55,71 @@ function index() {
               return
     }
 
+   
+
+
+    if(openStart=="demo"){
+        setLoading(true)
+
+        try{
+
+            await data.makeRequest({method:'get',url:`request-demo/`+data.form.email1, error: ``},0);
+            toast.success(t('common.email-sent-2'))
+            setLoading(false)
+            setOpenSart(null)
+
+
+        }catch(e){
+
+            if(e.code=="ERR_NETWORK"){
+                toast.error(t('common.check-network'))
+            }else{
+                toast.error(t('messages.try-again'))
+            }
+            setLoading(false)
+
+        }
+
+        return
+    }
+
+  
+
     data.register()
     setShowDownloadProcess(true)
   }
 
   const [whyItems,setWhyItems]=useState([])
   const [features,setFeatures]=useState([])
-  const [faq,setFaq]=useState([
-    {title:'What is Forex trading, and how does it work?',content:'Forex trading is the practice of buying and selling currencies in order to make a profit. It works by taking advantage of fluctuations in exchange rates between different currencies. For example, if you believe that the value of the US dollar will rise against the euro, you can buy dollars and sell euros. If your prediction is correct, you will make a profit.'},
-    {title:'What is Forex trading, and how does it work?',content:'Forex trading is the practice of buying and selling currencies in order to make a profit. It works by taking advantage of fluctuations in exchange rates between different currencies. For example, if you believe that the value of the US dollar will rise against the euro, you can buy dollars and sell euros. If your prediction is correct, you will make a profit.'},
-    {title:'What is Forex trading, and how does it work?',content:'Forex trading is the practice of buying and selling currencies in order to make a profit. It works by taking advantage of fluctuations in exchange rates between different currencies. For example, if you believe that the value of the US dollar will rise against the euro, you can buy dollars and sell euros. If your prediction is correct, you will make a profit.'},
-    {title:'What is Forex trading, and how does it work?',content:'Forex trading is the practice of buying and selling currencies in order to make a profit. It works by taking advantage of fluctuations in exchange rates between different currencies. For example, if you believe that the value of the US dollar will rise against the euro, you can buy dollars and sell euros. If your prediction is correct, you will make a profit.'}
-  ])
+  const [slideMessages,setSlideMessages]=useState([])
 
-  const [openFaq,setOpenFaq]=useState(null)
 
+
+  useEffect(()=>{
+
+    const time_=3000
+    let current_trans_value=0
+    let index=0
+    setInterval(()=>{
+           if(elementRef.current) elementRef.current.style.transition = "0.7s";
+          current_trans_value+=1
+          index++
+         setTranslateTextY(current_trans_value)
+          if (index >= 3) {
+                index=0
+                setTimeout(()=>{
+                    if(elementRef.current) elementRef.current.style.transition = "0s";
+                    index=0
+                    current_trans_value=0
+                    setTranslateTextY(0)
+                },700)
+          }
+
+    },time_)
+},[])
+
+
+ 
 
   useEffect(()=>{
     setWhyItems([
@@ -59,14 +132,24 @@ function index() {
         {sub_title:'Event',title:t('titles.new-era-in-theworkspace'),text:'Lorem, ipsum dolor sit amet consectetur adipisicing elit. Est, distinctio qui? Inventore deserunt fugiat unde iste laboriosam officia dignissimos consequuntur soluta aliquid exercitationem tempora a sed ratione, similique nesciunt explicabo!'},
         {sub_title:'Event',title:t('titles.new-era-in-theworkspace'),text:'Lorem, ipsum dolor sit amet consectetur adipisicing elit. Est, distinctio qui? Inventore deserunt fugiat unde iste laboriosam officia dignissimos consequuntur soluta aliquid exercitationem tempora a sed ratione, similique nesciunt explicabo!'}
     ])
+
+    setSlideMessages([
+        t('slides.msg-1'),
+        t('slides.msg-2'),
+        t('slides.msg-3'),
+        t('slides.msg-1')
+    ])
 },[i18n.language])
+
 
 
   return (
     <DefaultLayout> 
+           {loading && <TransaparentPageLoader setLoading={setLoading}/>}
            <DownloadPopUp/>
            <DownloadProcess show={showDownloadProcess} setShow={setShowDownloadProcess}/>
            <VideoIntro show={showVideo} setShow={setShowVideo}/>
+
 
            <div onClick={()=>{
 
@@ -75,26 +158,75 @@ function index() {
             }} className={`bg-[#ff4800] ${data.scrollY > 300 ? 'opacity-1':' translate-y-[100px]'} transition ease-in cursor-pointer hover:opacity-90 w-[40px] h-[40px] fixed right-3 bottom-3 z-20 rounded-full flex items-center justify-center`}><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M440-160v-487L216-423l-56-57 320-320 320 320-56 57-224-224v487h-80Z"/></svg></div>
 
                <div id="home">
-                    <div className="w-full h-[100vh] bg-[#ff7626] flex items-center justify-center flex-col px-7">
-                        <h2 className="lg:text-[70px] md:text-[50px] max-md:text-[35px] max-w-[900px] mx-auto text-center text-white font-bold p-0 mt-4">ProConta - Seu negócio sempre na mão</h2>
-                        
-                        <p className="text-white opacity-70 my-6 mx-auto max-w-[700px] text-center">At FinFlow, we are dedicated to providing our clients with a professional and reliable Forex trading experience.</p>
+
+                    <div className="w-full hero h-[80vh] max-md:min-h-[100vh] bg-[#ff7626] flex items-center justify-center flex-col px-7">
+                    <div className="circle">
+
+                    </div>
+                   
+    	                  		
+    	                  		 
+    	                  	
+
+
+                        <h2 className="lg:text-[70px] md:text-[50px] max-md:text-[35px] max-w-[900px] mx-auto text-center text-white font-bold p-0 mt-4">ProConta</h2>
+                        <div class="animated-container">
+    	                  		 	<div className="w-full h-[60px] overflow-hidden mt-2 mb-8 flex justify-center">
+                                        <div class="animated-div h-[60px]" ref={elementRef} style={{transform:`translateY(-${translateTextY * 60}px)`}}>
+                                                        {slideMessages.map(i=>(
+                                                            <span  className="h-[60px] text-[50px] text-center justify-center max-md:text-[20px] font-bold flex items-center text-white">{i}</span>
+                                                        ))}
+                                                                
+                                        </div>
+                                    </div>
+    	                </div>
+                        <p className="text-white hidden opacity-70 my-6 mx-auto max-w-[700px] text-center">At FinFlow, we are dedicated to providing our clients with a professional and reliable Forex trading experience.</p>
                         
                         <span onClick={()=>{
                             navigate('/login')
                         }} className="text-gray-700  my-5 mb-8  sm:hidden text-[16px] inline-table px-5 py-3 rounded-full bg-white  hover:bg-yellow-500 hover:scale-[1.1] transition-all duration-75 ease-linear cursor-pointer">
-                            {t('common.login')}
+                            {t('common.go-to-app')}
                         </span>
                          
-                        <div className="md:min-w-[500px] max-sm:flex-col max-sm:w-full rounded-[0.3rem] sm:rounded-full bg-white p-1 flex items-center">
-                            <div className="w-full flex items-center h-[50px]">
-                                <span className="pl-3"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"/></svg></span>
-                                <input onChange={(e=>(
-                                    data.setForm({...data.form,email1:e.target.value})
-                                ))} value={data.form.email1} placeholder="seunome@empresa.com" className="outline-none flex-1 px-3 bg-transparent" />
-                            
+                        <div className="flex max-sm:flex-col w-full justify-center">
+                        
+                            <div className={`mr-4 transition-all max-sm:mb-0 duration-150 ease-in ${openStart=="sub" ? 'md:min-w-[500px] bg-white':'0 overflow-hidden'}   max-sm:flex-col max-sm:w-full rounded-[0.3rem] sm:rounded-full  p-1 flex items-center`}>
+                                 <div className={`overflow-hidden  ${openStart=="sub" ? 'w-full':'w-0'}  flex items-center h-[50px]`}>
+                                    <span className="pl-3"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"/></svg></span>
+                                    <input id="sub" onChange={(e=>(
+                                        data.setForm({...data.form,email1:e.target.value})
+                                    ))} value={data.form.email1} placeholder={t('common.email-mask')} className="outline-none flex-1 px-3 bg-transparent" />
+                                </div>
+                                <button onClick={()=>{
+                                    if(openStart=="sub"){
+                                        validate_email()
+                                    }else{
+                                        setOpenSart("sub")
+                                    }
+                                    document.getElementById('sub').focus()
+                                }} className={`px-7  sm:h-full h-[100%]  max-sm:w-full max-sm:h-auto max-sm:py-3  rounded-full  transition-all duration-100 sm:rounded-full border-[2px] border-[transaparent] ${openStart=="sub" ? 'bg-[#ff7626] hover:scale-[1.1] text-white':'text-gray-500 bg-white'} `}>{t('common.make-subscription')}</button>
                             </div>
-                            <button onClick={validate_email} className="px-7 sm:h-full h-[40px] max-sm:w-full  rounded-[0.3rem] hover:scale-[1.1] transition-all duration-100 sm:rounded-full bg-black text-white">Registar</button>
+
+
+                            <div className={`${openStart=="demo" && isMobileSize ? 'mt-4':''} transition-all duration-150 ease-in ${openStart=="demo" ? 'md:min-w-[500px] bg-white':'0 overflow-hidden'} max-md:${openStart!="demo" ? 'translate-y-[-20px]': ''}   max-sm:flex-col max-sm:w-full rounded-[0.3rem] sm:rounded-full  p-1 flex items-center`}>
+                                 <div className={`overflow-hidden  ${openStart=="demo" ? 'w-full':'w-0'}  flex items-center h-[50px]`}>
+                                    <span className="pl-3"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"/></svg></span>
+                                    <input id="demo" onChange={(e=>(
+                                        data.setForm({...data.form,email1:e.target.value})
+                                    ))} value={data.form.email1} placeholder={t('common.email-mask')} className="outline-none flex-1 px-3 bg-transparent" />
+                                </div>
+                                <button onClick={()=>{
+                                    if(openStart=="demo"){
+                                        validate_email()
+                                    }else{
+                                        setOpenSart("demo")
+                                    }
+                                    document.getElementById('demo').focus()
+                                }} className={`px-7  sm:h-full h-[100%] max-sm:w-full max-sm:h-auto max-sm:py-3  rounded-full   transition-all duration-100 sm:rounded-full border-[2px] border-[transaparent] ${openStart=="demo" ? 'bg-[#ff7626] hover:scale-[1.1] text-white':'text-white'} `}>{t('common.ask-for-demostration')}</button>
+                            </div>
+
+                            
+
                         </div>
 
                 </div>
@@ -114,10 +246,10 @@ function index() {
                     <div className="absolute left-0 top-0 w-full h-[50%] bg-[#ff7626]">
 
                     </div>
-                    <div className="w-[80%] translate-y-[-20px] mx-auto rounded-[1rem] overflow-hidden intro-image-div z-10 relative">
+                    <div className="w-[80%] translate-y-[0px] mx-auto rounded-[1rem] overflow-hidden intro-image-div z-10 relative">
                         <img className="w-full" src={IntroImage}/>
                         <a href="#">
-                            <div onClick={()=>setShowVideo(true)} className="play-btn w-[70px] h-[70px] rounded-full bg-red-500 absolute top-[50%] left-[50%] flex items-center justify-center">
+                            <div onClick={()=>setShowVideo(true)} className="play-btn w-[70px] h-[70px] rounded-full bg-red-500 absolute top-[50%] left-[50%] max-md:top-[25%] flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" fill="#fff"><path d="M320-200v-560l440 280-440 280Z"/></svg>
                                     
                         </div>
@@ -169,11 +301,17 @@ function index() {
                    </div>
                    <div className="ml-10 flex flex-col justify-center max-md:mt-10">
                          <div className="max-w-[500px]">
-                            <h2 className="text-[20px]  font-semibold  mb-5 uppercase text-[#ff7626]">Advanced Algorithmic Trading</h2>
-                            <h3 className="text-[36px]  font-semibold mb-6">Smarter investing made simple</h3>
-                            <p className="text-gray-400 text-[17px]">The industry-leading trading platform, offering advanced charting tools, real-time market data, and customizable indicators.</p>
+                            <h2 className="text-[20px]  font-semibold  mb-5 uppercase text-[#ff7626]">{t('section.ask-for-accounting-3')}</h2>
+                            <h3 className="text-[36px]  font-semibold mb-6">{t('section.ask-for-accounting-2')}</h3>
+                            <p className="text-gray-400 text-[17px]">{t('section.ask-for-accounting-1')}</p>
                         
-                         </div>
+
+                            <div className="flex mt-7">
+                                <span  className="text-white  text-[16px] min-w-[100px] flex justify-center px-5 py-3 rounded-full bg-[#ff7626]  hover:bg-yellow-500 hover:scale-[1.1] transition-all duration-75 ease-linear cursor-pointer">
+                                    <a href="https://alinvest-group.com">{t('common.know-more')}</a>
+                                </span>
+                            </div>
+                         </div> 
                     </div>
                </div>
 
@@ -189,7 +327,7 @@ function index() {
                       </p>
 
                       <div className="flex mt-4 items-center">
-                          <div className="w-[55px] h-[55px] rounded-full border-[3px] bg-app_primary-300 border-white t-avatar">
+                          <div className="w-[55px] h-[55px] t-avatar rounded-full border-[3px] bg-app_primary-300 border-white t-avatar">
 
                           </div>
                           <span  className="text-white text-[20px] ml-2">Ana Maia</span>
@@ -281,45 +419,32 @@ function index() {
 
 
 
-               <div className="px-7">
-
-                      <h3 className="max-w-[700px] mx-auto text-center text-[45px] font-semibold mb-6 max-md:text-[27px]">FAQ</h3>
-                      <div className="max-w-[700px] mx-auto">
-                          {faq.map((i,_i)=>(
-                                <div className={`faq-item ${openFaq==_i ?'active' :''}`}>
-                                  <div className={`flex rounded-[0.3rem] justify-between p-3 cursor-pointer hover:bg-white ${openFaq==_i ?'bg-white' :''}`}  onClick={()=>{
-                                        if(openFaq != _i) {
-                                        setOpenFaq(_i)
-                                        }else{
-                                        setOpenFaq(null)
-                                        }
-                                  }}>
-                                        <h3 className=" font-semibold">{i.title}</h3>
-                                        <div>
-                                            {openFaq==_i && <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="#5f6368"><path d="M200-440v-80h560v80H200Z"/></svg>}
-                                            {openFaq!=_i && <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960"  fill="#5f6368"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>}
-                                        </div>
-                                  </div>
-                                  <div className="p-3 faq-content">
-                                     <p className="text-[15px]">{i.content}</p>
-                                  </div>
-                            </div>
-                          ))}
-                      </div>
-               </div>
 
 
-               <div id="support" className="w-full px-7 flex-col items-center pb-[200px] bg-[#ff7626] flex   mt-20">
+               <div id="support" className="w-full px-7 flex-col items-center pb-[200px] bg-[#fff] flex border-t border-t-gray-200   mt-20">
                        
                         <h3 className="max-w-[700px] mx-auto text-center text-[45px] font-semibold mb-6 text-white  max-md:text-[27px] mt-20">Have more questions? Don’t hesitate to reach us</h3>
                        
                         <div className="flex items-center mb-5">                
-                              <svg xmlns="http://www.w3.org/2000/svg" height="28px" viewBox="0 -960 960 960" fill={'#ddd'}><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"/></svg>
-                              <span className="text-white ml-3 text-[20px]"><a href="mailto:hello@proconta.com">hello@proconta.com</a></span>
+                              <span className="flex w-[30px] h-[30px] rounded-full items-center border-[2px] border-[#ff7626] justify-center">
+                                     <svg xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 -960 960 960" fill={'#ff7626'}><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"/></svg>
+                              </span>
+                              <span className="text-gray-500 ml-3 text-[20px] hover:underline"><a href="mailto:proconta@alinvest-group.com" target="_blank">proconta@alinvest-group.com</a></span>
                         </div>
-                        <div className="flex items-center mb-2">                
-                              <svg xmlns="http://www.w3.org/2000/svg" height="28px" viewBox="0 -960 960 960" fill="#ddd"><path d="M798-120q-125 0-247-54.5T329-329Q229-429 174.5-551T120-798q0-18 12-30t30-12h162q14 0 25 9.5t13 22.5l26 140q2 16-1 27t-11 19l-97 98q20 37 47.5 71.5T387-386q31 31 65 57.5t72 48.5l94-94q9-9 23.5-13.5T670-390l138 28q14 4 23 14.5t9 23.5v162q0 18-12 30t-30 12Z"/></svg>
-                              <span className="text-white ml-3 text-[20px]"><a href="mailto:hello@proconta.com">+258 856462304</a></span>
+                        <div className="flex items-center mb-3">  
+                             <span className="flex w-[30px] h-[30px] rounded-full items-center border-[2px] border-[#ff7626] justify-center">
+                               <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" fill="#ff7626"><path d="M798-120q-125 0-247-54.5T329-329Q229-429 174.5-551T120-798q0-18 12-30t30-12h162q14 0 25 9.5t13 22.5l26 140q2 16-1 27t-11 19l-97 98q20 37 47.5 71.5T387-386q31 31 65 57.5t72 48.5l94-94q9-9 23.5-13.5T670-390l138 28q14 4 23 14.5t9 23.5v162q0 18-12 30t-30 12Z"/></svg>
+                             
+                            </span>              
+                              <span className="text-gray-500 ml-3 text-[19px]"><a>+258 87 870 7590</a></span>
+                        </div>
+
+                        <div className="flex items-center mb-2">
+                                <span className="flex cursor-pointer hover:underline w-[30px] h-[30px] rounded-full items-center border-[2px] border-[#ff7626] justify-center">
+                                <svg  xmlns="http://www.w3.org/2000/svg" width="18px"  fill="#ff7626" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M18.403 5.633A8.919 8.919 0 0 0 12.053 3c-4.948 0-8.976 4.027-8.978 8.977 0 1.582.413 3.126 1.198 4.488L3 21.116l4.759-1.249a8.981 8.981 0 0 0 4.29 1.093h.004c4.947 0 8.975-4.027 8.977-8.977a8.926 8.926 0 0 0-2.627-6.35m-6.35 13.812h-.003a7.446 7.446 0 0 1-3.798-1.041l-.272-.162-2.824.741.753-2.753-.177-.282a7.448 7.448 0 0 1-1.141-3.971c.002-4.114 3.349-7.461 7.465-7.461a7.413 7.413 0 0 1 5.275 2.188 7.42 7.42 0 0 1 2.183 5.279c-.002 4.114-3.349 7.462-7.461 7.462m4.093-5.589c-.225-.113-1.327-.655-1.533-.73-.205-.075-.354-.112-.504.112s-.58.729-.711.879-.262.168-.486.056-.947-.349-1.804-1.113c-.667-.595-1.117-1.329-1.248-1.554s-.014-.346.099-.458c.101-.1.224-.262.336-.393.112-.131.149-.224.224-.374s.038-.281-.019-.393c-.056-.113-.505-1.217-.692-1.666-.181-.435-.366-.377-.504-.383a9.65 9.65 0 0 0-.429-.008.826.826 0 0 0-.599.28c-.206.225-.785.767-.785 1.871s.804 2.171.916 2.321c.112.15 1.582 2.415 3.832 3.387.536.231.954.369 1.279.473.537.171 1.026.146 1.413.089.431-.064 1.327-.542 1.514-1.066.187-.524.187-.973.131-1.067-.056-.094-.207-.151-.43-.263"></path></svg>
+                                
+                               </span>                  
+                               <span className="text-gray-500 ml-3 text-[19px] cursor-pointer hover:underline"><a target="_blank" href="https://wa.me/258878707590">{t('common.our-whatsapp')}</a></span>
                         </div>
 
                      

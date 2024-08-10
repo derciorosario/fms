@@ -36,7 +36,7 @@ function App() {
 
 
       if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.a.email) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.c.email)){
-        toast.error('Email invalido')
+        toast.error(t('common.invalid-email'))
         return
       }
 
@@ -52,16 +52,16 @@ function App() {
 
         if(!valid){
             toast.remove() 
-            toast.error('Preencha todos os campos!')
+            toast.error(t('common.fill-all-requied-fields'))
             return
         }
 
-        toast.loading('A anviar...')
+        toast.loading(t('common.sending'))
 
         try{
             let response = await makeRequest({method:'post',url:`api/company/create`,data:formData, error: ``},0);
             toast.remove()
-            toast.success('Empresa adicionada!')
+            toast.success(t('messages.company-created-msg'))
             setFormData(initial_form)
             console.log(response)
         }catch(e){
@@ -69,7 +69,7 @@ function App() {
             
           if(e.response){
                 if(e.response.status==409){
-                    toast.error('Empresa já existe!')
+                    toast.error(t('common.company-exists'))
                 }
                 
           }else if(e.code=='ERR_NETWORK'){

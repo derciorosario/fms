@@ -13,8 +13,8 @@ function DefaultLayout({children}) {
   const data=useHomeData()
 
   return (
-    <div id={'top'} className="min-h-[100vh]">
-
+    <div id={'top'} className="min-h-[100vh] relative">
+          <div className="dots"></div>
           {data.isLoading && <Preloader/>}
           <Sidebar setOpenSidebar={setOpenSidebar} openSidebar={openSidebar}/>
             <div onClick={()=>{

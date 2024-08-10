@@ -5,7 +5,7 @@ import { t } from 'i18next';
 
 function FirstUsePerson({formData,setFormData,useExistingAccount,IsRegister,exists}) {
 
-    
+  const [showPassword,setShowPassword]=useState(false)
 
   return (
     <>
@@ -34,10 +34,11 @@ function FirstUsePerson({formData,setFormData,useExistingAccount,IsRegister,exis
            </div>
         </div>
 
-        {!exists && <div class={`md:col-span-3`}>
+        {!exists && <div class={`md:col-span-3 relative`}>
             <label for="address">{useExistingAccount ? t('common.password') : t('common.new-password')}</label>
+            <label onClick={()=>setShowPassword(!showPassword)} className="absolute top-0 cursor-pointer hover:underline right-0 text-blue-400 text-[0.8rem]">{t(`common.${showPassword ? 'hide-password':'show-password'}`)}</label>
             <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
-                  <input onChange={(e)=>setFormData({...formData,personal:{...formData.personal,password:e.target.value.replaceAll(' ','')}})} value={formData.personal.password} placeholder={t('common.password-was-to-have-more-than-8')} id="state"  class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
+                  <input type={showPassword ? 'text':'password'} onChange={(e)=>setFormData({...formData,personal:{...formData.personal,password:e.target.value.replaceAll(' ','')}})} value={formData.personal.password} placeholder={t('common.password-was-to-have-more-than-8')} id="state"  class="px-4 appearance-none outline-none text-gray-800 w-full bg-transparent"  />
                   {formData.personal.password.length >= 8  && <VerifiedIcon/> }
            </div>
         </div>}
@@ -68,7 +69,7 @@ function FirstUsePerson({formData,setFormData,useExistingAccount,IsRegister,exis
             <label for="state">{t('common.city-or-pronvice')}</label>
             <div class="h-10 bg-gray-50  flex border border-gray-200 rounded items-center mt-1">
                 <select onChange={(e)=>setFormData({...formData,personal:{...formData.personal,state:e.target.value}})} value={formData.personal.state} className="w-full h-full px-2">
-                        <option selected value="" disabled>Selecione</option>
+                        <option selected value="" disabled>{t('common.select')}</option>
                         <option value="maputo">Maputo</option>
                         <option value="maputo-provincia">Maputo (Província)</option>
                         <option value="gaza">Gaza</option>

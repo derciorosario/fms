@@ -9,6 +9,7 @@ import DefaultButton from '../../../components/Buttons/default';
 import colors from '../../../assets/colors.json'
 import { useAuth } from '../../../contexts/AuthContext';
 import { t } from 'i18next';
+import i18n from '../../../i18n';
 function App() {
 
   const {_setRequiredData,_get_dre_stats,_transations,_bills_to_pay,_bills_to_receive,_loaded,_get,_print_exportExcel,_investments} = useData();
@@ -49,6 +50,7 @@ function App() {
     {
       field:'_show_projected',
       name:t('common.view_'),
+      t_name:'view_',
       page:'cash-managemnt-stats',
       not_fetchable:true,
       igual:true,
@@ -57,7 +59,7 @@ function App() {
       hide_search:true,
       single:true,
       groups:[
-        {field:'_show_projected',name:t('common.month'),items:[{name:t('common.projectedAndDone'),id:1},{name:t('common.done'),id:2,selected:true},{name:t('common.projected'),id:3}],selected_ids:[2],default_ids:[2]}
+        {field:'_show_projected',name:t('common.month'),items:[{name:t('common.projectedAndDone'),t_name:'projectedAndDone',id:1},{name:t('common.done'),t_name:'done',id:2,selected:true},{name:t('common.projected'),t_name:'projected',id:3}],selected_ids:[2],default_ids:[2]}
       ]
     },
     
@@ -65,6 +67,7 @@ function App() {
     {
         field:'_week_and_month',
         name:t('common.period'),
+        t_name:'period',
         page:'cash-managemnt-stats',
         igual:true,
         not_fetchable:true,
@@ -72,7 +75,7 @@ function App() {
         search:'',
         single:true,
         groups:[
-          {field:'_week_and_month',name:t('common.period'),items:[{id:'week',name:t('common.daily'),to:'/reports/dre/daily',selected:pathname.includes('/daily') ? true : false},{id:'month',name:t('common.monthly'),selected:!pathname.includes('/daily') ? true :false,to:'/reports/dre/monthly'}],selected_ids:['month']}
+          {field:'_week_and_month',name:t('common.period'),items:[{id:'week',name:t('common.daily'),t_name:'daily',to:'/reports/dre/daily',selected:pathname.includes('/daily') ? true : false},{id:'month',name:t('common.monthly'),t_name:'monthly',selected:!pathname.includes('/daily') ? true :false,to:'/reports/dre/monthly'}],selected_ids:['month']}
         ]
       },
    
@@ -106,6 +109,7 @@ useEffect(()=>{
       {
         field:'_month',
         name:t('common.month'),
+        t_name:'month',
         page:'cash-managemnt-stats',
         not_fetchable:true,
         igual:true,
@@ -156,6 +160,7 @@ useEffect(()=>{
     {
       field:'_year',
       name:t('common.year'),
+      t_name:'year',
       page:'cash-managemnt-stats',
       not_fetchable:true,
       igual:true,
@@ -170,25 +175,8 @@ useEffect(()=>{
   ]))
 
  
-},[_transations,_bills_to_pay,_bills_to_receive,pathname])
+},[_transations,_bills_to_pay,_bills_to_receive,pathname,i18n.language])
 
-
-const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
-    open:false,
-    igual:true,
-    startDate:null,
-    endDate:null,
-    name:t('common.period'),
-    search:'',
-    field:'_transations',
-    groups:[{field:'period',name:t('common.period'),items:[
-      {id:'this_week',name:t('common.this-week')},
-      {id:'this_month',name:t('common.this-month')},
-      {id:'last_month',name:t('common.last-month')},
-      {id:'this_year',name:t('common.this-year')}
-    ],selected_ids:[]}]
-     
-  })
 
 
   
@@ -224,13 +212,13 @@ const [datePickerPeriodOptions,setDatePickerPeriodOptions]=React.useState({
   return (
     <>
     
-        <DefaultLayout details={{name:'Dermostração de resutados'}} _isLoading={!initialized}>
+        <DefaultLayout details={{name:t('common.result-demostration')}} _isLoading={!initialized}>
         
     
         <div className="flex flex-wrap bg-white p-3 mb-2 shadow z-10 rounded-[0.3rem]">
                
                 <div className="mr-4 hidden">
-                   <DefaultButton text={'Actualizar'} no_bg={true} disabled={false}/>
+                   <DefaultButton text={t('common.update')} no_bg={true} disabled={false}/>
                 </div>
             
                 {/**<DatePickerRange open={datePickerPeriodOptions.open} options={datePickerPeriodOptions} setFilterOPtions={setDatePickerPeriodOptions}/>**/ }   

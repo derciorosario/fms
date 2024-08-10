@@ -27,10 +27,7 @@ function App({float}) {
     let {pathname} = useLocation()
 
 
-    function handleResize(){
-            setKeepFloat(window.innerWidth <= 1024)
-    }
-
+  
     useEffect(()=>{
 
        
@@ -45,8 +42,10 @@ function App({float}) {
 
     },[keepFloat])
 
-    console.log({keepFloat,m:_menu.open})
     
+    function handleResize(){
+        setKeepFloat(window.innerWidth <= 1024)
+    }
     
     useEffect(() => {
         window.addEventListener("resize", handleResize);
@@ -161,8 +160,8 @@ function App({float}) {
             {name:t('sidebar.accounts.toReceive'),path:'/bills-to-receive',paths:['bills-to-receive','bills-to-receive/create','bills-to-receive/:id'],icon:'PaymentsOutlinedIcon'},   
         ]},
         {name:t('sidebar.main.cashManagement'),field:'cash-management',icon:'MonetizationOnOutlinedIcon',sub_menus:[
-            {name:t('common.outflows'),path:'/cash-management/inflow/',field:'cash-management/inflow',paths:['/cash-management/inflow','/cash-management/inflow/create','/cash-management/inflow/:id'],icon:'MonetizationOnOutlinedIcon'},
-            {name:t('common.inflows'),path:'/cash-management/outflow/',field:'cash-management/outflow',paths:['/cash-management/outflow','/cash-management/outflow/create','/cash-management/outflow/:id'],icon:'MonetizationOnOutlinedIcon'},   
+            {name:t('common.inflows'),path:'/cash-management/inflow/',field:'cash-management/inflow',paths:['/cash-management/inflow','/cash-management/inflow/create','/cash-management/inflow/:id'],icon:'MonetizationOnOutlinedIcon'},
+            {name:t('common.outflows'),path:'/cash-management/outflow/',field:'cash-management/outflow',paths:['/cash-management/outflow','/cash-management/outflow/create','/cash-management/outflow/:id'],icon:'MonetizationOnOutlinedIcon'},   
         ]},
         {name:t('sidebar.main.register'),field:'register',icon:'PeopleAltIcon',sub_menus:[
             {name:t('sidebar.register.clients'),path:'/clients',field:'clients',paths:['/clients','/clients/create/','/client/:id'],icon:'PaymentsOutlinedIcon'},

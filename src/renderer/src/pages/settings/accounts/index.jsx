@@ -8,8 +8,6 @@ function App() {
   const {_account_categories,_cn} = useData();
   const [_filtered_content,_setFilteredContent]=useState([])
 
-
-
   let stats={
     total:'0',
   }
@@ -29,8 +27,7 @@ React.useEffect(()=>{
 
       })
 
-      console.log(statResponses)
-
+     
       setStatResponses(res)
 
 },[_filtered_content,_account_categories])

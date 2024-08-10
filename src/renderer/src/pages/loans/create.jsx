@@ -58,7 +58,7 @@ import { useAuth } from '../../contexts/AuthContext';
               }else{
 
                 navigate(`/loans`)
-                toast.error(`Item não encontrado`)
+                toast.error(t('common.item-not-found'))
               }
               
             })()
@@ -339,7 +339,7 @@ import { useAuth } from '../../contexts/AuthContext';
             payments:formData.payments,
             id:d.transation_id}])
           }else{
-            toast.error('Preencha todos os campos para continuar')
+            toast.error(t('common.fill-all-requied-fields'))
           }
          }
         
@@ -366,7 +366,7 @@ import { useAuth } from '../../contexts/AuthContext';
                   id:d.bill_id}
               ])
              }else{
-               toast.error('Preencha todos os campos para continuar')
+                 toast.error(t('common.fill-all-requied-fields'))
              }
 
              return
@@ -480,7 +480,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
                       
                         await _update('loans',[form])
-                        toast.success('Empréstimo actualizado')
+                        toast.success(t('common.updated-successfully'))
 
                         setFormData({...form,amount})
 
@@ -507,7 +507,7 @@ import { useAuth } from '../../contexts/AuthContext';
                          await generate_inflow({transation_id,reference_id,loan_id,transation_account_id,amount})
 
                         setFormData(initial_form)
-                        toast.success('Empréstimo adicionado')
+                        toast.success(t('common.added-successfully'))
                         setVerifiedInputs([])
                      }
                  }catch(e){
@@ -543,7 +543,7 @@ import { useAuth } from '../../contexts/AuthContext';
     <>
 
 
-<FormLayout loading={!initialized || loading} maxWidth={'700px'} name={id ? 'Actualizar' : 'Novo empréstimo'} formTitle={id ? 'Actualizar' : 'Adicionar'}  topLeftContent={(
+<FormLayout loading={!initialized || loading} maxWidth={'700px'} name={id ? t('common.update') : t('common.new')} formTitle={id ? t('common.update') : t('common.add-new_')}  topLeftContent={(
                   <>
                     
                   </>
@@ -551,13 +551,13 @@ import { useAuth } from '../../contexts/AuthContext';
 
              
 <FormLayout.Cards topInfo={[
-                          {name:"Valor total de cada prestação",value:(parseFloat(formData.transation_fees ? formData.transation_fees : 0) / parseInt(formData.total_installments ? formData.total_installments :  1)).toFixed(2)},
+                          {name:t('common.value-of-each-installment'),value:(parseFloat(formData.transation_fees ? formData.transation_fees : 0) / parseInt(formData.total_installments ? formData.total_installments :  1)).toFixed(2)},
               ]}/>
 
 
               <div className="flex flex-col p-4">
-                {(formData.IsBillDeleted && (parseFloat(formData.paid || 0) < parseFloat(formData.transation_fees))) && <div className="mb-2"><span className="text-gray-400 font-light"><Info sx={{width:20,marginRight:1}}/>Agendamento de saida foi excluido</span><span  onClick={()=>SubmitForm('generate_bill')} className="underline ml-2 text-app_orange-400 cursor-pointer hover:opacity-70">Recriar</span></div>}
-                {(formData.IsInflowDeleted && (parseFloat(formData.paid || 0) < parseFloat(formData.transation_fees))) && <div><span className="text-gray-400 font-light"><Info sx={{width:20,marginRight:1}}/>A transação de entrada foi excluida</span><span  onClick={()=>SubmitForm('generate_inflow')} className="underline ml-2 text-app_orange-400 cursor-pointer hover:opacity-70">Recriar</span></div>}
+                {(formData.IsBillDeleted && (parseFloat(formData.paid || 0) < parseFloat(formData.transation_fees))) && <div className="mb-2"><span className="text-gray-400 font-light"><Info sx={{width:20,marginRight:1}}/>{t('messages.outflow-entry-deleted')}</span><span  onClick={()=>SubmitForm('generate_bill')} className="underline ml-2 text-app_orange-400 cursor-pointer hover:opacity-70">{t('common.re-create')}</span></div>}
+                {(formData.IsInflowDeleted && (parseFloat(formData.paid || 0) < parseFloat(formData.transation_fees))) && <div><span className="text-gray-400 font-light"><Info sx={{width:20,marginRight:1}}/>{t('messages.inflow-transaction-deleted')}</span><span  onClick={()=>SubmitForm('generate_inflow')} className="underline ml-2 text-app_orange-400 cursor-pointer hover:opacity-70">{t('common.re-create')}</span></div>}
               </div>
 
               <FormLayout.Section>
@@ -585,7 +585,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
                   <div className="-translate-y-0">
                                     <LocalizationProvider  adapterLocale={'en-gb'} dateAdapter={AdapterDayjs} style={{paddingTop:0}} size="small">
-                                        <DatePicker  value={dayjs(formData.loanday).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.loanday)) : null} onChange={(e)=>setFormData({...formData,loanday:e.$d})}  label="Data do financiamento *"  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
+                                        <DatePicker  value={dayjs(formData.loanday).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.loanday)) : null} onChange={(e)=>setFormData({...formData,loanday:e.$d})}  label={t('common.finaciated-day')}  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                             '& .MuiStack-root': { paddingTop:0},'& .MuiInputLabel-root':{ top:-8}}}
                                             />
                                     </LocalizationProvider>
@@ -594,7 +594,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
                   <div className="-translate-y-0">
                                     <LocalizationProvider  adapterLocale={'en-gb'} dateAdapter={AdapterDayjs} style={{paddingTop:0}} size="small">
-                                        <DatePicker disabled={Boolean(formData.IsBillDeleted)}  value={dayjs(formData.payday).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.payday)) : null} onChange={(e)=>setFormData({...formData,payday:e.$d})}  label="Data de vencimento *"  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
+                                        <DatePicker disabled={Boolean(formData.IsBillDeleted)}  value={dayjs(formData.payday).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.payday)) : null} onChange={(e)=>setFormData({...formData,payday:e.$d})}  label={t('common.due-date')}  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                             '& .MuiStack-root': { paddingTop:0},'& .MuiInputLabel-root':{ top:-8}}}
                                             />
                                     </LocalizationProvider>
@@ -607,7 +607,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
                          <TextField
                             id="outlined-textarea"
-                            label="Valor do empréstimo *"
+                            label={t('common.loan-amount')}
                             placeholder={t('common.type-amount')}
                             multiline
                             value={formData.amount}
@@ -642,8 +642,8 @@ import { useAuth } from '../../contexts/AuthContext';
                    <div>
                               <TextField
                               id="outlined-textarea"
-                              label="Número de prestações"
-                              placeholder="Digite o número"
+                              label={t('common.numbers-of-installments')}
+                              placeholder={t('common.type-the-number')}
                               multiline
                               value={formData.total_installments}
                               onBlur={()=>validate_feild('total_installents')}
@@ -671,7 +671,7 @@ import { useAuth } from '../../contexts/AuthContext';
                                   }
 
                               }}
-                              noOptionsText="Sem opções"
+                              noOptionsText={t('common.no-options')}
                               defaultValue={null}
                               inputValue={formData.reference.name}
                               onInputChange={(event, newInputValue) => {
@@ -689,9 +689,9 @@ import { useAuth } from '../../contexts/AuthContext';
                               sx={{ width: 300 }}
                               renderInput={(params) => <TextField {...params}
                               onBlur={()=>validate_feild('reference')}
-                              helperText={formData.reference.name && !formData.reference.id ? "(Novo investidor será adicionada)" :''}
+                              helperText={formData.reference.name && !formData.reference.id ? `(${t('common.new')} ${t('common.investor')} ${t('common.will-be-added')})` :''}
                               sx={{'& .MuiFormHelperText-root': {color:formData.reference.name && !formData.reference.id ? 'green' : 'crimson'}}}
-                              value={formData.reference.name}  label={'Investidor'}
+                              value={formData.reference.name}  label={t('common.investor')}
                               
                               />}
                               />   
@@ -739,9 +739,9 @@ import { useAuth } from '../../contexts/AuthContext';
                     disabled={false}
                     renderInput={(params) => <TextField {...params}
                     error={(!formData.transation_account.name) && verifiedInputs.includes('transation_account') ? true : false}             
-                    helperText={!formData.transation_account.id  && formData.transation_account.name ? "(Nova conta será adicionada)" :''}
+                    helperText={!formData.transation_account.id  && formData.transation_account.name ? `(${t('common.new_')} ${t('common.account')} ${t('common.will-be-added')})` :''}
                     sx={{'& .MuiFormHelperText-root': {color:!formData.transation_account.id  && formData.transation_account.name ? 'green' : 'crimson'}}} 
-                    value={formData.transation_account.name} label="Conta de entrada*" />}
+                    value={formData.transation_account.name} label={t('common.inflow-account')} />}
               
                     />   
                    </div>
@@ -776,9 +776,9 @@ import { useAuth } from '../../contexts/AuthContext';
                       sx={{ width: 300 }}
                       renderInput={(params) => <TextField {...params}
                       error={(!formData.account_name) && verifiedInputs.includes('account') ? true : false}             
-                      helperText={!accountCategories.some(a=>a.id==formData.account_id) && formData.account_name ? "(Nova conta será adicionada)" :''}
+                      helperText={!accountCategories.some(a=>a.id==formData.account_id) && formData.account_name ? `(${t('common.new_')} ${t('common.account')} ${t('common.will-be-added')})` :''}
                       sx={{'& .MuiFormHelperText-root': {color:!accountCategories.some(a=>a.id==formData.account_id) && formData.account_name ? 'green' : 'crimson'}}}
-                      value={formData.account_name} label="Conta de saída*" />}
+                      value={formData.account_name} label={t('common.outflow-account')} />}
                   />   
                   </div>
 
@@ -802,7 +802,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 
                         {availableCredit[_i] && <div className="text-[13px] absolute right-[30px] top-0 translate-y-[-100%] flex items-center">
-                            <span className='text-[12px] text-gray-500'>Saldo: </span>  <span className={`${availableCredit[_i]._available < 0 ?'text-red-600':''}`}>{data._cn(availableCredit[_i]._available)}</span>
+                            <span className='text-[12px] text-gray-500'>{t('common.balance')}: </span>  <span className={`${availableCredit[_i]._available < 0 ?'text-red-600':''}`}>{data._cn(availableCredit[_i]._available)}</span>
                       </div>}  
 
                       
@@ -853,7 +853,7 @@ import { useAuth } from '../../contexts/AuthContext';
                       
                       helperText={(!formData.payments[_i].account_id) && verifiedInputs.includes('payment_method'+_i) ? t('common.required-field') :''}
                       error={(!formData.payments[_i].account_id) && verifiedInputs.includes('payment_method'+_i) ? true : false}             
-                      value={formData.payments[_i].account_id} label="Meio de pagamento *" />}
+                      value={formData.payments[_i].account_id} label={t('common.payment-method')} />}
 
                     />   
                       </div>
@@ -861,7 +861,7 @@ import { useAuth } from '../../contexts/AuthContext';
                       <div>
                               <TextField
                                 id="outlined-textarea"
-                                label="Valor do empréstimo *"
+                                label={t('common.loan-amount')}
                                 placeholder={t('common.type-amount')}
                                 multilinep
                                 value={i.amount}
@@ -883,7 +883,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
                     ))}
 
-                    <div onClick={add_payment_method} className="ml-4 border cursor-pointer hover:opacity-80 hover:ring-1 ring-slate-400 table rounded-[5px] bg-gray-100 px-2 py-1"><AddIcon sx={{color:'#374151',width:20}}/><span className=" text-gray-700">Acrescentar meio de pagamento</span></div>
+                    <div onClick={add_payment_method} className="ml-4 border cursor-pointer hover:opacity-80 hover:ring-1 ring-slate-400 table rounded-[5px] bg-gray-100 px-2 py-1"><AddIcon sx={{color:'#374151',width:20}}/><span className=" text-gray-700">{t('common.add-payment-method')}</span></div>
 
               <FormLayout.SendButton SubmitForm={SubmitForm} loading={loading} valid={valid} id={id}/>
 

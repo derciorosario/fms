@@ -228,7 +228,7 @@ import { t } from 'i18next';
 
                               if(user.email==prevEmail){
 
-                                 toast.success(id ? t('common.updated-successfully')  :  t('common.created-successfully'))
+                                 toast.success(id ? t('common.updated-successfully')  :  t('common.added-successfully'))
                                  setLoading(false)
                                  return
 
@@ -257,7 +257,7 @@ import { t } from 'i18next';
                            }
                         }else{    
                            if(manager) {
-                               toast.error('Email já foi usado em: '+company_name)
+                               toast.error(t('common.email-used-in')+' '+company_name)
                                email_used=true
                            }else{
                                managers.push({...formData,action:'create_new',id:uuidv4(),_id:new Date().toISOString(),companies,company_id:companies[i]})
@@ -297,7 +297,7 @@ import { t } from 'i18next';
                     
                      setLoading(false)
                      if(!email_used) {
-                        toast.success(id ? t('common.updated-successfully')  :  t('common.created-successfully'))
+                        toast.success(id ? t('common.updated-successfully')  :  t('common.added-successfully'))
 
 
 
@@ -323,7 +323,7 @@ import { t } from 'i18next';
                                        setInviteRes(null)
                                        setInviteLoader(false)
                                        setShowD(false)
-                                       toast(t('common.invited-validated'))
+                                       toast(t('common.invite-validated'))
                                     }else{
                                        if(inviteRes==null) setInviteRes(true)
                                        setInviteLoader(false)
@@ -386,7 +386,6 @@ import { t } from 'i18next';
         
          return (
            <>
-
                 <div className={`bg-[rgba(0,0,0,0.4)]  ${!showInviteD ? 'translate-y-[10%] opacity-0 pointer-events-none' :'' } transition duration-75 ease-in-out h-[100vh] w-full fixed z-20 flex items-center justify-center`}>
                      
                      { inviteRes != null && <div className="flex w-full h-full absolute left-0 top-0" onClick={()=>{
@@ -409,7 +408,7 @@ import { t } from 'i18next';
                      <div className="flex items-center mt-3 mb-3 p-3 rounded-[0.3rem] bg-white relative z-10">
                             {inviteLoader && <div className="flex items-center">
                                <span className="flex scale-75 mr-2"><CircularProgress style={{color:colors.app_orange[500]}} value={10} /></span>
-                               <span>{t('messages.validating-invite')}...</span>
+                               <span>{t('common.validating-invite')}...</span>
                             </div> } 
 
                             {inviteRes != null && <div>
@@ -425,12 +424,12 @@ import { t } from 'i18next';
                                        <button className="bg-app_orange-400  text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{
                                                 handleCopyClick()
                                                 setShowD(false)  
-                                       }}><span> <ContentCopy/></span>{t('common.copy-linked')}</button> 
+                                       }}><span> <ContentCopy/></span>{t('common.copy-link')}</button> 
 
 
                                        <div onClick={()=>{
                                              window.open(data.FRONT_URL+'/#/confirm-invite?invite='+(savedInvite ? savedInvite : formData.invite), "_blank")
-                                       }} className="px-4 text-app_orange-400 underline cursor-pointer table hover:opacity-80"><ArrowRightOutlined/> Aceder ao link</div>
+                                       }} className="px-4 text-app_orange-400 underline cursor-pointer table hover:opacity-80"><ArrowRightOutlined/>{t('common.go-to-link')}</div>
                                  </div>}
 
 

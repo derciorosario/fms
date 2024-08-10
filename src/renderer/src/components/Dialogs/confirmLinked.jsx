@@ -3,6 +3,7 @@ import Alert from '@mui/material/Alert';
 import { WarningAmberRounded } from '@mui/icons-material';
 import colors from '../../assets/colors.json'
 import { CircularProgress } from '@mui/material';
+import { t } from 'i18next';
 export default function transationNextDate({res,show,loading,message,buttons}) {
   return (
 <>
@@ -13,7 +14,7 @@ export default function transationNextDate({res,show,loading,message,buttons}) {
         <div className="relative bg-white rounded-lg shadow">
             <div className={`${loading ? 'hidden' :'flex'} items-center justify-between p-4 md:p-5 border-b rounded-t`}>
                 <h3 className={`text-xl font-semibold text-gray-900 `}>
-                   Tem certeza que quer continuar?
+                   {t('common.sure-to-continue')}
                 </h3>
                 <button onClick={()=>res(false)} type="button" className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="authentication-modal">
                     <svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
@@ -67,7 +68,7 @@ export default function transationNextDate({res,show,loading,message,buttons}) {
             </div>
             
             {loading &&  <div className="mt-5 flex flex-col items-center py-8">
-                            <span className="block mb-2">A carregar...</span>
+                            <span className="block mb-2">{t('common.loading')}...</span>
                             <CircularProgress/>
             </div>}
         </div>

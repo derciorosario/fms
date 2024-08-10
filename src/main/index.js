@@ -235,20 +235,22 @@ app.whenReady().then(() => {
 
 
 
+ipcMain.on('reload', async () => {
 
-ipcMain.on('restart', async () => {
-    // let win = BrowserWindow.getAllWindows()[0]; 
-      //win.reload();
+      let win = BrowserWindow.getAllWindows()[0]; 
+      win.reload();
 
-
-    app.relaunch(); 
-    app.exit();
-
-
-    //app.relaunch({ args: ['--relaunch'] });
-    //app.exit(0);
 
 });
+
+
+ipcMain.on('relaunch', async () => {
+  app.relaunch(); 
+  app.exit();
+  //app.relaunch({ args: ['--relaunch'] });
+  //app.exit(0);
+});
+
 
   
 

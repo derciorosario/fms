@@ -590,7 +590,7 @@ async function SubmitUserForm(){
                                               <div className="_not_bill_accounts">
                                         <button onClick={()=>_showPopUp('not_bill_accounts')}  className={`flex relative items-center bg-gray-50 border border-gray-300 text-gray-900 text-sm  focus:outline-none font-medium  rounded-lg text-[13px] px-3 py-[3px] text-center`}>
                                             <FilterOptions formData={formData} setFormData={setFormData} show={showAccounts}/>
-                                        <span className="text-gray-900 ml-1 rounded-[0.3rem] flex p-1 items-center font-normal">{formData.settings?.bills_not?.accounts?.length==0 ? 'Todas' : `${formData.settings?.bills_not?.accounts?.length} selecionado${formData.settings?.bills_not?.accounts?.length!=1 ? 's' :''}` } <ExpandMoreOutlined style={{width:16}}/></span>
+                                        <span className="text-gray-900 ml-1 rounded-[0.3rem] flex p-1 items-center font-normal">{formData.settings?.bills_not?.accounts?.length==0 ? `${t('common.all_s')}` : `${formData.settings?.bills_not?.accounts?.length || '(0)'} ${t(`confirm.selected${formData.settings?.bills_not?.accounts?.length!=1 ? '_s' :''}`)} ` } <ExpandMoreOutlined style={{width:16}}/></span>
                                         </button>
                                       </div>
                                           </>}
@@ -611,7 +611,7 @@ async function SubmitUserForm(){
             
                      </div>
                      <div className="py-4">
-                      <DefaultButton goTo={SubmitForm} loading={!initialized} text={loading ? 'A actualizar...' :'Actualizar'} disabled={false}/>
+                      <DefaultButton goTo={SubmitForm} loading={!initialized} text={loading ? t('common.updating')+'...' :t('common.update')} disabled={false}/>
                     </div>
            </>:<>
            <div className="py-5 mb-4">

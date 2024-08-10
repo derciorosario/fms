@@ -23,7 +23,8 @@ function Register({activePage,setActvePage}) {
               data.setForm({...data.form,code:''})
         }
 
-        if(!data.form.email || !data.form.name) {
+
+        if(!data.form.email) { //|| !data.form.name
               toast(t('messages.fill-fields'))
               return
         }
@@ -214,7 +215,7 @@ function Register({activePage,setActvePage}) {
                             let new_form={...data.form,done:0,email:'',email1:''}
                             data.setForm(new_form)
                             data.update(new_form)
-                        }} className="text-blue-400 flex justify-center mt-5 underline cursor-pointer ml-3">{t('common.use-different-email')}</span>
+                        }} className="text-blue-400 flex justify-center mt-5 underline cursor-pointer">{t('common.use-different-email')}</span>
              }
 
     </div>

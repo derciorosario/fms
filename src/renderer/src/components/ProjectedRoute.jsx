@@ -7,8 +7,11 @@ import Home from '../../src/landingpage/pages/home/index'
  const ProtectedRoute =  ({ children, redirectTo = '/',path}) => {
 
   localStorage.removeItem('first-company-created-message')
-  const { goToApp,isAuthenticated, user, loading, token,logout,destroying} = useAuth();
+  const { goToApp,isAuthenticated, user, loading, token,logout,destroying,reload} = useAuth();
 
+  if(localStorage.getItem('l')){
+    return <Navigate to={'/login'} replace />
+  }
 
   if(goToApp==false){
      return <Home/>

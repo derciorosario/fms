@@ -5,10 +5,10 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   
-  let APP_BASE_URL='https://procontadev.alinvest-group.com' //'http://localhost:4000'  //https://server-fms.onrender.com
-  let FRONT_URL='https://proconta.alinvest-group.com'
-  let COUCH_DB_CONNECTION='https://admin:secret@procontacouch.derflash.online' //'http://admin:password@localhost:5000' //'http://admin:secret@13.40.24.65:3000'
-  
+  let APP_BASE_URL='https://procont.alinvest-group.com' //'http://localhost:4000'  //https://server-fms.onrender.com
+  let FRONT_URL='https://procontadev.alinvest-group.com'
+  let COUCH_DB_CONNECTION='https://admin:secret@procontacouch.derflash.online' //'http://admin:secret@localhost:5984' //'https://admin:secret@procontacouch.derflash.online'
+  let [reload,setReload]=useState(false)
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
@@ -125,8 +125,6 @@ export const AuthProvider = ({ children }) => {
 
       let _db={}
 
-      
-
 
       db_names.forEach(i=>{
          _db[i.name]=new PouchDB(i.db_name)
@@ -154,42 +152,32 @@ export const AuthProvider = ({ children }) => {
     }
 
 
-    /*
-    if(user){
-      let user_db=new PouchDB('user-'+user.id)
-      let _user=await  user_db.find({selector: { id:user.id }})
-      _user=_user.docs[0]
-      await user_db.put({..._user,selected_company:company_id})
-      console.log(1)
-    }else{
-      await update_user(_user)
-      console.log(2)
-    }*/
-
-
     setChangingCompany(true)
+    
 
     if(redirect){
-        window.location.href=redirect+"&&?rondom="+Math.random().toString()
         if(window.electron){
-          window.electron.ipcRenderer.send('restart')
+          setTimeout(()=>setReload(redirect+"&&?rondom="+Math.random().toString()),500)
         }else{
+          window.location.href=redirect+"&&?rondom="+Math.random().toString()
           setTimeout(()=>window.location.reload(),500)
         }
     }else{
-        if(window.electron){
-          window.electron.ipcRenderer.send('restart')
-        }else{
+
+        if(!window.electron){
           setTimeout(()=>window.location.href="/",500)
+        }else{
+          setTimeout(()=>setReload('/'),500)
         }
     }
+
+    return
    
   }
-  
+
+
 
    async function startover(_r){
-
-
       setLoading(true)
      
 
@@ -207,9 +195,12 @@ export const AuthProvider = ({ children }) => {
       if(_r){
         return
       }else{
-        window.location.reload()
+        if(window.electron){
+          window.electron.ipcRenderer.send('relaunch')
+        }else{
+          window.location.reload()
+        }
       }
-     
 
   }
 
@@ -218,7 +209,8 @@ const login =  async (userData, authToken) => {
       if(authToken) localStorage.setItem('token', authToken);
       setToken(authToken);
       delete userData.__v
-      _change_company(userData.selected_company,userData)
+      await  _change_company(userData.selected_company,userData)
+      return {ok:true}
 }
 
 
@@ -337,12 +329,7 @@ async function update_user(userData){
 
   const logout = async () => {
 
-    /*localStorage.setItem('destroying',true)
-    setDestroying(true)
-    await reset()*/
-
-
-    startover()
+    await startover()
     localStorage.removeItem('token')
     localStorage.removeItem('go_to_app')
 
@@ -423,7 +410,7 @@ async function update_user(userData){
    
 
   return (
-    <AuthContext.Provider value={{goToApp,setGoToApp,startover,update_user_data_from_db,changingCompany,remoteDBs,setRemoteDBs,_change_company,db,APP_BASE_URL,COUCH_DB_CONNECTION,FRONT_URL,user,update_user,setDestroying,destroying,login, logout, isAuthenticated , loading, setUser, setLoading, token,auth}}>
+    <AuthContext.Provider value={{setReload,reload,goToApp,setGoToApp,startover,update_user_data_from_db,changingCompany,remoteDBs,setRemoteDBs,_change_company,db,APP_BASE_URL,COUCH_DB_CONNECTION,FRONT_URL,user,update_user,setDestroying,destroying,login, logout, isAuthenticated , loading, setUser, setLoading, token,auth}}>
       {children}
     </AuthContext.Provider>
   );

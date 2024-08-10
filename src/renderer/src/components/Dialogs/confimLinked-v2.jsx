@@ -65,7 +65,7 @@ export default function ConfirmDialog({res,show,loading,message,buttons}) {
 
 
             {loading &&  <div className="mt-5 flex flex-col items-center">
-                            <span className="block mb-2">A carregar...</span>
+                            <span className="block mb-2">{t('common.loading')}...</span>
                             <CircularProgress/>
                         </div>}
                         

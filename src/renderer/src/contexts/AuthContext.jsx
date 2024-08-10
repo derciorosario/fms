@@ -5,7 +5,7 @@ const AuthContext = createContext();
 let env="pro"
 export const AuthProvider = ({ children }) => {
   
-  let APP_BASE_URL= env=="dev" ? 'http://localhost:4000' :  'https://procontdev.alinvest-group.com' 
+  let APP_BASE_URL= env=="dev" ? 'http://localhost:4000' :  'https://procontadev.alinvest-group.com' 
   let FRONT_URL=env=="dev" ? 'http://localhost:4000' : 'https://procontadev.alinvest-group.com'
   let COUCH_DB_CONNECTION= env=="dev" ? "http://admin:password@localhost:5000": 'https://admin:secret@procontacouch.derflash.online' //'http://admin:secret@localhost:5984' //'https://admin:secret@procontacouch.derflash.online'
   let [reload,setReload]=useState(false)

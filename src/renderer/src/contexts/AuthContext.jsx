@@ -2,12 +2,12 @@ import { createContext, useContext, useState, useEffect} from 'react';
 import toast from 'react-hot-toast';
 import PouchDB from 'pouchdb';
 const AuthContext = createContext();
-
+let env="pro"
 export const AuthProvider = ({ children }) => {
   
-  let APP_BASE_URL='https://procont.alinvest-group.com' //'http://localhost:4000'  //https://server-fms.onrender.com
-  let FRONT_URL='https://procontadev.alinvest-group.com'
-  let COUCH_DB_CONNECTION='https://admin:secret@procontacouch.derflash.online' //'http://admin:secret@localhost:5984' //'https://admin:secret@procontacouch.derflash.online'
+  let APP_BASE_URL= env=="dev" ? 'http://localhost:4000' :  'https://procontdev.alinvest-group.com' 
+  let FRONT_URL=env=="dev" ? 'http://localhost:4000' : 'https://procontadev.alinvest-group.com'
+  let COUCH_DB_CONNECTION= env=="dev" ? "http://admin:password@localhost:5000": 'https://admin:secret@procontacouch.derflash.online' //'http://admin:secret@localhost:5984' //'https://admin:secret@procontacouch.derflash.online'
   let [reload,setReload]=useState(false)
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem('token'));

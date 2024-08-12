@@ -189,8 +189,8 @@ import { t } from 'i18next';
                        <div className="hidden">
                         <TextField
                            id="outlined-textarea"
-                           label="Apelido"
-                           placeholder="Digite o apelido"
+                           label={t('common.surname')}
+                           placeholder={t('common.type-surname')}
                            value={formData.last_name}
                            onBlur={()=>validate_feild('last_name')}
                            onChange={(e)=>setFormData({...formData,last_name:e.target.value})}

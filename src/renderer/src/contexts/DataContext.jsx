@@ -19,7 +19,7 @@ let DBUpdateID=Math.random()
 let app_db=new PouchDB('app')
 
 export const DataProvider = ({ children }) => {
-    const {setReload,user,APP_BASE_URL,remoteDBs,db,FRONT_URL,token,setUser,COUCH_DB_CONNECTION, update_user_data_from_db}=useAuth()
+    const {setReload,user,APP_BASE_URL,remoteDBs,db,FRONT_URL,setUser,COUCH_DB_CONNECTION, update_user_data_from_db}=useAuth()
 
     const [_required_data,_setRequiredData]=useState([])
     
@@ -38,7 +38,8 @@ export const DataProvider = ({ children }) => {
       invite:'',
       company:'',
       see_bill_transations:'',
-      payment_type:[]
+      payment_type:[],
+      verification_code:''
     }
     
     const [_filters, setFilters] = useState(initial_filters);
@@ -130,7 +131,7 @@ export const DataProvider = ({ children }) => {
     useEffect(()=>{
       (async()=>{
 
-         let default_app_v1={_id:uuidv4(),id:uuidv4(),v:1,developer:{contact:'258856462304',email:'derciorosario55@gmail.com'}}
+          let default_app_v1={_id:uuidv4(),id:uuidv4(),v:1,developer:{contact:'258856462304',email:'derciorosario55@gmail.com'}}
       
           let d=await app_db.allDocs({ include_docs: true })
           d=d.rows.map(i=>i.doc)
@@ -327,6 +328,36 @@ export const DataProvider = ({ children }) => {
     return docs
   }
 
+  const settings={
+      id:'settings',
+      _id:'settings',
+      v1:{
+        alerts:{
+           pushNotifications: false,
+           email: true,
+           sms: false,
+           whashapp:false,
+         },
+         updates:{
+           pushNotifications: false,
+           email: true,
+           sms: false,
+           whashapp:false,
+         },
+         reminder:{
+           pushNotifications: false,
+           email: true,
+           sms: false,
+           whashapp:false,
+         },
+         bills_not:{
+           on:true,
+           days:7,
+           accounts:[]
+       }
+      }
+  }
+
 
   let dbs=[
     {name:'managers',edit_name:'manager',update:setManagers,db:db.managers,get:_managers,n:t('common.dbItems.managers')},
@@ -372,7 +403,7 @@ function replicateNextDatabase(currentDB){
 
        
         if(currentDB){
-             let next=remoteDBs.findIndex(i=>i==currentDB || i=='__'+currentDB) + 1  
+             let next=remoteDBs.findIndex(i=>i==currentDB || i=='--'+currentDB) + 1  
              if(next!=remoteDBs.length){
                  initSync(remoteDBs[next])
              }else{
@@ -388,7 +419,7 @@ function initSync(dbName){
 
 
  
-  dbName=dbName.startsWith('__') ? dbName.slice(2,dbName.length) : dbName
+  dbName=dbName.startsWith('--') ? dbName.slice(2,dbName.length) : dbName
   
   const localDB = new PouchDB(dbName);
   const remoteDB = new PouchDB(`${COUCH_DB_CONNECTION}/${dbName}`);
@@ -471,7 +502,7 @@ useEffect(()=>{
 
              //console.log({dbName})
 
-              dbName=dbName.startsWith('__') ? dbName.slice(2,dbName.length) : dbName
+              dbName=dbName.startsWith('--') ? dbName.slice(2,dbName.length) : dbName
 
               const localDB = new PouchDB(dbName);
               const remoteDB = new PouchDB(`${COUCH_DB_CONNECTION}/${dbName}`)
@@ -1715,7 +1746,7 @@ function _get_dre_stats(filterOptions,period){
     }),sub:transations_types.inflows},
 
 
-    {icon:'remove',name:'Custos directos',field:'outflow',color:'crimson',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
+    {icon:'remove',name:t('common.direct-costs'),field:'outflow',color:'crimson',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
       let id=['direct-costs']
       let row={projected:0,done:0}
       _projected[id]=projected_out
@@ -1828,12 +1859,9 @@ function _get_dre_stats(filterOptions,period){
 
   _projected[id][_i]=row['projected']
   _done[id][_i]=row['done']
-  return row
+     return row
   })
-
 },
-
-
 
 {icon:'remove',name:t('common.fees'),field:'outflow',color:'crimson',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
     let id=['fees']
@@ -1841,24 +1869,32 @@ function _get_dre_stats(filterOptions,period){
     if(!_projected[id]) _projected[id]=JSON.parse(JSON.stringify(projected_out))
     if(!_done[id]) _done[id]=JSON.parse(JSON.stringify(done_out))
 
-    row['projected']=_projected[id][_i].filter(i=>transations_types.outflows.some(f=>f.field==i.account_origin)).map(item => item.fees ?  parseFloat(item.fees) : 0).reduce((acc, curr) =>  acc + curr, 0)
-    row['done']=_done[id][_i].filter(i=>transations_types.outflows.some(f=>f.field==i.account_origin)).map(item =>item.fees ? parseFloat(item.fees) : 0).reduce((acc, curr) =>  acc + curr, 0)
+
+    let loans=transations_types.outflows.filter(i=>i.dre=="loans")
+
+    /*row['projected']=_projected[id][_i].filter(i=>transations_types.outflows.some(f=>f.field==i.account_origin)).map(item => item.fees ?  parseFloat(item.fees) : 0).reduce((acc, curr) =>  acc + curr, 0)
+    row['done']=_done[id][_i].filter(i=>transations_types.outflows.some(f=>f.field==i.account_origin)).map(item =>item.fees ? parseFloat(item.fees) : 0).reduce((acc, curr) =>  acc + curr, 0)*/
+
+    row['projected']=loans.map(i=>i.items[_i].projected).reduce((acc, curr) =>  acc + curr, 0)
+    row['done']=loans.map(i=>i.items[_i].done).reduce((acc, curr) =>  acc + curr, 0)
+
     row['percentage']=!row['done'] && !row['projected'] ? 0 : !row['done'] && row['projected'] ? 0 : !row['projected'] ? 100 : row['done'] && !row['projected'] ? 100 : (parseFloat(row['done']) / parseInt(row['projected'])) * 100
     _projected[id][_i]=row['projected']
     _done[id][_i]=row['done']
     return row
   }),sub:transations_types.outflows.filter(i=>i.dre=="loans")
-},
 
+},
 {icon:'igual',name:t('common.finacial-cash-management')+' (EBT)',field:'outflow',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
   let id=['EBT']
   let row={projected:0,done:0,percentage:0}
   if(!_projected[id]) _projected[id]=Array.from({ length: p_length }, () => 1)
   if(!_done[id]) _done[id]=Array.from({ length: p_length }, () => 1)
 
-  _projected[id][_i]=_projected['EBIT'][_i]  - ( _projected['fees'][_i]) 
-  _done[id][_i]=_done['EBIT'][_i] - ( _done['fees'][_i]) 
+  _projected[id][_i]=_projected['EBIT'][_i]  + ( _projected['fees'][_i]) 
+  _done[id][_i]=_done['EBIT'][_i] + ( _done['fees'][_i]) 
 
+  
   row['projected']=_projected[id][_i]
   row['done']=_done[id][_i]
   row['percentage']=!row['done'] && !row['projected'] ? 0 : !row['done'] && row['projected'] ? 0 : !row['projected'] ? 100 : row['done'] && !row['projected'] ? 100 : (parseFloat(row['done']) / parseInt(row['projected'])) * 100
@@ -2834,6 +2870,7 @@ if(filterOptions){
     _cc,
     dbs,
     _app,
+    settings,
     _add_to_update_list,
     store_uploaded_file_info,
     formatNumber,

@@ -25,7 +25,6 @@ export default function CircularIndeterminate({items,setFormData,formData,page,d
   }
   
   React.useEffect(()=>{
-
      let _items=[]
 
      Array.from({ length:items.length }, () => null).forEach((i,_i)=>{
@@ -36,7 +35,6 @@ export default function CircularIndeterminate({items,setFormData,formData,page,d
      })
 
      setRes(_items)
-
   },[formData])
 
 

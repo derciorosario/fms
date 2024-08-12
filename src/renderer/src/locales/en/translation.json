@@ -135,6 +135,7 @@
    "msg-3": "From Zero to the Top of Your Financial Management"
   },
   "common": {
+  "invite-verification":"Invite verificado",
   "result-demostration":"Result demostration",
   "profile":"Profile",
   "all":"All",
@@ -501,7 +502,7 @@
       "insert-number": "Enter the number",
       "insert-code": "Enter the code",
       "insert-email": "Enter your email for verification",
-      "wait-for-approval": "Wait for the verification of the receipt. The invoice and access credentials will be sent by email after approval. For more information, contact hello@proconta.com",
+      "wait-for-approval": "Wait for the verification of the receipt. The invoice and access credentials will be sent by email after approval. For more information, contact proconta@alinvest-group.com",
       "proof": "Proof",
       "get-proof": "Drag or search for the proof",
       "look": "Search",
@@ -684,6 +685,7 @@
         "alternative-contact": "Alternative Contact"
     },
     "messages": {
+        "please-verify-email-to-proceed":"Confirm your email before proceeding",
         "inflow-transaction-deleted":"The inflow of the loan was deleted",
         "outflow-entry-deleted":"Outflow entry was deleted",
         "confirm-invite-data":"Confirm the data added to the invitation before proceeding.",

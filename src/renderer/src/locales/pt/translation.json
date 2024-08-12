@@ -44,7 +44,7 @@
     }
   },
     "userPreferences":{
-      "title":"Preferences",
+      "title":"Preferências",
       "menu":{
         "profile":"Perfil",
         "notifications":"Notificações",
@@ -132,6 +132,7 @@
   },
 
  "common":{
+  "invite-verification":"Verificação de convite",
   "result-demostration":"Demostração de resutados",
   "profile":"Perfil",
   "all":"Todos",
@@ -497,7 +498,7 @@
     "insert-number": "Digite o número",
     "insert-code": "Digite o código",
     "insert-email": "Digite seu e-mail para verificação",
-    "wait-for-approval": "Aguarde pela avaliação do comprovante. A fatura e as credenciais de acesso serão enviadas por e-mail após a aprovação. Para mais informações, entre em contato com hello@proconta.com",
+    "wait-for-approval": "Aguarde pela avaliação do comprovante. A fatura e as credenciais de acesso serão enviadas por e-mail após a aprovação. Para mais informações, entre em contato com proconta@alinvest-group.com",
     "proof": "Comprovante",
     "get-proof": "Arraste ou procure o comprovante",
     "look": "Procurar",
@@ -590,9 +591,9 @@
     "outflows": "Saídas",
     "seeMoreDetails": "Ver mais detalhes",
     "projected": "Projetado",
-    "done": "Concluído",
+    "done": "Realizado",
     "achieved": "Atingido",
-    "projectedAndDone": "Projetado e concluído",
+    "projectedAndDone": "Projetado e Realizado",
     "balance": "Saldo",
     "predictedBalance": "Saldo previsto",
     "projectedBalance": "Saldo projetado",
@@ -679,6 +680,7 @@
       "alternative-contact":"Contato alternativo"
   },
   "messages":{
+      "please-verify-email-to-proceed":"Confirme o email antes de proceder",
       "inflow-transaction-deleted":"A transação de entrada foi excluida",
       "outflow-entry-deleted":"Agendamento de saida foi excluido",
       "confirm-invite-data":"Confirme os dados adicionados no convite antes de prosseguir",

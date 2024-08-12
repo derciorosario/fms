@@ -226,8 +226,8 @@ import DefaultUpload from '../../../components/Files/default-upload';
 
                setFormData({...formData,
                 installments:Array.from({ length: parts }, (i,_i) => {
-                      
-                      return {fees:'',id:uuidv4(),amount:parseFloat(data._cc(formData.amount)) / parts,date:_i==0 ? formData.payday : null,paid:0,status:'pending'}
+
+                   return {fees:'',id:uuidv4(),amount:formData.amount ?  parseFloat(data._cc(formData.amount)) / parts : 0,date:_i==0 ? formData.payday : null,paid:0,status:'pending'}
                 })})
 
              
@@ -334,6 +334,8 @@ import DefaultUpload from '../../../components/Files/default-upload';
                  setDeletePayments(prev=>({...prev,showDialog:false}))
                  toast.success(t('common.payments-cancelled'))
           }
+
+
 
          
 
@@ -512,7 +514,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
               setValid(v)
          },[formData])
 
-         console.log({formData})
+         console.log({i:formData.installments})
 
 
           return  (

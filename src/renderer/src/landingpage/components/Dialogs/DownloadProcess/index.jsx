@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import PayPalButton from './paypal'
 import { GoogleLogin } from '@react-oauth/google'
 import i18n from '../../../../i18n'
-import { t } from 'i18next'
 import Register from './register'
 import SelectPaymentMethod from './select-payment'
 import Logo from '../../../assets/icon-2.png'
@@ -11,6 +10,7 @@ import Invoice from '../../../pages/invoice'
 import InvoiceDownload from '../../../pages/invoice/invoice-download'
 import { useNavigate } from 'react-router-dom'
 import { useHomeData } from '../../../../contexts/HomeDataContext'
+import { useTranslation } from 'react-i18next'
 
 function DownloadProcess({}) {
     
@@ -19,6 +19,7 @@ function DownloadProcess({}) {
   const data=useHomeData()
   const navigate = useNavigate()
   const [resetUpdater,setResetUpdater]= useState()
+  const { t } = useTranslation();
 
   useEffect(()=>{
     setPages([
@@ -28,9 +29,7 @@ function DownloadProcess({}) {
     ])
   },[i18n.language])
 
-  
-  console.log({v:data.form,l:data.loading})
-
+ 
   useEffect(()=>{
 
         if(!data.initialized || data.resetUpdater!=resetUpdater){
@@ -52,6 +51,17 @@ function DownloadProcess({}) {
         data.register()
       }
   },[data.done,data.initialized])
+
+
+  
+  let langs=['pt','en']
+  const [selectedLang, setSelectedLang] = React.useState(localStorage.getItem('lang') ? localStorage.getItem('lang') : langs[0]);
+ 
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+    setSelectedLang(lng)
+    localStorage.setItem('lang',lng)
+  };
 
   
   return (
@@ -128,10 +138,21 @@ function DownloadProcess({}) {
 
                     {data.form.done==2 && <span onClick={()=>navigate('/invoice/'+data.form.invoice.invoice_number)} className="bg-[#ff7626] hidden cursor-pointer mr-2 text-white p-1 rounded-[0.3rem] underline">{t('common.view-invoice')}</span>}
                     
-                    <div className="flex items-center mb-2">                
+
+                    <div className="flex items-center">
+                       <div className="mr-4">
+                                <select onChange={(e)=>changeLanguage(e.target.value)} value={selectedLang} className=" rounded-[0.2rem] p-1 bg-gray-300 text-gray-600">
+                                    <option value={"pt"}>PT</option>
+                                    <option value={"en"}>EN</option>
+                                </select>
+                        </div>
+
+                        <div className="flex items-center mb-2">                
                             <svg xmlns="http://www.w3.org/2000/svg" height="28px" viewBox="0 -960 960 960" fill="#ddd"><path d="M798-120q-125 0-247-54.5T329-329Q229-429 174.5-551T120-798q0-18 12-30t30-12h162q14 0 25 9.5t13 22.5l26 140q2 16-1 27t-11 19l-97 98q20 37 47.5 71.5T387-386q31 31 65 57.5t72 48.5l94-94q9-9 23.5-13.5T670-390l138 28q14 4 23 14.5t9 23.5v162q0 18-12 30t-30 12Z"/></svg>
-                            <span className="text-gray-500 ml-3 text-[15px]"><a>+258 87 870 7590</a></span>
+                            <span className="text-gray-500 ml-1 text-[15px]"><a>+258 87 870 7590</a></span>
+                         </div>
                     </div>
+                   
                </div>
     </div>
 

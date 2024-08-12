@@ -6,8 +6,8 @@ let env="pro"
 export const AuthProvider = ({ children }) => {
   
   let APP_BASE_URL= env=="dev" ? 'http://localhost:4000' :  'https://procontadev.alinvest-group.com' 
-  let FRONT_URL=env=="dev" ? 'http://localhost:4000' : 'https://procontadev.alinvest-group.com'
-  let COUCH_DB_CONNECTION= env=="dev" ? "http://admin:password@localhost:5000": 'https://admin:secret@procontacouch.derflash.online' //'http://admin:secret@localhost:5984' //'https://admin:secret@procontacouch.derflash.online'
+  let FRONT_URL=env=="dev" ? 'http://localhost:5173' : 'https://procontadev.alinvest-group.com'
+  let COUCH_DB_CONNECTION= env=="dev" ? "http://admin:secret@localhost:5984": 'https://admin:secret@procontacouch.derflash.online' //'http://admin:secret@localhost:5984' //'https://admin:secret@procontacouch.derflash.online'
   let [reload,setReload]=useState(false)
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem('token'));
@@ -117,9 +117,9 @@ export const AuthProvider = ({ children }) => {
       ]
 
 
-      let temp_dbs=['__user-'+user.id]
+      let temp_dbs=['--user-'+user.id]
 
-      temp_dbs=[...temp_dbs,...user.companies.filter(i=>i!=user.selected_company).map(i=>'__managers-'+i)]
+      temp_dbs=[...temp_dbs,...user.companies.filter(i=>i!=user.selected_company).map(i=>'--managers-'+i)]
 
       setRemoteDBs([...db_names.map(i=>i.db_name),...temp_dbs])
 

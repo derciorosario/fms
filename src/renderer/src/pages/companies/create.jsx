@@ -296,9 +296,7 @@ import { t } from 'i18next';
         
          return (
            <>
-              <FormLayout loading={(!initialized || (id && !_all_loaded.includes('managers'))) ? true : false} name={ `${id ? t('common.update')+' '+(formData.headquarter_id ? 'filial':t('common.company')) : t('common.new')+' '+(isFilial ?'filial':t('common.company'))}`} formTitle={id ? t('commpn.update') :  t('commpn.add-new_')}>
-
-
+              <FormLayout loading={(!initialized || (id && !_all_loaded.includes('managers'))) ? true : false} name={ `${id ? t('common.update')+' '+(formData.headquarter_id ? 'filial':t('common.company')) : t('common.new')+' '+(isFilial ?'filial':t('common.company'))}`} formTitle={id ? t('common.update') :  t('common.add-new_')}>
               
               {!id && <div className="flex px-[6px] items-center mt-3" id="add-bill-account">
                    <label className="flex items-center cursor-pointer hover:opacity-90">

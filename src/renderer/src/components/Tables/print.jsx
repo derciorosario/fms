@@ -19,17 +19,19 @@ export default function PrintTable() {
         
  },[user])
 
-
-
   return (
       <>  
            <div  className={` ${((!pathname.includes('/reports/') || data._printData.type=="array") && data._printData.data.length) ? 'print-table':''} ${data._printData.from=="stats" ? 'stats':''} _float_print_t bg-white absolute min-w-full min-h-lvh overflow-x-auto opacity-0 pointer-events-none`}>
 
-                    <div className="flex items-center mb-10">
-                          {(data.online && company.logo) && <div style={{backgroundRepeat:'no-repeat',backgroundSize:"contain",backgroundPosition:"center",backgroundImage:`url("${data.APP_BASE_URL+"/file/"+company.logo?.replaceAll(' ','%20')}")`}} className="w-[60px] h-[60px] mr-5 border overflow-hidden rounded-full bg-gray-200 flex items-center justify-center">
+                    <div className="flex items-center mb-10 justify-between">
+                         <div className="flex items-center">
+                                  {(data.online && company.logo) && <div style={{backgroundRepeat:'no-repeat',backgroundSize:"contain",backgroundPosition:"center",backgroundImage:`url("${data.APP_BASE_URL+"/file/"+company.logo?.replaceAll(' ','%20')}")`}} className="w-[60px] h-[60px] mr-5 border overflow-hidden rounded-full bg-gray-200 flex items-center justify-center">
                                   
-                          </div>}
-                          <span className="font-bold text-[25px]">{company.name}</span>
+                                  </div>}
+                                  <span className="font-bold text-[25px]">{company.name}</span>
+                         </div>
+
+                         <div>{new Date().toISOString().split('T')[0]}</div>
                     </div>
                     
                     <table className="min-w-full bg-white border border-gray-200">

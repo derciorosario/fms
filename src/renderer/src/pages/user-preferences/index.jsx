@@ -59,18 +59,21 @@ function App() {
 
     (async()=>{
 
-      if(db.settings){
+      if(db.settings && data._app.id && user && (data.initSyncStatus=="completed" || data.initSyncStatus=="cancelled")){
         let set=await db.settings.allDocs({ include_docs: true })
         set=set.rows.map(i=>i.doc)[0]
+
+        if(!set){
+          set={...data.settings[`v${data._app.v}`],user_id:user.id}
+        }
+
         setSettingsDetails(set)
         setFormData({...formData,settings:set.settings})
-        
-      
     }
     
   })()
      
- },[db,_required_data])
+ },[db,_required_data,data._app,data.initSyncStatus,user])
 
  useEffect(()=>{
       _get(required_data.filter(i=>!_loaded.includes(i)))    
@@ -626,9 +629,9 @@ async function SubmitUserForm(){
                   <div className="flex items-center mt-3 mb-3">
                     <input onChange={(e)=>{
                        setResetPassword(e.target.value)
-                    }}  className="p-1 border rounded-[0.2rem] h-[40px]" placeholder="Digite sua senha" value={resetPassword}/>
+                    }}  className="p-1 border rounded-[0.2rem] h-[40px]" placeholder={t('common.type-password')} value={resetPassword}/>
                     <button className="bg-app_orange-400 ml-4 text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{
-                                reset()
+                              reset()
                     }}>{t('common.clear')}</button>  
                   </div>
                   <span className="underline cursor-pointer text-blue-500" onClick={()=>{

@@ -390,7 +390,7 @@ function App() {
    
   <div class="flex justify-between mb-3 border-b">
       <div class="flex justify-center items-center">
-          <h5 class="p-3 font-semibold text-[17px] leading-none text-gray-900 pe-1">{i=="in" ? 'Entradas por plano de contas' :'Saídas por plano de contas'}</h5>
+          <h5 class="p-3 font-semibold text-[17px] leading-none text-gray-900 pe-1">{i=="in" ? t('dashboard.inflowsByAccounsPlan') : t('dashboard.outflowsByAccounsPlan')}</h5>
           
       </div>
   </div>

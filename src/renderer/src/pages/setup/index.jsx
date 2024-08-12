@@ -14,6 +14,7 @@ import { useSearchParams } from 'react-router-dom';
 import { ArrowBack } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import LinearProgressBar from '../../components/progress/LinearProgress';
+import VericationDialog from './compnents/verification-dialog';
 
 
 function FirstUse() {
@@ -26,6 +27,7 @@ function FirstUse() {
   const [initialized,setinitialized]=useState(false)
   const [invite,setinvite]=useState(null)
   const [userExists,setUserExists]=useState(false)
+  const [verified,setVerified] = useState(true)
   const [valid,setValid]=useState({
     personal:false,
     company:false,
@@ -259,8 +261,15 @@ async function get_invite_info(id){
         if(data.settings){
 
           let user_settings=new PouchDB(`settings-${data.user.id}-${data.user.selected_company}`)
-          await user_settings.put(data.settings)
+          let docs=await user_settings.allDocs({ include_docs: true })
+          settings=docs.rows.map(i=>i.doc)[0]
 
+          if(!settings){
+            await user_settings.put(data.settings)
+          }else{
+            await  user_settings.put({...data.settings,_rev:settings._rev})
+          }
+         
         }
 
        
@@ -440,11 +449,14 @@ async function get_invite_info(id){
   }
 
 
-
   return (
 <>
 
-<div class="min-h-screen p-6 bg-slate-100 flex items-center justify-center relative">
+
+
+{/*(!verified && invite) && <VericationDialog formData={formData} setFormData={setFormData} verified={verified} setVerified={setVerified}/>*/}
+
+<div class={`min-h-screen p-6 bg-slate-100 items-center justify-center relative ${invite && !verified ? 'hidden':'flex'}`}>
   <div class="container max-w-screen-lg mx-auto">
     <div>
 

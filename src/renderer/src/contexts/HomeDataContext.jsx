@@ -16,9 +16,10 @@ export const HomeDataProvider = ({ children }) => {
     const [invoices,setinvoices]=useState([])
     const [resetUpdater,setResetUpdater]= useState()
     const count_ref=useRef(0)
-    const plataform_url='https://proconta.alinvest-group.com'
-    const server_url='https://procontadev.alinvest-group.com' //'http://localhost:3000'//'https://derflash.online'
-    const APP_BASE_URL='https://procontadev.alinvest-group.com' //'http://localhost:3000'//'https://derflash.online'
+    const env="pro"
+    const plataform_url= env=="dev" ? 'http://localhost:5173' : 'https://proconta.alinvest-group.com'
+    const server_url= env=="dev" ? 'http://localhost:4000' : 'https://procontadev.alinvest-group.com'
+    const APP_BASE_URL= env=="dev" ? 'http://localhost:4000' : 'https://procontadev.alinvest-group.com' 
     
     const [dialogs,setDialogs]=useState({
         download:false,
@@ -38,7 +39,7 @@ export const HomeDataProvider = ({ children }) => {
         proof_ok:false,
         email_is_registered:false,
         invoice:{payment_items: [
-          {name:'Conta Pro',quantity:1,price:75000}
+          {name:'Pro Conta',quantity:1,price:75000}
         ]} 
     }
 

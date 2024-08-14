@@ -80,20 +80,20 @@ function DownloadProcess({}) {
          <div className="w-full flex justify-center relative">
                     <span className="mt-6 h-[3px] w-[50px] bg-gray-400 rounded-full"></span>
 
-                    {!data.loading && <span onClick={()=>{
-                            data.reset()
-                            data.setDialogs({...data.dialogs,register:false})
-                    }} className="text-red-500 underline cursor-pointer absolute flex top-3 left-1 ml-3">{t('common.cancel')}</span> 
-                    }
+                            {!data.loading && <span onClick={()=>{
+                               data.reset()
+                               data.setDialogs({...data.dialogs,register:false})
+                             }} className="bg-app_orange-400 absolute left-2 top-2 text-white px-3 py-1 rounded-[0.3rem] cursor-pointer hover:underline">{t('common.cancel-process')}</span>
+}
+                                {!data.loading && <span onClick={()=>{
+                                                                if(data.form.done==2 || data.form.proof_ok){
+                                                                    data.reset()
+                                                                }
+                                                                data.setDialogs({...data.dialogs,register:false})
+                                                            }} className="bg-app_orange-400 absolute right-2 top-2 text-white px-3 py-1 rounded-[0.3rem] cursor-pointer hover:underline">{t('common.close-and-save')}</span>
+                                }
 
-                   {!data.loading && <div onClick={()=>{
-                        if(data.form.done==2 || data.form.proof_ok){
-                            data.reset()
-                        }
-                        data.setDialogs({...data.dialogs,register:false})}
-                    } className="bg-[#ff4800] cursor-pointer hover:opacity-90 w-[40px] h-[40px] absolute right-3 top-3 z-30 rounded-full flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
-                    </div>}
+
         </div>
 
         <div className="w-full flex justify-center items-center mt-14 mb-10">

@@ -290,7 +290,13 @@ if(!initialized) {
                         <div className="w-[50%] h-full bg-gray-50 max-md:hidden   justify-center flex items-center flex-col lg:p-24 p-10 max-sm:p-10">
 
                            
-
+                              {!window.electron &&  <span onClick={()=>{
+                                            if(!window.electron){
+                                                localStorage.removeItem('go_to_app')
+                                                window.location.href="/"
+                                            }
+                              }} className="bg-app_orange-400 absolute left-2 top-2 text-white px-3 py-1 rounded-[0.3rem] cursor-pointer hover:underline">{t('common.home')}</span>
+}
                               <div className={`flex py-5 h-full ${!imageLoaded ? 'h-0 overflow-hidden':''}`}>
                                  <img src={SlideImg1} className="w-full" onLoad={()=>{
                                    setImageLoaded(true)

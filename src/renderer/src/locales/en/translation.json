@@ -135,6 +135,10 @@
    "msg-3": "From Zero to the Top of Your Financial Management"
   },
   "common": {
+  "cancel-process":"Cancel progress",
+  "close-and-save":"Close and save withdraw",
+  "page-not-found":"Page not found",
+  "home":"Home",
   "invite-verification":"Invite verificado",
   "result-demostration":"Result demostration",
   "profile":"Profile",
@@ -677,6 +681,8 @@
        "fill-fields":"Please, fill the fields below"
     },
     "form": {
+        "your-email":"Seu email",
+        "your-contact":"Seu contacto",
         "full-name": "Full Name",
         "email":"Your email",
         "contact": "Contact",

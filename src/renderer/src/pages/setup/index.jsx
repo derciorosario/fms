@@ -490,7 +490,7 @@ async function get_invite_info(id){
                <div>
                   <button onClick={()=>{
                             navigate('/login')
-                    }} class={`bg-gray-300 bg-app_orange-300 hover:bg-app_orange-400 text-white font-bold py-2 px-4 rounded border-b-app_orange-300 border-b-2`}>  <ArrowBack style={{width:15}}/><span className="ml-1"> login</span></button> 
+                    }} class={`bg-app_orange-300 hover:bg-app_orange-400 text-white font-bold py-2 px-4 rounded border-b-app_orange-300 border-b-2`}>  <ArrowBack style={{width:15}}/><span className="ml-1"> login</span></button> 
                </div>
           </div>
 

@@ -28,10 +28,12 @@ const data=useHomeData()
 
 function goto(){
 
-  if(window.location.href.includes('/?about')){
-       data._scrollToSection('about')
-  }else if(window.location.href.includes('/?contact')){
-       data._scrollToSection('contact')
+  if(window.location.href.includes('/?features')){
+       data._scrollToSection('features')
+  }else if(window.location.href.includes('/?plans')){
+       data._scrollToSection('plans')
+  } else if(window.location.href.includes('/?support')){
+    data._scrollToSection('support')
   }else if(pathname=="/"){
       data._scrollToSection('home')
   }
@@ -78,13 +80,21 @@ const handleOutsideClick = (event) => {
     <div>
         <header id="landing-header" className={`bg-[#ff7626] ${hw && !data.dialogs.register ?  'animate-header fixed':''} ${hw && pathname=="/" && 'shadow-sm'} ${hw && pathname!="/" && 'border-b'} transition-all z-40 ease-in   w-full`}>
              <nav className={`flex items-center justify-between px-[40px] py-3`}>
-                  {hw ? <>
-                    <a className="flex cursor-pointer items-center" onClick={()=>navigate('/')}><img src={MainLogo} className="h-[27px] mr-2"/><span className="text-white font-bold text-[18px] hidden">ProConta</span></a>
-                  </>:<>
-                    <a className="flex cursor-pointer items-center" onClick={()=>navigate('/')}><img src={Logo} className="h-[40px] mr-2"/><span className="text-white font-bold text-[18px] hidden">ProConta</span></a>
-                
-                  </>}
-                  <div className={`flex items-center max-md:hidden`}>
+                  <div className={`${!hw ? 'w-[100px]':''} header-logo-container`}>
+                    {hw ? <>
+                      <a className="flex cursor-pointer items-center" onClick={()=>{
+                        navigate('/')
+                        goto()
+                      }}><img src={MainLogo} className="h-[27px] mr-2"/><span className="text-white font-bold text-[18px] hidden">ProConta</span></a>
+                    </>:<>
+                      <a className="flex cursor-pointer items-center" onClick={()=>{
+                        navigate('/')
+                        goto()
+                        }}><img src={Logo} className="h-[40px] mr-2"/><span className="text-white font-bold text-[18px] hidden">ProConta</span></a>
+                  
+                    </>}
+                  </div>
+                  <div className={`flex items-center max-md:hidden flex-1 justify-center`}>
                        {menu.map((i,_i)=>(
                              <a key={_i} className={` ${hw ? 'text-gray-600 opacity-80':'text-white opacity-70'}  hover:opacity-100 cursor-pointer text-[18px] mx-3`} onClick={()=>{
                                 navigate(i.path)
@@ -118,7 +128,7 @@ const handleOutsideClick = (event) => {
                         <span onClick={()=>{
                             navigate('/login')
                         }} className={`${!hw ? 'text-gray-700 bg-white':'bg-[#ff7626] text-white'}  max-sm:hidden text-[16px] min-w-[100px] flex justify-center px-5 py-3 rounded-full  hover:bg-yellow-500 hover:scale-[1.1] transition-all duration-75 ease-linear cursor-pointer`}>
-                            {t('common.go-to-app')}
+                            {t('common.login')}
                           </span>
                          
                         <div onClick={()=>setOpenSidebar(!openSidebar)} className="hidden max-md:flex ml-3 cursor-pointer hover:opacity-80">

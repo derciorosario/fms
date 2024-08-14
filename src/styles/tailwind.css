@@ -462,16 +462,51 @@ body{
 .hero .circle{
   position: absolute;
   content: "";
-  width: 400px;
-  height: 400px;
-  left: 0;
-  bottom: 0;
-  transform: translate(-30%,20%);
   border: 50px solid #f86b19;
   opacity: .6;
   border-radius: 50%;
   z-index: 2;
 
+}
+
+.hero .circle-1{
+  width: 400px;
+  height: 400px;
+  left: 0;
+  bottom: 0;
+  transform: translate(-30%,20%);
+}
+
+.hero .circle-2{
+  width: 700px;
+  height: 700px;
+  right: 0;
+  top: 0;
+  transform: translate(30%,-60%);
+}
+
+
+.hero .circle-3{
+  width: 100px;
+  height: 100px;
+  left: 100px;
+  top: 0;
+  transform: translate(0,-50%);
+}
+
+
+.download-icons-c div:hover svg{
+  transform: scale(0.9);
+  transition: 0.2s;
+}
+.download-icons-c div{
+  cursor: pointer;
+}
+.download-icons-c  p{
+  transform: translate(-50%,3px);
+  left: 50%;
+  font-size: 13px;
+  width: auto;
 }
 
 
@@ -657,5 +692,13 @@ body{
     z-index: 4;
     position: relative;
   }
+
+ @media (max-width:900px){
+  .header-logo-container{
+      width: auto;
+  }
+ }
+
+
 
 

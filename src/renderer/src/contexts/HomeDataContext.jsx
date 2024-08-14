@@ -32,6 +32,10 @@ export const HomeDataProvider = ({ children }) => {
         done:0,
         name:'',
         email:'',
+        contact:'',
+        nuit:'',
+        company_name:'',
+        nuit:'',
         email1:'',
         code:'',
         key:'',
@@ -158,10 +162,11 @@ export const HomeDataProvider = ({ children }) => {
 
 
       const _scrollToSection = (to) => {
-          return
+        
           const Section = document.getElementById(to);
+          console.log({to,Section})
           if (Section) {
-            Section.scrollIntoView({ behavior: (to=="home" || to=="about" || to=="contact") ? 'smooth':'instant' });
+            Section.scrollIntoView({ behavior: (to=="home" || to=="features" || to=="plans" || to=="support") ? 'smooth':'instant' });
           }else{
             setTimeout(()=>_scrollToSection(to),1000)
           }

@@ -132,6 +132,10 @@
   },
 
  "common":{
+  "cancel-process":"Cancelar precesso",
+  "close-and-save":"Fechar e salvar rascunho",
+  "page-not-found":"Página não encontrada",
+  "home":"Página inicial",
   "invite-verification":"Verificação de convite",
   "result-demostration":"Demostração de resutados",
   "profile":"Perfil",
@@ -673,6 +677,8 @@
   },
   "form":{ 
       "full-name":"Nome completo",
+      "your-email":"Seu email",
+      "your-contact":"Seu contacto",
       "email":"Seu email",
       "contact":"Contato",
       "country":"País",

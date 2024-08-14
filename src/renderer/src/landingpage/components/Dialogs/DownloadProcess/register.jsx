@@ -5,6 +5,7 @@ import CircularIndeterminate from '../../loaders/progress'
 import toast from 'react-hot-toast'
 import EmailImg from '../../../assets/images/email-sent.svg'
 import { useHomeData } from '../../../../contexts/HomeDataContext'
+import { CorporateFareOutlined } from '@mui/icons-material'
 
 function Register({activePage,setActvePage}) {
 
@@ -24,7 +25,7 @@ function Register({activePage,setActvePage}) {
         }
 
 
-        if(!data.form.email) { //|| !data.form.name
+        if(!data.form.email || !data.form.name || !data.form.nuit || !data.form.contact || !data.form.company_name) { 
               toast(t('messages.fill-fields'))
               return
         }
@@ -49,6 +50,8 @@ function Register({activePage,setActvePage}) {
         let res=await data.makeRequest({method:'post',url:`api/${resend || !codeSent ? 'send-email-code':'verify-code'}`,data:{
             name:data.form.name,
             email:data.form.email,
+            company_name:data.form.company_name,
+            contact:data.form.contact,
             code:data.form.code
         }, error: ``},0);
 
@@ -96,7 +99,7 @@ function Register({activePage,setActvePage}) {
          {(!codeSent  && data.form.done==0) && <div className="flex flex-col justify-center items-center">
                 <h2 className="text-center max-w-[300px] max-sm:w-full text-[23px] font-semibold mb-10">{t('titles.fill-fields')}</h2>
 
-                {message  && <div id="alert-2" className="flex items-center w-[310px] p-4 my-2 text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+                {message  && <div id="alert-2" className="flex items-center w-[340px] p-4 my-2 text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
                         <svg className="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
                         </svg>
@@ -113,22 +116,43 @@ function Register({activePage,setActvePage}) {
                 </div>}
 
                 <div className={`${data.loading ? 'opacity-70 pointer-events-none':''} max-sm:w-full`}>
-                    <div className="w-[310px] max-sm:w-full items-center flex h-[43px] rounded-[0.3rem] bg-slate-100 mb-5">
+                    <div className="w-[340px] max-sm:w-full items-center flex h-[43px] rounded-[0.3rem] bg-slate-100 mb-5">
                         <span className="flex px-2 h-[85%] ml-[3px] rounded-[0.3rem] items-center  justify-center bg-white"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill={colors.app_pimary[300]}><path d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z"/></svg></span>
                         <input  onChange={(e=>(
                                     data.setForm({...data.form,name:e.target.value})
                         ))} value={data.form.name} placeholder={t('form.full-name')} className="flex-1 h-full px-2 outline-none bg-transparent"/>
                     </div>
 
-                    <div className="w-[310px] max-sm:w-full items-center flex h-[43px] rounded-[0.3rem] bg-slate-100 mb-5">
-                        <span className="flex px-2 h-[85%] ml-[3px] rounded-[0.3rem] items-center justify-center bg-white"><svg xmlns="http://www.w3.org/2000/svg" height="28px" viewBox="0 -960 960 960" fill={colors.app_pimary[300]}><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"/></svg></span>
+                    <div className="w-[340px] max-sm:w-full items-center flex h-[43px] rounded-[0.3rem] bg-slate-100 mb-5">
+                        <span className="flex px-2 h-[85%] ml-[3px] rounded-[0.3rem] items-center justify-center bg-white"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" fill={colors.app_pimary[300]}><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"/></svg></span>
                         <input  onChange={(e=>(
                                     data.setForm({...data.form,email:e.target.value})
                         ))} value={data.form.email} placeholder={t('form.email')} className="flex-1 h-full px-2 outline-none bg-transparent"/>
                     </div>
+
+                    <div className="w-[340px] max-sm:w-full items-center flex h-[43px] rounded-[0.3rem] bg-slate-100 mb-5">
+                            <span className="flex px-2 h-[85%] ml-[3px] rounded-[0.3rem] items-center  justify-center bg-white"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" fill="#ff7626"><path d="M798-120q-125 0-247-54.5T329-329Q229-429 174.5-551T120-798q0-18 12-30t30-12h162q14 0 25 9.5t13 22.5l26 140q2 16-1 27t-11 19l-97 98q20 37 47.5 71.5T387-386q31 31 65 57.5t72 48.5l94-94q9-9 23.5-13.5T670-390l138 28q14 4 23 14.5t9 23.5v162q0 18-12 30t-30 12Z"></path></svg></span>
+                            <input  onChange={(e=>(
+                                        data.setForm({...data.form,contact:e.target.value.replace(/[^0-9]/g, '')})
+                            ))} value={data.form.contact} placeholder={t('form.your-contact')} className="flex-1 h-full px-2 outline-none bg-transparent"/>
+                        </div>
+
+                        
+                        <div className="w-[340px] max-sm:w-full items-center flex h-[43px] rounded-[0.3rem] bg-slate-100 mb-5">
+                            <span className="flex px-2 h-[85%] ml-[3px] rounded-[0.3rem] items-center  justify-center bg-white">
+                                <CorporateFareOutlined sx={{color:colors.app_pimary[400]}}/>
+                            </span>
+                            <input  onChange={(e=>(
+                                        data.setForm({...data.form,company_name:e.target.value})
+                            ))} value={data.form.company_name} placeholder={t('form.company-name')} className="flex-1 h-full px-2 outline-none bg-transparent"/>
+                        </div>
+
+                       
+
+                        
                 </div>
 
-                <div className="overflow-hidden h-[46px] w-[310px]  max-sm:w-full relative flex items-center rounded-[0.3rem] justify-center bg-[#ff7626]">
+                <div className="overflow-hidden h-[46px] w-[340px]  max-sm:w-full relative flex items-center rounded-[0.3rem] justify-center bg-[#ff7626]">
                     {data.loading && <div className="scale-[0.8]"><CircularIndeterminate color={'#fff'}/></div>}
                     {!data.loading && <button onClick={SubmitForm} className="w-full h-full bg-[#ff7626] text-white  cursor-pointer hover:scale-[1.1] transition-all ease-in">{t('common.send')}</button>}
                 </div>
@@ -147,7 +171,7 @@ function Register({activePage,setActvePage}) {
                             setMessage('')
                         }} className="text-blue-400  flex max-sm:mt-3  underline cursor-pointer ml-3">{t('common.edit')} email</span>
                     </div>
-                    <div className="w-[310px]  max-sm:w-full">
+                    <div className="w-[340px]  max-sm:w-full">
 
                     {message  && <div id="alert-2" className="flex items-center w-full p-4 my-2 text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
                         <svg className="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -166,13 +190,13 @@ function Register({activePage,setActvePage}) {
                    </div>}
                     </div>
 
-                    <div className="w-[310px] max-sm:w-full pr-2 items-center flex h-[43px] rounded-[0.3rem] bg-slate-100 mb-5">
+                    <div className="w-[340px] max-sm:w-full pr-2 items-center flex h-[43px] rounded-[0.3rem] bg-slate-100 mb-5">
                         <input  onChange={(e=>(
                                     data.setForm({...data.form,code:e.target.value})
                         ))} value={data.form.code} placeholder={t('common.code')} className="flex-1 h-full outline-none px-2 bg-transparent"/>
                     </div>
 
-                    <div className="overflow-hidden h-[46px] w-[310px] max-sm:w-full relative flex items-center rounded-[0.3rem] justify-center bg-[#ff7626]">
+                    <div className="overflow-hidden h-[46px] w-[340px] max-sm:w-full relative flex items-center rounded-[0.3rem] justify-center bg-[#ff7626]">
                         {data.loading && <div className="scale-[0.8]"><CircularIndeterminate color={'#fff'}/></div>}
                         {!data.loading && <button onClick={()=>SubmitForm()} className="w-full h-full bg-[#ff7626] text-white  cursor-pointer hover:scale-[1.1] transition-all ease-in">{t('common.confirm')}</button>}
                     </div>

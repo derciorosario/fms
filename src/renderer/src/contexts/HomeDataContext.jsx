@@ -1,20 +1,28 @@
 import { createContext, useContext,useState,useEffect, useRef} from 'react';
 import axios from 'axios';
-import Preloader from '../landingpage/assets/icon.png'
+import Preloader from '../landingpage/assets/icon-2.png'
 import html2pdf from 'html2pdf.js';
-import { t } from 'i18next';
+
+import _Img1 from '../landingpage/assets/images/forex.webp'
+import _Img2 from '../landingpage/assets/images/app-store.png'
+import _Img3 from '../landingpage/assets/images/google-play.png'
+import _Img4 from '../landingpage/assets/images/intro.png'
+import _Img5 from '../landingpage/assets/icon.png'
+import _Img6 from '../landingpage/assets/main-logo.png'
 
 const HomeDataContext = createContext();
 export const HomeDataProvider = ({ children }) => {
 
     const [isLoading, setIsLoading] = useState(true);
     const [imagesLoaded, setImagesLoaded] = useState(false);
-    const imageUrls = [];
+
+    const imageUrls = [_Img1,_Img2,_Img3,_Img4,_Img5,_Img6];
     const [isPreloaderLoaded, setIsPreloaderLoaded] = useState(false);
     const [passedSeconds,setPassedSeconds]=useState(0)
     const [formUpdater,setFormUpdater]=useState(Math.random())
     const [invoices,setinvoices]=useState([])
     const [resetUpdater,setResetUpdater]= useState()
+    const [imagesLoadedItems, setImagesLoadedItems] = useState([])
     const count_ref=useRef(0)
     const env="pro"
     const plataform_url= env=="dev" ? 'http://localhost:5173' : 'https://proconta.alinvest-group.com'
@@ -95,10 +103,8 @@ export const HomeDataProvider = ({ children }) => {
     useEffect(() => { 
       let timer= setInterval(() => {
            count_ref.current=parseInt(count_ref.current) + 1
-           if(count_ref.current >= 8){
-            setIsPreloaderLoaded(true)
-            setImagesLoaded(false)
-            clearInterval(timer)
+           if(count_ref.current >= 20 && !isPreloaderLoaded && window.location.pathname=="/"){
+                 window.location.reload()
            }
       }, 1000);
     }, []);
@@ -108,7 +114,10 @@ export const HomeDataProvider = ({ children }) => {
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.src = url;
-        img.onload = resolve;
+        img.onload = ()=>{
+          if(imagesLoadedItems.length < imageUrls.length) setImagesLoadedItems(prev=>([...prev.filter(i=>i!=url),url]))
+          resolve()
+        };
         img.onerror = () => {
           if (retries < maxRetries) {
             setTimeout(() => {
@@ -127,9 +136,9 @@ export const HomeDataProvider = ({ children }) => {
 
         const loadPreloader = async () => {
           try {
-            await preloadImage(Preloader);
+            await preloadImage(Preloader,10);
             if (isMounted) {
-              setIsPreloaderLoaded(true);
+            //  setIsPreloaderLoaded(true);
             }
           } catch (error) {
             console.error('Failed to load preloader GIF:', error);
@@ -140,13 +149,17 @@ export const HomeDataProvider = ({ children }) => {
         const loadImages = async () => {
           try {
             await Promise.all(imageUrls.map((url) => preloadImage(url)));
-            if (isMounted) {
+           
+             /*if (isMounted) {
               let delay=passedSeconds < 3 ? 3000 : 0
               setTimeout(()=>{
                 setImagesLoaded(true);
                 setIsLoading(false);
               },delay)
-            }
+            }*/
+
+          
+          
           } catch (error) {
             console.error('Failed to load images:', error);
           }
@@ -159,7 +172,14 @@ export const HomeDataProvider = ({ children }) => {
         };
       }, [imageUrls]);
 
+     
+      useEffect(()=>{
 
+        if(imagesLoadedItems.length >= imageUrls.length){
+          setIsPreloaderLoaded(true)
+        }
+
+      },[imagesLoadedItems])
 
       const _scrollToSection = (to) => {
         
@@ -233,6 +253,8 @@ export const HomeDataProvider = ({ children }) => {
   }
 
   const value = {
+    imagesLoadedItems,
+    imageUrls,
     _scrollToSection,
     scrollY,
     initialized,

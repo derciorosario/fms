@@ -8,8 +8,8 @@ import { CorporateFareOutlined } from '@mui/icons-material'
 function Demostration({show, setShow,validate_email}) {
   const data=useHomeData()
   return (
-    <div className={`flex fixed top-0 left-0 z-50 items-center transition-all ease-in duration-200 ${show ? 'scale-100':'scale-75 opacity-0 pointer-events-none'} justify-center min-h-[100vh] w-full bg-[rgba(0,0,0,0.5)] px-[1rem]`}>
-                 <div className="pb-[30px] bg-white rounded-[0.4rem] w-[400px] px-[0.5rem]">
+    <div className={`flex fixed top-0 left-0 z-50 items-center transition-all ease-in duration-200 ${show ? '':'opacity-0 pointer-events-none'} justify-center min-h-[100vh] w-full bg-[rgba(0,0,0,0.5)] px-[1rem]`}>
+                 <div className={`pb-[30px] transition-all ease-in duration-200 ${show ? 'scale-100':'scale-75'} bg-white rounded-[0.4rem] w-[400px] px-[0.5rem]`}>
 
                     <div className="flex justify-between p-2 items-center border-b">
                        <span className="text-[23px] font-normal">{t('common.ask-for-demostration')}</span>

@@ -25,7 +25,7 @@ function Register({activePage,setActvePage}) {
         }
 
 
-        if(!data.form.email || !data.form.name || !data.form.nuit || !data.form.contact || !data.form.company_name) { 
+        if(!data.form.email || !data.form.name || !data.form.contact || !data.form.company_name) { 
               toast(t('messages.fill-fields'))
               return
         }

@@ -5,6 +5,8 @@ import VideoIntro from '../../components/Dialogs/video-intro'
 import { useHomeData } from '../../../contexts/HomeDataContext'
 import colors from '../../assets/colors.json'
 import ForexImage from '../../assets/images/forex.webp'
+import AppStore from '../../assets/images/app-store.png'
+import GooglePlay from '../../assets/images/google-play.png'
 import i18n from '../../../i18n'
 import { t } from 'i18next'
 import DownloadProcess from '../../components/Dialogs/DownloadProcess'
@@ -97,11 +99,13 @@ function index() {
         }
 
         return
+    }else{
+        
+       data._scrollToSection('plans')
+
     }
 
   
-
-    data._scrollToSection('plans')
 
     /*data.register()
     setShowDownloadProcess(true)*/
@@ -273,7 +277,7 @@ function index() {
 
 
 
-                 <div className="flex items-center justify-center hidden">
+                 <div className="items-center justify-center hidden">
                             <span onClick={()=>{
                                 data.setDialogs({...data.dialogs,download:true})
                             }} className="text-white  max-sm:hidden text-[16px] min-w-[100px] flex justify-center px-5 py-3 rounded-full bg-[#ff7626]  hover:bg-yellow-500 hover:scale-[1.1] transition-all duration-75 ease-linear cursor-pointer">
@@ -282,13 +286,13 @@ function index() {
                  </div>
 
 
-                 <div className="w-full mt-[200px]  min-h-[200px]">
+                 <div className="w-full mt-[130px]  min-h-[200px] px-10">
 
                      <h2 className="text-center text-[20px] font-semibold mb-5 uppercase text-[#ff7626]">Download <span className="text-gray-950">ProConta</span></h2>
-                     <p className="max-w-[600px] mx-auto text-center text-gray-400">Disponível no navegador e em sistemas Windows, Mac and Linux</p>
+                     <p className="max-w-[600px] mx-auto text-center text-gray-400">{t('common.available-in')}</p>
 
 
-                    <div className="flex download-icons-c items-center justify-center [&>_div]:border-2 [&>_div]:border-app_orange-400 [&>_div]:p-2 mt-10 [&>_div]:rounded-[0.4rem] [&>_div]:mx-7">
+                    <div className="flex download-icons-c items-center justify-center [&>_div]:border-2 [&>_div]:border-app_orange-400 [&>_div]:p-2  max-sm:[&>_div]:p-1 mt-10 [&>_div]:rounded-[0.4rem] [&>_div]:mx-7">
 
                         <div className="relative">
                             <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 50 50" width="40px" fill="#ff7626"> <path d="M 2.0996094 6.9609375 L 2.0996094 42.939453 L 27.550781 42.939453 L 29.679688 42.939453 L 48 42.939453 L 48 6.9609375 L 29.039062 6.9609375 L 26.599609 6.9609375 L 2.0996094 6.9609375 z M 27.679688 8.9609375 L 46 8.9609375 L 46 40.939453 L 29.009766 40.939453 C 28.739766 39.989453 28.540391 39.020781 28.400391 38.050781 C 28.290391 37.280781 28.229453 36.530547 28.189453 35.810547 L 28.189453 35.800781 C 28.197008 35.799475 28.20345 35.796383 28.210938 35.794922 C 28.213204 35.858583 28.208154 35.916455 28.210938 35.980469 C 28.870937 35.940469 29.529453 35.890547 30.189453 35.810547 C 33.709453 35.400547 37.179688 34.469062 40.429688 33.039062 L 39.630859 31.210938 C 36.640859 32.520937 33.450937 33.389063 30.210938 33.789062 C 29.550938 33.869062 28.880938 33.940469 28.210938 33.980469 C 28.21 34.000469 28.211816 34.02291 28.210938 34.042969 C 28.207058 34.04213 28.203118 34.041812 28.199219 34.041016 C 28.199457 34.034135 28.198978 34.026406 28.199219 34.019531 C 28.199219 33.999531 28.200937 33.990469 28.210938 33.980469 C 28.200937 33.910469 28.210938 33.849063 28.210938 33.789062 C 28.300938 32.099063 28.580156 30.600313 28.910156 29.320312 C 28.960156 29.130312 29.010547 28.949297 29.060547 28.779297 C 29.070547 28.769297 29.070078 28.750469 29.080078 28.730469 C 29.210078 28.270469 29.36 27.839453 29.5 27.439453 L 29.990234 26.099609 L 29.966797 26.099609 L 21.25 26.099609 C 21.83 22.079609 22.980156 18.180469 24.660156 14.480469 C 25.530156 12.570469 26.529688 10.720937 27.679688 8.9609375 z M 11.910156 13.972656 L 13.947266 13.972656 C 13.948266 15.658656 13.950172 17.34425 13.951172 19.03125 C 13.267172 19.02625 12.582437 19.021625 11.898438 19.015625 C 11.901438 17.334625 11.906156 15.653656 11.910156 13.972656 z M 34.009766 14.009766 L 34.009766 18.980469 L 35.875 18.980469 L 35.875 14.009766 L 34.009766 14.009766 z M 10.365234 31.150391 C 14.376234 32.920391 18.626281 33.889297 22.988281 34.029297 C 24.051281 34.059297 25.115734 34.050469 26.177734 33.980469 C 26.147734 34.620469 26.147734 35.290469 26.177734 35.980469 C 25.465734 36.030469 24.74225 36.050781 24.03125 36.050781 C 23.66025 36.050781 23.300687 36.039297 22.929688 36.029297 C 18.307688 35.879297 13.804734 34.860469 9.5527344 32.980469 L 10.365234 31.150391 z"/></svg>
@@ -353,31 +357,28 @@ function index() {
                     </div>
 
 
-                    <div className="flex items-center justify-center mt-16 mx-auto w-[200px]">
-                          Brevemente em smartphones
-                          <div className="ml-2 opacity-50">                
-                               <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 50 50" width="20px"><path d="M 33.375 0 C 30.539063 0.191406 27.503906 1.878906 25.625 4.15625 C 23.980469 6.160156 22.601563 9.101563 23.125 12.15625 C 22.65625 12.011719 22.230469 11.996094 21.71875 11.8125 C 20.324219 11.316406 18.730469 10.78125 16.75 10.78125 C 12.816406 10.78125 8.789063 13.121094 6.25 17.03125 C 2.554688 22.710938 3.296875 32.707031 8.90625 41.25 C 9.894531 42.75 11.046875 44.386719 12.46875 45.6875 C 13.890625 46.988281 15.609375 47.980469 17.625 48 C 19.347656 48.019531 20.546875 47.445313 21.625 46.96875 C 22.703125 46.492188 23.707031 46.070313 25.59375 46.0625 C 25.605469 46.0625 25.613281 46.0625 25.625 46.0625 C 27.503906 46.046875 28.476563 46.460938 29.53125 46.9375 C 30.585938 47.414063 31.773438 48.015625 33.5 48 C 35.554688 47.984375 37.300781 46.859375 38.75 45.46875 C 40.199219 44.078125 41.390625 42.371094 42.375 40.875 C 43.785156 38.726563 44.351563 37.554688 45.4375 35.15625 C 45.550781 34.90625 45.554688 34.617188 45.445313 34.363281 C 45.339844 34.109375 45.132813 33.910156 44.875 33.8125 C 41.320313 32.46875 39.292969 29.324219 39 26 C 38.707031 22.675781 40.113281 19.253906 43.65625 17.3125 C 43.917969 17.171875 44.101563 16.925781 44.164063 16.636719 C 44.222656 16.347656 44.152344 16.042969 43.96875 15.8125 C 41.425781 12.652344 37.847656 10.78125 34.34375 10.78125 C 32.109375 10.78125 30.46875 11.308594 29.125 11.8125 C 28.902344 11.898438 28.738281 11.890625 28.53125 11.96875 C 29.894531 11.25 31.097656 10.253906 32 9.09375 C 33.640625 6.988281 34.90625 3.992188 34.4375 0.84375 C 34.359375 0.328125 33.894531 -0.0390625 33.375 0 Z M 32.3125 2.375 C 32.246094 4.394531 31.554688 6.371094 30.40625 7.84375 C 29.203125 9.390625 27.179688 10.460938 25.21875 10.78125 C 25.253906 8.839844 26.019531 6.828125 27.1875 5.40625 C 28.414063 3.921875 30.445313 2.851563 32.3125 2.375 Z M 16.75 12.78125 C 18.363281 12.78125 19.65625 13.199219 21.03125 13.6875 C 22.40625 14.175781 23.855469 14.75 25.5625 14.75 C 27.230469 14.75 28.550781 14.171875 29.84375 13.6875 C 31.136719 13.203125 32.425781 12.78125 34.34375 12.78125 C 36.847656 12.78125 39.554688 14.082031 41.6875 16.34375 C 38.273438 18.753906 36.675781 22.511719 37 26.15625 C 37.324219 29.839844 39.542969 33.335938 43.1875 35.15625 C 42.398438 36.875 41.878906 38.011719 40.71875 39.78125 C 39.761719 41.238281 38.625 42.832031 37.375 44.03125 C 36.125 45.230469 34.800781 45.988281 33.46875 46 C 32.183594 46.011719 31.453125 45.628906 30.34375 45.125 C 29.234375 44.621094 27.800781 44.042969 25.59375 44.0625 C 23.390625 44.074219 21.9375 44.628906 20.8125 45.125 C 19.6875 45.621094 18.949219 46.011719 17.65625 46 C 16.289063 45.988281 15.019531 45.324219 13.8125 44.21875 C 12.605469 43.113281 11.515625 41.605469 10.5625 40.15625 C 5.3125 32.15625 4.890625 22.757813 7.90625 18.125 C 10.117188 14.722656 13.628906 12.78125 16.75 12.78125 Z"/></svg>
-                          </div>
-                          <label>e</label>
+                    <div className="flex items-center justify-center mt-16">
+                          <span className="flex w-[140px]"> {t('common.soon-in-app')}</span>
 
-                          <div className="ml-1 opacity-50">
-                              <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 16 16" width="24px"><path d="M 12.736328 2.7402344 A 0.50005 0.50005 0 0 0 12.289062 3.0039062 L 11.220703 4.8828125 C 10.227282 4.4425367 9.1553577 4.15625 8 4.15625 C 6.8446423 4.15625 5.7727177 4.4425367 4.7792969 4.8828125 L 3.7109375 3.0039062 A 0.50005 0.50005 0 0 0 3.2558594 2.7441406 A 0.50005 0.50005 0 0 0 2.8417969 3.4980469 L 3.9316406 5.4160156 C 1.799127 6.7035252 0.2374068 8.8459191 -0.001953125 11.455078 A 0.50005 0.50005 0 0 0 0.49414062 12 L 15.505859 12 A 0.50005 0.50005 0 0 0 16.001953 11.455078 C 15.762593 8.8459191 14.200873 6.7035252 12.068359 5.4160156 L 13.158203 3.4980469 A 0.50005 0.50005 0 0 0 12.736328 2.7402344 z M 8 5.15625 C 11.474409 5.15625 14.271434 7.6961188 14.851562 11 L 1.1484375 11 C 1.7285656 7.6961188 4.5255906 5.15625 8 5.15625 z M 4.5488281 7.875 C 4.2038281 7.875 3.9238281 8.156 3.9238281 8.5 C 3.9238281 8.845 4.2048281 9.125 4.5488281 9.125 C 4.8938281 9.125 5.1738281 8.844 5.1738281 8.5 C 5.1738281 8.155 4.8928281 7.875 4.5488281 7.875 z M 11.451172 7.875 C 11.106172 7.875 10.826172 8.156 10.826172 8.5 C 10.826172 8.845 11.107172 9.125 11.451172 9.125 C 11.795172 9.125 12.075172 8.844 12.076172 8.5 C 12.076172 8.155 11.795172 7.875 11.451172 7.875 z"/></svg>
+                          <div className="ml-3">                
+                               <img src={AppStore} className="h-[30px] w-auto"/>
+                          </div>
+
+                          <label className="mx-3">{t('common.and')}</label>
+
+                          <div className="ml-1">
+                              <img src={GooglePlay} className="h-[30px] w-auto"/>
                           </div>
                     </div>
 
-                   
  
                  </div>
 
 
-
-
-
-
                
                       
-                <div id="features" className="relative z-10 pt-[200px] px-7">
-                    <h2 className="text-center text-[20px] font-semibold mb-5 uppercase text-[#ff7626]">Porquê ProConta</h2>
+                <div id="features" className="relative z-10 py-[100px] px-7 bg-white mt-[100px] features">
+                    <h2 className="text-center text-[20px] font-semibold mb-5 uppercase text-[#ff7626] hidden">Porquê ProConta</h2>
                     <h3 className="max-w-[700px] max-md:text-[27px] mx-auto text-center text-[45px] font-semibold mb-6">Optimize your risk with trading tools tailored to your needs</h3>
                     <p className="max-w-[600px] mx-auto text-center text-gray-400">We offer a wide range of Forex trading services to meet the unique needs of our clients. Our services include:</p>
 
@@ -385,7 +386,7 @@ function index() {
                     <div className="flex w-full items-center justify-center my-[80px] max-md:flex-wrap">
                        
                        {whyItems.map((i,_i)=>(
-                         <div className="bg-[#F7F7F8] hover:shadow-xl rounded-[0.8rem] flex flex-col justify-center items-center p-10 max-w-[300px]">
+                         <div className={`bg-[#F7F7F8] hover:shadow-xl ${_i!=1 ? 'rounded-[0.8rem]':' max-sm:rounded-[0.8rem]'} ${_i==2 ? 'rounded-s-none max-sm:rounded-s-[0.8rem]':''} ${_i==0 ? 'rounded-e-none max-sm:rounded-e-[0.8rem]':''}  max-md:mb-4 flex flex-col justify-center items-center p-10 max-w-[300px]`}>
                                 <span className="flex mb-2"><svg xmlns="http://www.w3.org/2000/svg" height="35px" viewBox="0 -960 960 960" fill={colors.app_pimary[400]}><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"/></svg></span>
                                 <span className="text-[20px] font-semibold mb-3 flex">Forex Trading</span>
                                 <p className="text-center text-gray-400 text-[17px]">We offer competitive spreads, leverage of up to 1:500.</p>
@@ -525,17 +526,17 @@ function index() {
 
 
 
-               <div id="support" className="w-full px-7 flex-col items-center pb-[200px] bg-[#fff] flex border-t border-t-gray-200   mt-20">
+               <div id="support" className="w-full px-7 flex-col items-center pb-[100px] relative bg-[#fff] flex   mt-20  overflow-hidden">
+                        <div className="circle circle-4"></div><div className="circle circle-5"></div>
+                        <h3 className="max-w-[700px] mx-auto text-center text-[35px] font-semibold mb-6 text-gray-800  max-md:text-[27px] mt-20 z-10">{t('common.has_questions')}</h3>
                        
-                        <h3 className="max-w-[700px] mx-auto text-center text-[45px] font-semibold mb-6 text-white  max-md:text-[27px] mt-20">Have more questions? Don’t hesitate to reach us</h3>
-                       
-                        <div className="flex items-center mb-5">                
+                        <div className="flex items-center mb-5 z-10">                
                               <span className="flex w-[30px] h-[30px] rounded-full items-center border-[2px] border-[#ff7626] justify-center">
                                      <svg xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 -960 960 960" fill={'#ff7626'}><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"/></svg>
                               </span>
                               <span className="text-gray-500 ml-3 text-[20px] hover:underline"><a href="mailto:proconta@alinvest-group.com" target="_blank">proconta@alinvest-group.com</a></span>
                         </div>
-                        <div className="flex items-center mb-3">  
+                        <div className="flex items-center mb-3 z-10">  
                              <span className="flex w-[30px] h-[30px] rounded-full items-center border-[2px] border-[#ff7626] justify-center">
                                <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" fill="#ff7626"><path d="M798-120q-125 0-247-54.5T329-329Q229-429 174.5-551T120-798q0-18 12-30t30-12h162q14 0 25 9.5t13 22.5l26 140q2 16-1 27t-11 19l-97 98q20 37 47.5 71.5T387-386q31 31 65 57.5t72 48.5l94-94q9-9 23.5-13.5T670-390l138 28q14 4 23 14.5t9 23.5v162q0 18-12 30t-30 12Z"/></svg>
                              
@@ -543,12 +544,12 @@ function index() {
                               <span className="text-gray-500 ml-3 text-[19px]"><a>+258 87 870 7590</a></span>
                         </div>
 
-                        <div className="flex items-center mb-2">
+                        <div className="flex items-center mb-2 z-10">
                                 <span className="flex cursor-pointer hover:underline w-[30px] h-[30px] rounded-full items-center border-[2px] border-[#ff7626] justify-center">
                                 <svg  xmlns="http://www.w3.org/2000/svg" width="18px"  fill="#ff7626" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M18.403 5.633A8.919 8.919 0 0 0 12.053 3c-4.948 0-8.976 4.027-8.978 8.977 0 1.582.413 3.126 1.198 4.488L3 21.116l4.759-1.249a8.981 8.981 0 0 0 4.29 1.093h.004c4.947 0 8.975-4.027 8.977-8.977a8.926 8.926 0 0 0-2.627-6.35m-6.35 13.812h-.003a7.446 7.446 0 0 1-3.798-1.041l-.272-.162-2.824.741.753-2.753-.177-.282a7.448 7.448 0 0 1-1.141-3.971c.002-4.114 3.349-7.461 7.465-7.461a7.413 7.413 0 0 1 5.275 2.188 7.42 7.42 0 0 1 2.183 5.279c-.002 4.114-3.349 7.462-7.461 7.462m4.093-5.589c-.225-.113-1.327-.655-1.533-.73-.205-.075-.354-.112-.504.112s-.58.729-.711.879-.262.168-.486.056-.947-.349-1.804-1.113c-.667-.595-1.117-1.329-1.248-1.554s-.014-.346.099-.458c.101-.1.224-.262.336-.393.112-.131.149-.224.224-.374s.038-.281-.019-.393c-.056-.113-.505-1.217-.692-1.666-.181-.435-.366-.377-.504-.383a9.65 9.65 0 0 0-.429-.008.826.826 0 0 0-.599.28c-.206.225-.785.767-.785 1.871s.804 2.171.916 2.321c.112.15 1.582 2.415 3.832 3.387.536.231.954.369 1.279.473.537.171 1.026.146 1.413.089.431-.064 1.327-.542 1.514-1.066.187-.524.187-.973.131-1.067-.056-.094-.207-.151-.43-.263"></path></svg>
                                 
                                </span>                  
-                               <span className="text-gray-500 ml-3 text-[19px] cursor-pointer hover:underline"><a target="_blank" href="https://wa.me/258878707590">{t('common.our-whatsapp')}</a></span>
+                               <span className="text-gray-500 ml-3 text-[19px] cursor-pointer underline"><a target="_blank" href="https://wa.me/258878707590">{t('common.our-whatsapp')}</a></span>
                         </div>
 
                      

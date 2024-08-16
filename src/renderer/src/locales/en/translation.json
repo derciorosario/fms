@@ -135,6 +135,10 @@
    "msg-3": "From Zero to the Top of Your Financial Management"
   },
   "common": {
+  "has_questions":"Have more questions? Don’t hesitate to reach us",
+  "available-in":"Available in the browser and on Windows, Mac and Linux systems",
+  "and":"and",
+  "soon-in-app":"Soon in smartphones",
   "cancel-process":"Cancel progress",
   "close-and-save":"Close and save withdraw",
   "page-not-found":"Page not found",

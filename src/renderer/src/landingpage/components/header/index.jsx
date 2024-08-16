@@ -80,7 +80,7 @@ const handleOutsideClick = (event) => {
     <div>
         <header id="landing-header" className={`bg-[#ff7626] ${hw && !data.dialogs.register ?  'animate-header fixed':''} ${hw && pathname=="/" && 'shadow-sm'} ${hw && pathname!="/" && 'border-b'} transition-all z-40 ease-in   w-full`}>
              <nav className={`flex items-center justify-between px-[40px] py-3`}>
-                  <div className={`${!hw ? 'w-[100px]':''} header-logo-container`}>
+                  <div className={`${!hw ? 'w-[150px] max-sm:w-´0':''} header-logo-container`}>
                     {hw ? <>
                       <a className="flex cursor-pointer items-center" onClick={()=>{
                         navigate('/')

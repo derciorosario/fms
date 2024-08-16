@@ -262,7 +262,7 @@ async function get_invite_info(id){
 
           let user_settings=new PouchDB(`settings-${data.user.id}-${data.user.selected_company}`)
           let docs=await user_settings.allDocs({ include_docs: true })
-          settings=docs.rows.map(i=>i.doc)[0]
+          let settings=docs.rows.map(i=>i.doc)[0]
 
           if(!settings){
             await user_settings.put(data.settings)

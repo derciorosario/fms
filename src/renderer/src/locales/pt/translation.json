@@ -132,6 +132,10 @@
   },
 
  "common":{
+  "has_questions":"Tem mais questões? Não exite em nos contactar",
+  "available-in":"Disponível no navegador e em sistemas Windows, Mac and Linux",
+  "and":"e",
+  "soon-in-app":"Brevemente em smartphones",
   "cancel-process":"Cancelar precesso",
   "close-and-save":"Fechar e salvar rascunho",
   "page-not-found":"Página não encontrada",

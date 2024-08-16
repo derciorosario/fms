@@ -15,7 +15,7 @@ function DefaultLayout({children}) {
   return (
     <div id={'top'} className="min-h-[100vh] relative">
           <div className="dots"></div>
-          {data.isLoading && <Preloader/>}
+          {!data.isPreloaderLoaded && <Preloader/>}
           <Sidebar setOpenSidebar={setOpenSidebar} openSidebar={openSidebar}/>
             <div onClick={()=>{
             if(openSidebar)  setOpenSidebar(false)

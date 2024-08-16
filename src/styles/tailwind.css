@@ -459,7 +459,9 @@ body{
   
 }
 
-.hero .circle{
+.hero .circle,
+#support .circle
+{
   position: absolute;
   content: "";
   border: 50px solid #f86b19;
@@ -475,6 +477,25 @@ body{
   left: 0;
   bottom: 0;
   transform: translate(-30%,20%);
+}
+#support .circle-4{
+  width: 400px;
+  height: 400px;
+  left: 0;
+  bottom: 0;
+  transform: translate(-30%,40%);
+  opacity: 1;
+  border: 50px solid #F6F6F7;
+}
+
+#support .circle-5{
+  width: 700px;
+  height: 700px;
+  right: 0;
+  top: 0;
+  transform: translate(30%,-60%);
+  border: 50px solid #F6F6F7;
+  opacity: 1;
 }
 
 .hero .circle-2{
@@ -693,12 +714,40 @@ body{
     position: relative;
   }
 
+  #features{
+    border-top-left-radius: 40%;
+  }
+  #support{
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+  }
+
  @media (max-width:900px){
   .header-logo-container{
       width: auto;
   }
+  #features{
+    border-top-left-radius: 0%;
+  }
  }
 
+ .logo-loader span{
+  animation: 2s ani_loader linear infinite;
+  transition: 0.2s;
+ }
 
+ @keyframes ani_loader{
+  0%{
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+    50%{
+       border-bottom-left-radius: 1.3rem;
+       border-bottom-right-radius: 0.6rem;
+    }100%{
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+ }
 
 

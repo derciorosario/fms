@@ -176,7 +176,7 @@ export const HomeDataProvider = ({ children }) => {
       useEffect(()=>{
 
         if(imagesLoadedItems.length >= imageUrls.length){
-          setIsPreloaderLoaded(true)
+           setTimeout(()=> setIsPreloaderLoaded(true),3000)
         }
 
       },[imagesLoadedItems])

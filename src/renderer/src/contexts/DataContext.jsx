@@ -6,7 +6,7 @@ import PouchDB from 'pouchdb';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import io from 'socket.io-client';
-let env="pro"
+let env="dev"
 const socket = io(env!="dev" ? 'https://procontadev.alinvest-group.com' : 'http://localhost:4000')//https://procontadev.alinvest-group.com
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';

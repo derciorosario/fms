@@ -42,7 +42,7 @@ const PayPalButton = ({method,setMedthod,activePage,setActvePage}) => {
        setActvePage(activePage + 1)
        d.setkey(key)
        localStorage.setItem('form',JSON.stringify({...d.form,restart:true}))
-       toast.success('messages.payment-done')
+       toast.success(t('messages.payment-done'))
 
   }
 

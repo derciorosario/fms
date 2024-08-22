@@ -53,6 +53,8 @@ const PayPalButton = ({method,setMedthod,activePage,setActvePage}) => {
        _dataRef.current={
          name:d.form.name,
          email:d.form.email,
+         company_name:d.form.company_name,
+         contact:d.form.contact,
          email_is_registered:d.email_is_registered
        }
   }, [d.form])
@@ -111,7 +113,7 @@ const PayPalButton = ({method,setMedthod,activePage,setActvePage}) => {
             });
         },
         onCancel: () => {
-             setMessage(t('message.payment-cancelled'))
+             setMessage(t('messages.payment-cancelled'))
         },
         onError: (err) => {
           console.error(err);

@@ -66,6 +66,8 @@ function SendProof({message,setMessage}) {
             proof:null,
             to_name:data.form.name,
             to_email:data.form.email,
+            to_contact:data.form.contact,
+            to_company_name:data.form.company_name,
             invoice_number,
             payment_method:t('common.transfer'),
             date:new Date().toISOString(),

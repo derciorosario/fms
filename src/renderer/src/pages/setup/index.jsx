@@ -71,7 +71,7 @@ function FirstUse() {
        password:'',
        state:'',
        address:'',
-       contact_code:'1',
+       contact_code:'258',
        contact:''
     },
     company:{
@@ -79,7 +79,7 @@ function FirstUse() {
        address:'',
        email:'',
        nuit:'',
-       contact_code:'1',
+       contact_code:'258',
        contact:'',
        key:'',
        logo:{}
@@ -138,8 +138,7 @@ function FirstUse() {
 
 async function get_invite_info(id){
      toast.remove()
-    try{
-
+     try{
       let response = await data.makeRequest({method:'get',url:`api/get-invite-info/`+id, error: ``},0);
      
       if(response.invalid){
@@ -156,12 +155,9 @@ async function get_invite_info(id){
       }
 
       setinitialized(true)
-
     }catch(e){
       toast.remove()
-
         if(e.response){
-                
             if(e.response.status==400){
                 toast.error(t('common.invalid-data'))
             }
@@ -171,8 +167,6 @@ async function get_invite_info(id){
             if(e.response.status==500){
               toast.error(t('common.unexpected-error'))
             }
-          
-            
       }else if(e.code=='ERR_NETWORK'){
           toast.error(t('common.check-network'))
       }else{
@@ -182,14 +176,10 @@ async function get_invite_info(id){
       
       setLoading(false)
       setinitialized(true)
-         
     }
+  }
 
-
-}
-
-  const [v,setV] = useState()
- 
+  const [v,setV] = useState();
   useEffect(()=>{
         if(localStorage.getItem('setupdata') && !IsRegister){
              setFormData(JSON.parse(localStorage.getItem('setupdata')))
@@ -342,14 +332,17 @@ async function get_invite_info(id){
               if(response.user) setUserExists(true)
   
               let personal
+              let company
   
               if(response.user){
                 personal={...formData.personal,...response.user,password:'',contact:response.user.contacts[0]}
               }else{
-                personal={...formData.personal,email:response.info.send_email}
+                personal={...formData.personal,email:response.info.send_email,contact:response.info.contact.toString().slice(0,9)}
+                company={...formData.company,name:response.info.company_name}
+
               }
   
-              setFormData({...formData,personal})
+              setFormData({...formData,personal,company})
               setCurrentPage(response.user ? 2 : 1)
               
             }
@@ -448,11 +441,10 @@ async function get_invite_info(id){
      return <PageLoader/>
   }
 
-
   return (
 <>
 
-
+{!initialized && <PageLoader/>}
 
 {/*(!verified && invite) && <VericationDialog formData={formData} setFormData={setFormData} verified={verified} setVerified={setVerified}/>*/}
 
@@ -511,7 +503,11 @@ async function get_invite_info(id){
                       </>}
                       <label onClick={()=>navigate('/login')} className="hover:opacity-75 inline-flex text-app_orange-400 underline cursor-pointer">Login</label>
                       <label className="mx-2 text-gray-200">|</label>
-                      <label className="hover:opacity-70 cursor-pointer inline-flex text-app_orange-400 underline" onClick={()=>navigate('/new-company')}>{t('common.register-company')}</label>
+                      <label className="hover:opacity-70 cursor-pointer inline-flex text-app_orange-400 underline" onClick={()=>{
+                        navigate('/new-company')
+                        setinitialized(false)
+                        window.location.reload()
+                      }}>{t('common.register-company')}</label>
                     </span>
             </div>}
             

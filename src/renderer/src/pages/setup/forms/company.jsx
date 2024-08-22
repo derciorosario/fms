@@ -37,7 +37,7 @@ function FirstUsePerson({formData,setFormData,setUpload,upload}) {
         <div class="md:col-span-2">
             <label for="state">{t('common.contact')} </label>
             <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
-                   <select onChange={(e)=>setFormData({...formData,company:{...formData.company,contact_code:e.target.value}})} value={formData.contact_code} className="bg-transparent">
+                   <select onChange={(e)=>setFormData({...formData,company:{...formData.company,contact_code:e.target.value}})} value={formData.contact_code} className="bg-transparent pointer-events-none">
                         {_var.contry_codes.map(i=>(
                             <option selected={formData.company.contact_code==i.code ? true : false}  value={i.code}>+{i.code}</option>
                         ))}

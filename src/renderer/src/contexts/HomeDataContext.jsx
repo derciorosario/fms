@@ -34,6 +34,7 @@ export const HomeDataProvider = ({ children }) => {
         register:false
     })
     
+
     const [loading,setLoading] = useState(false)
 
     let initial_form={
@@ -104,7 +105,7 @@ export const HomeDataProvider = ({ children }) => {
       let timer= setInterval(() => {
            count_ref.current=parseInt(count_ref.current) + 1
            if(count_ref.current >= 20 && !isPreloaderLoaded && window.location.pathname=="/"){
-                 window.location.reload()
+                 //window.location.reload()
            }
       }, 1000);
     }, []);
@@ -177,16 +178,17 @@ export const HomeDataProvider = ({ children }) => {
 
         if(imagesLoadedItems.length >= imageUrls.length){
            setTimeout(()=> setIsPreloaderLoaded(true),3000)
+           _scrollToSection('top','instant')
         }
 
       },[imagesLoadedItems])
 
-      const _scrollToSection = (to) => {
+      const _scrollToSection = (to,instant) => {
         
           const Section = document.getElementById(to);
           console.log({to,Section})
           if (Section) {
-            Section.scrollIntoView({ behavior: (to=="home" || to=="features" || to=="plans" || to=="support") ? 'smooth':'instant' });
+            Section.scrollIntoView({ behavior: (to=="home" || to=="features" || to=="plans" || to=="support") && !instant ? 'smooth':'instant' });
           }else{
             setTimeout(()=>_scrollToSection(to),1000)
           }

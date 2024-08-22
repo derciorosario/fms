@@ -42,9 +42,7 @@ function Register({activePage,setActvePage}) {
 
         
 
-        data.setLoading(true)
-
-       
+       data.setLoading(true)       
        
        try{
         let res=await data.makeRequest({method:'post',url:`api/${resend || !codeSent ? 'send-email-code':'verify-code'}`,data:{
@@ -133,7 +131,7 @@ function Register({activePage,setActvePage}) {
                     <div className="w-[340px] max-sm:w-full items-center flex h-[43px] rounded-[0.3rem] bg-slate-100 mb-5">
                             <span className="flex px-2 h-[85%] ml-[3px] rounded-[0.3rem] items-center  justify-center bg-white"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" fill="#ff7626"><path d="M798-120q-125 0-247-54.5T329-329Q229-429 174.5-551T120-798q0-18 12-30t30-12h162q14 0 25 9.5t13 22.5l26 140q2 16-1 27t-11 19l-97 98q20 37 47.5 71.5T387-386q31 31 65 57.5t72 48.5l94-94q9-9 23.5-13.5T670-390l138 28q14 4 23 14.5t9 23.5v162q0 18-12 30t-30 12Z"></path></svg></span>
                             <input  onChange={(e=>(
-                                        data.setForm({...data.form,contact:e.target.value.replace(/[^0-9]/g, '')})
+                                        data.setForm({...data.form,contact:e.target.value.replace.replace(/[^0-9]/g, '')})
                             ))} value={data.form.contact} placeholder={t('form.your-contact')} className="flex-1 h-full px-2 outline-none bg-transparent"/>
                         </div>
 

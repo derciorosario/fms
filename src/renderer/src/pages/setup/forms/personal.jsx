@@ -47,7 +47,7 @@ function FirstUsePerson({formData,setFormData,useExistingAccount,IsRegister,exis
             <label for="state">{t('common.contact')}</label>
            
             <div class="h-10 bg-gray-50 flex border border-gray-200 rounded items-center mt-1">
-                  <select onChange={(e)=>setFormData({...formData,personal:{...formData.personal,contact_code:e.target.value}})} value={formData.contact_code} className="bg-transparent">
+                  <select onChange={(e)=>setFormData({...formData,personal:{...formData.personal,contact_code:e.target.value}})} value={formData.contact_code} className="bg-transparent pointer-events-none">
                         {_var.contry_codes.map(i=>(
                             <option selected={formData.personal.contact_code==i.code ? true : false}  value={i.code}>+{i.code}</option>
                         ))}

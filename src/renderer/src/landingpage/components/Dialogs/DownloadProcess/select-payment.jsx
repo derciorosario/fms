@@ -8,6 +8,8 @@ import { useHomeData } from '../../../../contexts/HomeDataContext'
 function SelectPaymentMethod({activePage,setActvePage}) {
   const data=useHomeData()
   const [message,setMessage] =  useState('')
+
+  console.log(data.form)
   
   return (
     <div className="mt-0 mb-20 w-full">

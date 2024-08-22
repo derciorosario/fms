@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect} from 'react';
 import toast from 'react-hot-toast';
 import PouchDB from 'pouchdb';
 const AuthContext = createContext();
-let env="dev"
+let env="pro"
 export const AuthProvider = ({ children }) => {
   
   let APP_BASE_URL= env=="dev" ? 'http://localhost:4000' :  'https://procontadev.alinvest-group.com' 

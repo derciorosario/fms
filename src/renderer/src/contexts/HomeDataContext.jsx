@@ -24,7 +24,7 @@ export const HomeDataProvider = ({ children }) => {
     const [resetUpdater,setResetUpdater]= useState()
     const [imagesLoadedItems, setImagesLoadedItems] = useState([])
     const count_ref=useRef(0)
-    const env="dev"
+    const env="pro"
     const plataform_url= env=="dev" ? 'http://localhost:5173' : 'https://proconta.alinvest-group.com'
     const server_url= env=="dev" ? 'http://localhost:4000' : 'https://procontadev.alinvest-group.com'
     const APP_BASE_URL= env=="dev" ? 'http://localhost:4000' : 'https://procontadev.alinvest-group.com' 

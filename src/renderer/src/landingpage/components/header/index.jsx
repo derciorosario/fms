@@ -94,14 +94,16 @@ const handleOutsideClick = (event) => {
                   
                     </>}
                   </div>
+
                   <div className={`flex items-center max-md:hidden flex-1 justify-center`}>
                        {menu.map((i,_i)=>(
-                             <a key={_i} className={` ${hw ? 'text-gray-600 opacity-80':'text-white opacity-70'}  hover:opacity-100 cursor-pointer text-[18px] mx-3`} onClick={()=>{
+                             <a key={_i} className={` ${hw ? 'text-gray-600 opacity-80':'text-white'}  hover:opacity-70 cursor-pointer text-[18px] mx-3`} onClick={()=>{
                                 navigate(i.path)
                                 goto()
                              }}>{i.name}</a>
                        ))}
                   </div>
+
                   <div className="flex items-center">
                   <div className="flex mr-4 items-center relative cursor-pointer  _lang">
                         <div className="flex items-center _lang" onClick={()=>{

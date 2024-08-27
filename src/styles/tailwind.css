@@ -751,3 +751,31 @@ body{
  }
 
 
+
+.arrow {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.3s ease;
+}
+
+.read-more-container:hover .arrow {
+  transform: translateX(5px);
+}
+
+.read-more-container:hover .read-more-text {
+  color: #007bff; /* Change color on hover */
+}
+
+
+@keyframes bounce {
+  0%, 100% {
+      transform: translateY(0);
+  }
+  50% {
+      transform: translateY(5px);
+  }
+}
+
+.arrow {
+  animation: bounce 1s infinite;
+}

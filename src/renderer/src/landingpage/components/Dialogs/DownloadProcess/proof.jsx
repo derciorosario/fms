@@ -8,22 +8,19 @@ import colors from '../../../assets/colors.json'
 import { useHomeData } from '../../../../contexts/HomeDataContext'
 
 function SendProof({message,setMessage}) {
+
   const [status,setStatus] =  useState()
   const [progress,setProgress]=useState(0)
   const [filename,setFileName] = useState('')
   const [success,setSuccess]=useState(false)
 
-
   const {pathname} = useLocation()
   const data = useHomeData()
 
-
   useEffect(()=>{
-
      if(!data.loading && status==500){
         setTimeout(()=>setShow(false),4000)
      }
-
   },[data.loading,status])
 
 

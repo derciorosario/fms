@@ -4,7 +4,7 @@ import IntroImage from '../../assets/images/intro.png'
 import VideoIntro from '../../components/Dialogs/video-intro'
 import { useHomeData } from '../../../contexts/HomeDataContext'
 import colors from '../../assets/colors.json'
-import ForexImage from '../../assets/images/forex.webp'
+import ForexImage from '../../assets/images/forex.jpg'
 import AppStore from '../../assets/images/app-store.png'
 import GooglePlay from '../../assets/images/google-play.png'
 import i18n from '../../../i18n'
@@ -15,10 +15,13 @@ import DownloadPopUp from '../../components/Dialogs/download-popup'
 import { useNavigate } from 'react-router-dom'
 import TransaparentPageLoader from '../../../components/progress/transparentPageloader'
 import Demostration from '../../components/Dialogs/demostration'
+import Quotation from '../../components/Dialogs/quotation'
+import { Category } from '@mui/icons-material'
 
 function index() {
   const [showVideo,setShowVideo]=useState(false)
   const [showDemoPopUp,setShowDemoPopUp]=useState(false)
+  const [showQuotationPopUp,setShowQuotationPopUp]=useState(false)
   const [showDownloadProcess,setShowDownloadProcess]=useState(false)
   const navigate=useNavigate()
   const data=useHomeData()
@@ -31,7 +34,7 @@ function index() {
   const [isMobileSize,setIsMobileSize]=useState(window.innerWidth <= 1024)
   useEffect(()=>{
       if(isMobileSize){
-        if(!openStart) setOpenSart('sub')
+       // if(!openStart) setOpenSart('sub')
       }
   },[isMobileSize])
   function handleResize(){
@@ -46,9 +49,48 @@ function index() {
 
 
 
-  async function validate_email(){
+
+  async function send_quotation() {
+
     toast.remove()
 
+    if((!data.form.email || !data.form.name || !data.form.contact || !data.form.company_name || !data.form.work_field || !data.form.business_volume || !data.form.workers_amount)){
+        toast.error(t('common.fill-fields'))
+        return false
+    }
+
+    
+    setShowQuotationPopUp(false)
+    
+    try{
+        setLoading(true)
+        await data.makeRequest({method:'post',url:`request-quotation`,data:{
+            ...data.form,
+            category:data.form.business_volume=="until-3M" ? "Micro empresa" :  data.form.business_volume=="until-30M" ? "Pequena empresa" : "Media empresa"
+        },error: ``},0);
+        toast.success(t('common.quotation-sent'))
+        setLoading(false)
+        setShowQuotationPopUp(false)
+
+        console.log({
+            ...data.form,
+            category:data.form.business_volume=="until-3M" ? "Micro empresa" :  data.form.business_volume=="until-30M" ? "Pequena empresa" : "Media empresa"
+        })
+
+    }catch(e){
+        if(e.code=="ERR_NETWORK"){
+            toast.error(t('common.check-network'))
+        }else{
+            toast.error(t('messages.try-again'))
+        }
+        setShowQuotationPopUp(true)
+        setLoading(false)
+
+    }
+  }
+
+  async function validate_email(){
+    toast.remove()
 
     if(openStart!="sub" && (!data.form.email1 || !data.form.name || !data.form.contact || !data.form.company_name)){
         toast.error(t('common.fill-fields'))
@@ -145,9 +187,12 @@ function index() {
 
   useEffect(()=>{
     setWhyItems([
-        {title:t('common.best-speakers'),img:'micro',content:'Lorem, ipsum dolor sit amet consectetur adipisicing elit. Est, distinctio qui? '},
-        {title:t('common.inspiring-keynotes'),img:'light',content:'Lorem, ipsum dolor sit amet consectetur adipisicing elit. Est, distinctio qui? '},
-        {title:t('common.networking-fun-food'),img:'networking',content:'Lorem, ipsum dolor sit amet consectetur adipisicing elit. Est, distinctio qui?'}
+        {title:t('common.daily-balance'),img:'micro',content:t('common.why-sub-1'),icon:'M480-40q-112 0-206-51T120-227v107H40v-240h240v80h-99q48 72 126.5 116T480-120q75 0 140.5-28.5t114-77q48.5-48.5 77-114T840-480h80q0 91-34.5 171T791-169q-60 60-140 94.5T480-40Zm-36-160v-52q-47-11-76.5-40.5T324-370l66-26q12 41 37.5 61.5T486-314q33 0 56.5-15.5T566-378q0-29-24.5-47T454-466q-59-21-86.5-50T340-592q0-41 28.5-74.5T446-710v-50h70v50q36 3 65.5 29t40.5 61l-64 26q-8-23-26-38.5T482-648q-35 0-53.5 15T410-592q0 26 23 41t83 35q72 26 96 61t24 77q0 29-10 51t-26.5 37.5Q583-274 561-264.5T514-250v50h-70ZM40-480q0-91 34.5-171T169-791q60-60 140-94.5T480-920q112 0 206 51t154 136v-107h80v240H680v-80h99q-48-72-126.5-116T480-840q-75 0-140.5 28.5t-114 77q-48.5 48.5-77 114T120-480H40Z'},
+        {title:t('common.why-title-2'),img:'light',content:t('common.why-sub-2'),icon:'M560-440q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM280-320q-33 0-56.5-23.5T200-400v-320q0-33 23.5-56.5T280-800h560q33 0 56.5 23.5T920-720v320q0 33-23.5 56.5T840-320H280Zm80-80h400q0-33 23.5-56.5T840-480v-160q-33 0-56.5-23.5T760-720H360q0 33-23.5 56.5T280-640v160q33 0 56.5 23.5T360-400Zm440 240H120q-33 0-56.5-23.5T40-240v-440h80v440h680v80ZM280-400v-320 320Z'},
+        {title:t('common.why-title-3'),img:'networking',content:t('common.why-sub-3'),icon:'M439-82q-76-8-141.5-42.5t-113.5-88Q136-266 108.5-335T81-481q0-155 102.5-268.5T440-880v80q-121 17-200 107.5T161-481q0 121 79 211.5T439-162v80Zm40-198L278-482l57-57 104 104v-245h80v245l103-103 57 58-200 200Zm40 198v-80q43-6 82.5-23t73.5-43l58 58q-47 37-101 59.5T519-82Zm158-652q-35-26-74.5-43T520-800v-80q59 6 113 28.5T733-792l-56 58Zm112 506-56-57q26-34 42-73.5t22-82.5h82q-8 59-30 113.5T789-228Zm8-293q-6-43-22-82.5T733-677l56-57q38 45 61 99.5T879-521h-82Z'},
+        {title:t('common.why-title-4'),img:'networking',content:t('common.why-sub-4'),icon:'M441-82q-76-8-141.5-41.5t-114.5-87Q136-264 108-333T80-480q0-157 104.5-270T441-878v81q-119 15-200 104.5T160-480q0 123 81 212.5T441-163v81Zm0-198v-247L337-423l-56-57 200-200 200 200-57 56-103-103v247h-80Zm80 198v-81q44-5 83.5-22t72.5-43l57 58q-45 36-99 59T521-82Zm155-650q-33-26-72-43t-83-22v-81q60 6 114 29t99 59l-58 58Zm114 505-57-57q26-33 43-72.5t22-83.5h81q-6 60-29.5 114T790-227Zm8-293q-5-44-22-83.5T733-676l57-57q36 45 59.5 99T879-520h-81Z'},
+        {title:t('common.why-title-5'),img:'networking',content:t('common.why-sub-5'),icon:'m105-233-65-47 200-320 120 140 160-260 109 163q-23 1-43.5 5.5T545-539l-22-33-152 247-121-141-145 233ZM863-40 738-165q-20 14-44.5 21t-50.5 7q-75 0-127.5-52.5T463-317q0-75 52.5-127.5T643-497q75 0 127.5 52.5T823-317q0 26-7 50.5T795-221L920-97l-57 57ZM643-217q42 0 71-29t29-71q0-42-29-71t-71-29q-42 0-71 29t-29 71q0 42 29 71t71 29Zm89-320q-19-8-39.5-13t-42.5-6l205-324 65 47-188 296Z'},
+        {title:t('common.why-title-6'),img:'networking',content:t('common.why-sub-6'),icon:'M360-240h220q17 0 31.5-8.5T632-272l84-196q2-5 3-10t1-10v-32q0-17-11.5-28.5T680-560H496l24-136q2-10-1-19t-10-16l-29-29-184 200q-8 8-12 18t-4 22v200q0 33 23.5 56.5T360-240ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z'}
     ])
 
     setFeatures([ 
@@ -172,6 +217,7 @@ function index() {
            <DownloadProcess show={showDownloadProcess} setShow={setShowDownloadProcess}/>
            <VideoIntro show={showVideo} setShow={setShowVideo}/>
            <Demostration show={showDemoPopUp} setShow={setShowDemoPopUp} validate_email={validate_email}/>
+           <Quotation show={showQuotationPopUp} setShow={setShowQuotationPopUp} send_quotation={send_quotation}/>
 
 
            <div onClick={()=>{
@@ -207,7 +253,7 @@ function index() {
                          
                         <div className="flex max-sm:flex-col w-full justify-center">
                         
-                            <div className={`mr-4 transition-all max-sm:mb-0 duration-150 ease-in ${openStart=="sub" ? 'md:min-w-[500px] bg-white':'0 overflow-hidden'}   max-sm:flex-col max-sm:w-full rounded-[0.3rem] sm:rounded-full  p-1 flex items-center`}>
+                            <div className={`mr-4 transition-all max-sm:mb-0 duration-150 ease-in ${openStart=="sub_" ? 'md:min-w-[500px] bg-white':'0 overflow-hidden'}   max-sm:flex-col max-sm:w-full rounded-[0.3rem] sm:rounded-full  p-1 flex items-center`}>
                                  <div className={`overflow-hidden  ${openStart=="sub" ? 'w-full':'w-0'}  flex items-center h-[50px]`}>
                                     <span className="pl-3"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"/></svg></span>
                                     <input id="sub" onChange={(e=>(
@@ -215,6 +261,8 @@ function index() {
                                     ))} value={data.form.email1} placeholder={t('common.email-mask')} className="outline-none flex-1 px-3 bg-transparent" />
                                 </div>
                                 <button onClick={()=>{
+                                  data._scrollToSection('plans')
+                                    return
                                     if(openStart=="sub"){
                                         validate_email()
                                     }else{
@@ -379,20 +427,40 @@ function index() {
                       
                 <div id="features" className="relative z-10 py-[100px] px-7 bg-white mt-[100px] features">
                     <h2 className="text-center text-[20px] font-semibold mb-5 uppercase text-[#ff7626] hidden">Porquê ProConta</h2>
-                    <h3 className="max-w-[700px] max-md:text-[27px] mx-auto text-center text-[45px] font-semibold mb-6">Optimize your risk with trading tools tailored to your needs</h3>
-                    <p className="max-w-[600px] mx-auto text-center text-gray-400">We offer a wide range of Forex trading services to meet the unique needs of our clients. Our services include:</p>
+
+                    {i18n.language=="pt" ?  <h3 className="max-w-[900px] max-md:text-[27px] mx-auto text-center text-[45px] font-semibold mb-6">A <span className="text-[#ff7626]">ProConta</span> está contigo onde você estiver, e seu negócio  <span className="text-[#ff7626]">também</span>.</h3> : <h3 className="max-w-[900px] max-md:text-[27px] mx-auto text-center text-[45px] font-semibold mb-6"><span className="text-[#ff7626]">ProConta</span> is with you wherever you are, and so is your <span className="text-[#ff7626]">business</span>.</h3>}
+                   
+                    <p className="max-w-[600px] mx-auto text-center text-gray-400">{t('common.why-proconta-sub-title')}</p>
 
 
-                    <div className="flex w-full items-center justify-center my-[80px] max-md:flex-wrap">
+                    <div className="flex w-full items-center justify-center mb-[30px] my-[80px] mb-[30px] max-md:flex-wrap">
                        
-                       {whyItems.map((i,_i)=>(
-                         <div className={`bg-[#F7F7F8] hover:shadow-xl ${_i!=1 ? 'rounded-[0.8rem]':' max-sm:rounded-[0.8rem]'} ${_i==2 ? 'rounded-s-none max-sm:rounded-s-[0.8rem]':''} ${_i==0 ? 'rounded-e-none max-sm:rounded-e-[0.8rem]':''}  max-md:mb-4 flex flex-col justify-center items-center p-10 max-w-[300px]`}>
-                                <span className="flex mb-2"><svg xmlns="http://www.w3.org/2000/svg" height="35px" viewBox="0 -960 960 960" fill={colors.app_pimary[400]}><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"/></svg></span>
-                                <span className="text-[20px] font-semibold mb-3 flex">Forex Trading</span>
-                                <p className="text-center text-gray-400 text-[17px]">We offer competitive spreads, leverage of up to 1:500.</p>
+                       {whyItems.filter((_,_i)=>_i<=2).map((i,_i)=>(
+                         <div className={`bg-[#f7f7f894] hover:shadow-xl rounded-[0.8rem] mx-2  max-md:mb-4 flex flex-col justify-center items-center p-10 max-w-[300px]`}>
+                                <span className="flex mb-2"><svg xmlns="http://www.w3.org/2000/svg" height="35px" viewBox="0 -960 960 960" fill={colors.app_pimary[400]}><path d={i.icon}/></svg></span>
+                                <span className="text-[20px] font-semibold mb-3 flex">{i.title}</span>
+                                <p className="text-center text-gray-400 text-[17px]">{i.content}</p>
                          </div>
                        ))}
                     </div>
+
+                    <div className="flex w-full items-center justify-center mt-[30px] my-[80px]  mt-[30px] max-md:flex-wrap">
+                       
+                       {whyItems.filter((_,_i)=>_i>=3).map((i,_i)=>(
+                         <div className={`bg-[#f7f7f894] hover:shadow-xl mx-2 rounded-[0.8rem]  max-md:mb-4 flex flex-col justify-center items-center p-10 max-w-[300px]`}>
+                                <span className="flex mb-2"><svg xmlns="http://www.w3.org/2000/svg" height="35px" viewBox="0 -960 960 960" fill={colors.app_pimary[400]}><path d={i.icon}/></svg></span>
+                                <span className="text-[20px] font-semibold mb-3 flex">{i.title}</span>
+                                <p className="text-center text-gray-400 text-[17px]">{i.content}</p>
+                         </div>
+                       ))}
+                    </div>
+
+                     <div className="w-full flex flex-col justify-center items-center cursor-pointer">
+                           <span onClick={()=>data._scrollToSection('plans')} className="mb-1 text-[17px] font-medium hover:text-[#ff7626]">{t('common.know-more')} </span>
+                           <div onClick={()=>data._scrollToSection('plans')} className="arrow">
+                                 <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#ff7626"><path d="m480-340 180-180-57-56-123 123-123-123-57 56 180 180Zm0 260q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
+                           </div>
+                     </div>
                 </div>
 
                 
@@ -402,18 +470,20 @@ function index() {
 
                    <div className="max-w-[380px] relative">
                        <div className="_image_item absolute left-0 top-0 w-full h-full z-[-1]"></div>
-                       <img className="w-full" src={ForexImage}/>
+                       <img className="w-full rounded-[1rem]" src={ForexImage}/>
                    </div>
                    <div className="ml-10 flex flex-col justify-center max-md:mt-10">
                          <div className="max-w-[500px]">
-                            <h2 className="text-[20px]  font-semibold  mb-5 uppercase text-[#ff7626]">{t('section.ask-for-accounting-3')}</h2>
-                            <h3 className="text-[36px]  font-semibold mb-6">{t('section.ask-for-accounting-2')}</h3>
+                            {i18n.language == "pt" ?   <h2 className="text-[20px]  font-semibold  mb-5 uppercase text-[#000]">Que tal cuidarmos da sua <span className="text-[#ff7626]">contabiliade</span>?</h2>
+                            :  <h2 className="text-[20px] font-semibold mb-5 uppercase text-[#000]">How about we take care of your <span className="text-[#ff7626]">accounting</span>?</h2>
+                           }
+                            <h3 className="text-[36px]  font-semibold mb-6">{t('section.ask-for-accounting-2')} <span className="text-[#ff7626]">{t('section.ask-for-accounting-2-1')}</span></h3>
                             <p className="text-gray-400 text-[17px]">{t('section.ask-for-accounting-1')}</p>
                         
 
                             <div className="flex mt-7">
-                                <span  className="text-white  text-[16px] min-w-[100px] flex justify-center px-5 py-3 rounded-full bg-[#ff7626]  hover:bg-yellow-500 hover:scale-[1.1] transition-all duration-75 ease-linear cursor-pointer">
-                                    <a href="https://alinvest-group.com">{t('common.know-more')}</a>
+                                <span onClick={()=>setShowQuotationPopUp(true)}  className="text-white  text-[16px] min-w-[100px] flex justify-center px-5 py-3 rounded-full bg-[#ff7626]  hover:bg-yellow-500 hover:scale-[1.1] transition-all duration-75 ease-linear cursor-pointer">
+                                    <a>{t('common.ask-for-quotation')}</a>
                                 </span>
                             </div>
                          </div> 

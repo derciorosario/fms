@@ -33,9 +33,7 @@ export const HomeDataProvider = ({ children }) => {
         download:false,
         register:false
     })
-    
 
-    console.log({isPreloaderLoaded})
     const [loading,setLoading] = useState(false)
 
     let initial_form={
@@ -185,7 +183,7 @@ export const HomeDataProvider = ({ children }) => {
       },[imagesLoadedItems])
 
       const _scrollToSection = (to,instant) => {
-        
+      
           const Section = document.getElementById(to);
           console.log({to,Section})
           if (Section) {

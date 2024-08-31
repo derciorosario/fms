@@ -54,8 +54,12 @@ const PayPalButton = ({method,setMedthod,activePage,setActvePage}) => {
          name:d.form.name,
          email:d.form.email,
          company_name:d.form.company_name,
+         plan:d.form.plan,
+         period:d.form.showAnualPlans ? 'anual' : 'monthly',
+         last_name:d.form.last_name,
          contact:d.form.contact,
-         email_is_registered:d.email_is_registered
+         email_is_registered:d.email_is_registered,
+         price:d.form.showAnualPlans ? (d.form.plan=="basic" ? "16500" : "36000" ) : (d.form.plan=="basic" ? "1500":"3000")
        }
   }, [d.form])
 

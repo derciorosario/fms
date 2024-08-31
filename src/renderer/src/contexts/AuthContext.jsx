@@ -1,8 +1,11 @@
 import { createContext, useContext, useState, useEffect} from 'react';
 import toast from 'react-hot-toast';
 import PouchDB from 'pouchdb';
+import { jwtVerify } from 'jose';
+import { importPublicKey } from '../utils/convertKey';
+
 const AuthContext = createContext();
-let env="pro"
+let env="dev"
 export const AuthProvider = ({ children }) => {
   
   let APP_BASE_URL= env=="dev" ? 'http://localhost:4000' :  'https://procontadev.alinvest-group.com' 
@@ -22,6 +25,51 @@ export const AuthProvider = ({ children }) => {
   const [db_names,setDBNames]=useState({})
   const [goToApp,setGoToApp]=useState(null)
 
+  const publicKey=
+`-----BEGIN PUBLIC KEY-----
+MIICITANBgkqhkiG9w0BAQEFAAOCAg4AMIICCQKCAgBkUkaz4oc9zkjb/CDe3Vdy
+StQjqbGZu4H2wQ5T4vAnqav2qFLT15TLS8bJeh5sYpFbpfRk5BpNd9KtfKg+78y6
+FFG4mKTOBamzPmW+gH/sfX1K0NkzUbw21W+pSSKLQAKUumMcsSBTN+aQDwP3X5vE
+Nr5m3yfyXJIOuSqZ3oNl/FlkYNFa4YwY4P3/r5W7ALJjQf+zO9BI8K4tGLQi0SCg
+FQDcYWpf6Ja1h2gukAHaw9LQ442r8kWtvP2/cAQf1D3L+OKD3itKgAqpadLvXMo6
+W8tmZbgXawmaiqAyl4LAADBi1BlWQFQprBTHUFLbG1eZCYgZ/5UfJDSW91OrY2kF
+FtIOed8vzE7/IdfyyEs77A6iNPJOPxwOdX3yHoTSm8MVw1ZdG0J0+xvuUgklk5AM
+2ZBxkaoccWzOFzVjHbO2I576U+s3H+iS7YaBZo1hpGDVqRI3Y9LX1uVqeqofvODQ
+h7fboUQdBFLKRRrbCnlZV+Fp1ipp100A+8+o6ONsXw5gFrLv2Hvha5iioXlDWK4x
+qYZBynLw5cY9qQ5hphICjO42G7A8ps9URq3CgWPiGUP92uTw6wHUUtO1NgGVjx2n
+RQK2GfL6f5eTT9rpmEiqwFz4eYoAN2WrEqgFe9LqsIJ4KQaFc0Co3vrduO/PtvbO
+or6lGHBd11hL2gDr/f8BYQIDAQAB
+-----END PUBLIC KEY-----`
+
+   const verifyLicense=async () => {
+    
+
+    const licenseKey = `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzA0MTkyMDAsImlhdCI6MTcyNTA2MTc0MH0.Xvo84BCvoLgrfO2Z8Un2sq1YSuwztpQG-b48nYkwY1-AJSteAoZXNeMMH43KBMoIuKtsSoamhAYzeaIV6Ba-vmLYcvzJM3B8Hne9XqVdu3HF_sL7dytrUWFLt8Px45VYUKjCWtcUfsH1a0X-99g8tTtbBMQYBB5maId1Sl55b3dWFTQlyxGzzsWEL8VNL5nw1dgQ9y0dgaGzvnA1APU-oNx2Mmbhc5S8z8E-tFZRIaBQkTTtJlniyNUxpLTfu-xq63-vuNvctV0MI-5S90NYplrNJC1L7XvNxCMS6rvXmH4dptdZ7wgBClW8zBMd9xTjsRBEqovv7XnCiTQ8X1E53Sw4gvW0NDA6kHPHkaDk0hRmql6lBlJ_HvoSRlF1i_YskYkQUg_0OAgKfkfmtifHuj5mrsxTqWhNfkJc5HSwg2P9FPiLEr5jAI8o0kitYDJUUc1ZBC_6LVYJQRJzZpwxdwYjPjzz19AW0IJYV3rjsjt2TjJjC6hWzeabTXiECIvkmeL2er7YmaKjS2h3wAyJSS60zUHLoQXwLTeBX0JGl1gRz96HkCT7JKB1LSPDxkDC5_wWKg9mxZ6DtbPLZsXsfTzS7eUtngvYlQFAfSMQkoJ0ngQ-DVnbM9qPsSEJFyn55P0h3HQJ8XinWmYviuiTWvGC1vARzX7hjSPRiXDs4ys`; 
+
+    try {
+      const cryptoKey = await importPublicKey(publicKey);
+      const { payload } = await jwtVerify(licenseKey, cryptoKey);
+  
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (payload.exp < currentTime) {
+        return { valid: false, message: 'License has expired.' };
+      }
+      return { valid: true, message: 'License is valid.' };
+    } catch (err) {
+      console.log(err)
+      return { valid: false, message: 'Invalid license.' };
+    }
+  }
+
+  async function name(params) {
+    console.log(await verifyLicense())
+  }
+
+  useEffect(()=>{
+           name()
+  },[])
+
+ 
 
   function hasToGoToApp(){
        if(window.electron) {

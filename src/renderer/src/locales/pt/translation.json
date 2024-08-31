@@ -34,7 +34,8 @@
       "accountsPlan":"Categoriais gerais",
       "accounts":"Plano de contas",
       "paymentMethods":"Metódos de pagamento",
-      "managers":"Gestores"
+      "managers":"Gestores",
+      "plan":"Planos"
     },
     "reports": {
       "accountsAndBalance":"Contas e saldo",
@@ -48,7 +49,8 @@
       "menu":{
         "profile":"Perfil",
         "notifications":"Notificações",
-         "data":"Dados"
+        "bill":"Conta",
+        "data":"Dados"
       },
       "notifications":{
        "notificationsSettings": "Configurações de notificações",
@@ -133,6 +135,30 @@
   },
 
  "common":{
+  "date":"Data",
+  "anual":"Anual",
+  "cancel-plan":"Cancelar subscrição",
+  "upgrade-plan":"Actualizar plano",
+  "downgrade-plan":"Rebaixar plano",
+  "billing-history":"Histórico de pagamentos",
+  "current-plan":"Plano actual",
+  "next-paymant":"Próximo pagamento",
+  "plataform":"Plataforma",
+  "plan":"Plano",
+  "basic-plan-item-1": "Acesso às Versões Web e Desktop",
+  "basic-plan-item-2": "Adição Ilimitada de Usuários",
+  "basic-plan-item-3": "Upgrade a qualquer momento",
+  "advanced-plan-item-1": "Acesso às Versões Web, Desktop e Mobile",
+  "advanced-plan-item-2": "Adição Ilimitada de Usuários",
+  "advanced-plan-item-3": "Alocação de Serviços de Contabilidade",
+  "advanced-plan-item-4": "Downgrade a qualquer momento",
+  "_save":"Poupe",
+  "basic":"Básico",
+  "per-month":"Mensal",
+  "per-year":"Anual",
+  "_per-month":"/mês",
+  "_per-year":"/ano",
+  "advanced":"Avançado",
   "quotation-sent":"Pedido de cotação enviado",
   "ask-for-quotation":"Pedir cotação",
   "daily-balance":"Saldos Diários",
@@ -696,6 +722,8 @@
      "fill-fields":"Por favor, preencha os campos abaixo" 
   },
   "form":{ 
+      "last-name":"Apelido",
+      "name":"Nome",
       "full-name":"Nome completo",
       "representer-name":"Nome do Representante",
       "workers-amount":"Selecionar número de Trabalhadores",

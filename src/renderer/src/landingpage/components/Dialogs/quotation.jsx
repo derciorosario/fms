@@ -114,7 +114,7 @@ console.log({a:data.form})
                             </span>
                             <select value={data.form.workers_amount} onChange={(e)=>data.setForm({...data.form,workers_amount:e.target.value})} className="outline-none bg-transparent w-full">
                                 <option selected disabled value={""}>{t('form.workers-amount')}</option>
-                                <option value={'1-to-10'}>{t('form._1-of-10')}</option>
+                                <option value={'2-to-10'}>{t('form._1-of-10')}</option>
                                 <option value={'11-to-30'}>{t('form._11-of-30')}</option>
                                 <option value={'31-to-100'}>{t('form._31-of-100')}</option>
                             </select>

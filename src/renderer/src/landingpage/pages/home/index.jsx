@@ -48,6 +48,9 @@ function index() {
   }, []);
 
 
+  const [showAnualPlans,setShowAnualPlan] = useState(false)
+
+
 
 
   async function send_quotation() {
@@ -247,7 +250,7 @@ function index() {
                         
                         <span onClick={()=>{
                             navigate('/login')
-                        }} className="text-gray-700  my-5 mb-8  sm:hidden text-[16px] inline-table px-5 py-3 rounded-full bg-white  hover:bg-yellow-500 hover:scale-[1.1] transition-all duration-75 ease-linear cursor-pointer">
+                        }} className="text-gray-700  my-5 mb-8  sm:hidden text-[16px] inline-table px-5 py-3 rounded-full bg-white  hover:bg-[#111] hover:text-white hover:scale-[1.1] transition-all duration-75 ease-linear cursor-pointer">
                             {t('common.go-to-app')}
                         </span>
                          
@@ -255,7 +258,7 @@ function index() {
                         
                             <div className={`mr-4 transition-all max-sm:mb-0 duration-150 ease-in ${openStart=="sub_" ? 'md:min-w-[500px] bg-white':'0 overflow-hidden'}   max-sm:flex-col max-sm:w-full rounded-[0.3rem] sm:rounded-full  p-1 flex items-center`}>
                                  <div className={`overflow-hidden  ${openStart=="sub" ? 'w-full':'w-0'}  flex items-center h-[50px]`}>
-                                    <span className="pl-3"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"/></svg></span>
+                                    <span className="pl-3 "><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"/></svg></span>
                                     <input id="sub" onChange={(e=>(
                                         data.setForm({...data.form,email1:e.target.value})
                                     ))} value={data.form.email1} placeholder={t('common.email-mask')} className="outline-none flex-1 px-3 bg-transparent" />
@@ -269,7 +272,7 @@ function index() {
                                         setOpenSart("sub")
                                     }
                                     document.getElementById('sub').focus()
-                                }} className={`px-7  sm:h-full h-[100%]  max-sm:w-full max-sm:h-auto max-sm:py-3  rounded-full  transition-all duration-100 sm:rounded-full border-[2px] border-[transaparent] ${openStart=="sub" ? 'bg-[#ff7626] hover:scale-[1.1] text-white':'text-gray-500 bg-white'} `}>{t('common.make-subscription')}</button>
+                                }} className={`px-7  sm:h-full h-[100%]  max-sm:w-full max-sm:h-auto max-sm:py-3  rounded-full  transition-all duration-100 sm:rounded-full border-[2px] border-[transaparent] ${openStart=="sub" ? 'bg-[#ff7626] hover:scale-[1.1] text-white':'bg-transparent text-white'}  hover:bg-white hover:text-black`}>{t('common.make-subscription')}</button>
                             </div>
 
 
@@ -282,7 +285,7 @@ function index() {
                                 </div>
                                 <button onClick={()=>{
                                     setShowDemoPopUp(true)
-                                }} className={`px-7  sm:h-full h-[100%] max-sm:w-full max-sm:h-auto max-sm:py-3  rounded-full   transition-all duration-100 sm:rounded-full border-[2px] border-[transaparent] ${openStart=="demo" ? 'bg-[#ff7626] hover:scale-[1.1] text-white':'text-white'} `}>{t('common.ask-for-demostration')}</button>
+                                }} className={`px-7  sm:h-full h-[100%] max-sm:w-full max-sm:h-auto max-sm:py-3  rounded-full  hover:bg-white hover:text-black   transition-all duration-100 sm:rounded-full border-[2px] border-[transaparent] ${openStart=="demo" ? 'bg-[#ff7626] hover:scale-[1.1] text-white':'text-white'} font-medium `}>{t('common.ask-for-demostration')}</button>
                             </div>
 
                             
@@ -521,67 +524,94 @@ function index() {
 
 
                <div id="plans" className="px-7">
+              
+                    {i18n.language=="pt" ?   <h3 className="max-w-[900px] mx-auto text-center text-[45px] font-semibold mb-6 max-md:text-[27px]"> <span className="text-[#ff7626]">Escolha o plano</span> que combina consigo e traga o seu negócio  para <span className="text-[#ff7626]">mais perto de si</span>.</h3>
+                      :   <h3 className="max-w-[700px] mx-auto text-center text-[45px] font-semibold mb-6 max-md:text-[27px]">Choose the best plan for you, without the fuss and guesswork.</h3>
+                    }
 
-                      <h3 className="max-w-[700px] mx-auto text-center text-[45px] font-semibold mb-6 max-md:text-[27px]">Choose the best plan for you, without the fuss and guesswork.</h3>
-                      
-                      <div  className="flex w-full max-md:flex-col items-center justify-center my-[80px]">
+               
+                           <div className="flex justify-center mt-20">
+                           <div className={`bg-gray-200 flex rounded-[0.3rem] p-1 px-[0.1rem] items-center cursor-pointer`}>
+                                         <span onClick={()=>setShowAnualPlan(false)} className={`text-[17px]  transition-all ease-in duration-75 ${!showAnualPlans ? 'bg-[#ff7626] text-white':'text-gray-500'} rounded-[0.3rem] py-2 px-2  flex w-[50%] mx-1`}>{t('common.per-month')}</span>
+                                         <span onClick={()=>setShowAnualPlan(true)} className={`text-[17px] transition-all ease-in duration-75 ${showAnualPlans ? 'bg-[#ff7626] text-white':'text-gray-500'} rounded-[0.3rem] py-2 px-2  flex w-[50%] mx-1`}>{t('common.per-year')}</span>
+                                         
+                             </div>
+                           </div>
+                     
+                      <div  className="flex w-full max-md:flex-col items-start justify-center my-[80px]">
                        
                        
-                         <div className="bg-[#F7F7F8] mb-10 shadow-xl mx-4 rounded-[0.8rem] flex flex-col justify-center items-center p-10 max-w-[320px]">
-                                     <span className="text-[20px] mb-3 flex">Basico</span>
-                                     <p className="text-center text-gray-400 text-[17px]">Sit id ut tempor est arcu ac praesent morbi por 3 dias</p>
-                                     <span className="text-[26px] font-semibold mt-3 flex">Free</span>
+                         <div className="bg-[#F7F7F8]  mb-10 shadow-xl mx-4 rounded-[0.8rem] overflow-hidden flex flex-col justify-center items-center p-10 px-0 py-0 max-w-[320px]">
+                                     <span className="text-[26px] relative rounded-t-[0.8rem] mb-6 text-white justify-center font-semibold mt-3 flex py-5 w-full bg-black">{t('common.basic')}
+                                        <label className="bg-[#F7F7F8] flex absolute rounded-t-[0.6rem] translate-y-[10px] bottom-0 w-full h-[20px]"></label>
+                                     </span>
+                                     <div className=" w-full px-10 h-full">
+                                     {showAnualPlans && <p className="text-center text-gray-400  mb-3 text-[17px]">{t('common._save')} 1.500,00 MZN </p>
+                                    }
+                                     <span className="text-[20px] font-semibold justify-center flex  items-end">{!showAnualPlans ? '1.500,00 MZN':'16.500,00 MZN'} <label className=" ml-1 text-[15px]">{!showAnualPlans ? t('common._per-month') : t('common._per-year')}</label></span>
+                                    
                                      <button onClick={()=>{
-                                            data.register()
-                                     }} className="bg-black text-white px-10 w-full cursor-pointer hover:bg-app_primary-300 hover:scale-[1.1]  transition-all duration-75 py-3 my-5 rounded-full">Comprar</button>
+                                            data.register({showAnualPlans,plan:'basic'})
+                                     }} className="bg-black text-white px-8 w-full cursor-pointer hover:bg-app_primary-300 hover:scale-[1.1]  transition-all duration-75 py-3 my-5 rounded-full">{t('common.buy')}</button>
                                      <div className="flex flex-col">
                                          <span className="flex items-center mb-4">
                                             <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
-                                            <label className="ml-2 text-[15px]">Lobortis laoreet gravida</label>
+                                            <label className="ml-2 text-[15px]">{t('common.basic-plan-item-1')}</label>
                                          </span>
                                          <span className="flex items-center mb-4">
                                             <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
-                                            <label className="ml-2 text-[15px]">Facilisi velit ornare sit viverra</label>
+                                            <label className="ml-2 text-[15px]">{t('common.basic-plan-item-2')}</label>
                                          </span>
                                          <span className="flex items-center mb-4">
                                             <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
-                                            <label className="ml-2 text-[15px]">Pellentesque commodo</label>
+                                            <label className="ml-2 text-[15px]">{t('common.basic-plan-item-3')}</label>
                                          </span>
-                                         <span className="flex items-center mb-4">
-                                            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
-                                            <label className="ml-2 text-[15px]">Non ipsum metus vulputate</label>
-                                         </span>
+
+                                         <div className="h-[73px]"></div>
+                                        
+                                     </div>
                                      </div>
                          </div>
 
 
 
-                         <div className="bg-[#ff7626]  mb-10 shadow-xl mx-4 rounded-[0.8rem] flex flex-col justify-center items-center p-10 max-w-[320px]">
-                                     <span className="text-[20px] mb-3 flex text-white">Basico</span>
-                                     <p className="text-center text-[17px] text-white opacity-85">Sit id ut tempor est arcu ac praesent morbi por 3 dias</p>
-                                     <span className="text-[26px] font-semibold mt-3 flex text-white">Standard</span>
-                                     <button  onClick={()=>{
-                                            data.register()
-                                     }}className="text-black bg-white px-10 w-full cursor-pointer hover:bg-app_primary-300 transition-all duration-75 py-3 my-5 rounded-full hover:scale-[1.1]">Comprar</button>
+
+                        
+                         <div className="bg-[#F7F7F8] mb-10 shadow-xl mx-4 rounded-[0.8rem] overflow-hidden flex flex-col justify-center items-center p-10 px-0 py-0 max-w-[320px]">
+                                     <span className="text-[26px] relative rounded-t-[0.8rem] mb-6 text-white justify-center font-semibold mt-3 flex py-5 w-full bg-[#ff7626]">{t('common.advanced')}
+                                        <label className="bg-[#F7F7F8] flex absolute rounded-t-[0.6rem] translate-y-[10px] bottom-0 w-full h-[20px]"></label>
+                                     </span>
+                                     <div className=" w-full px-10 h-full">
+                                     {showAnualPlans && <p className="text-center text-gray-400  mb-3 text-[17px]">{t('common._save')} 3.500,00 MZN </p>
+                                    }
+                                     <span className="text-[20px] font-semibold justify-center flex  items-end">{!showAnualPlans ? '3.000,00 MZN':'32.500,00 MZN'} <label className=" ml-1 text-[15px]">{!showAnualPlans ? t('common._per-month') : t('common._per-year')}</label></span>
+                                   
+                                     <button onClick={()=>{
+                                             data.register({showAnualPlans,plan:'advanced'})
+                                     }} className="bg-black text-white px-8 w-full cursor-pointer hover:bg-app_primary-300 hover:scale-[1.1]  transition-all duration-75 py-3 my-5 rounded-full">{t('common.buy')}</button>
                                      <div className="flex flex-col">
                                          <span className="flex items-center mb-4">
                                             <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
-                                            <label className="ml-2 text-[15px] text-white">Lobortis laoreet gravida</label>
+                                            <label className="ml-2 text-[15px]">{t('common.advanced-plan-item-1')}</label>
                                          </span>
                                          <span className="flex items-center mb-4">
                                             <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
-                                            <label className="ml-2 text-[15px] text-white">Facilisi velit ornare sit viverra</label>
+                                            <label className="ml-2 text-[15px]">{t('common.advanced-plan-item-2')}</label>
                                          </span>
                                          <span className="flex items-center mb-4">
                                             <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
-                                            <label className="ml-2 text-[15px] text-white">Pellentesque commodo</label>
+                                            <label className="ml-2 text-[15px]">{t('common.advanced-plan-item-3')}</label>
                                          </span>
+
                                          <span className="flex items-center mb-4">
                                             <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
-                                            <label className="ml-2 text-[15px] text-white">Non ipsum metus vulputate</label>
+                                            <label className="ml-2 text-[15px]">{t('common.advanced-plan-item-4')}</label>
                                          </span>
+                                        
+                                     </div>
                                      </div>
                          </div>
+
 
 
 
@@ -589,10 +619,6 @@ function index() {
                        
                     </div>
                </div>
-
-
-
-
 
 
 
@@ -606,10 +632,10 @@ function index() {
                               </span>
                               <span className="text-gray-500 ml-3 text-[20px] hover:underline"><a href="mailto:proconta@alinvest-group.com" target="_blank">proconta@alinvest-group.com</a></span>
                         </div>
+
                         <div className="flex items-center mb-3 z-10">  
                              <span className="flex w-[30px] h-[30px] rounded-full items-center border-[2px] border-[#ff7626] justify-center">
                                <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" fill="#ff7626"><path d="M798-120q-125 0-247-54.5T329-329Q229-429 174.5-551T120-798q0-18 12-30t30-12h162q14 0 25 9.5t13 22.5l26 140q2 16-1 27t-11 19l-97 98q20 37 47.5 71.5T387-386q31 31 65 57.5t72 48.5l94-94q9-9 23.5-13.5T670-390l138 28q14 4 23 14.5t9 23.5v162q0 18-12 30t-30 12Z"/></svg>
-                             
                             </span>              
                               <span className="text-gray-500 ml-3 text-[19px]"><a>+258 87 870 7590</a></span>
                         </div>
@@ -617,7 +643,6 @@ function index() {
                         <div className="flex items-center mb-2 z-10">
                                 <span className="flex cursor-pointer hover:underline w-[30px] h-[30px] rounded-full items-center border-[2px] border-[#ff7626] justify-center">
                                 <svg  xmlns="http://www.w3.org/2000/svg" width="18px"  fill="#ff7626" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M18.403 5.633A8.919 8.919 0 0 0 12.053 3c-4.948 0-8.976 4.027-8.978 8.977 0 1.582.413 3.126 1.198 4.488L3 21.116l4.759-1.249a8.981 8.981 0 0 0 4.29 1.093h.004c4.947 0 8.975-4.027 8.977-8.977a8.926 8.926 0 0 0-2.627-6.35m-6.35 13.812h-.003a7.446 7.446 0 0 1-3.798-1.041l-.272-.162-2.824.741.753-2.753-.177-.282a7.448 7.448 0 0 1-1.141-3.971c.002-4.114 3.349-7.461 7.465-7.461a7.413 7.413 0 0 1 5.275 2.188 7.42 7.42 0 0 1 2.183 5.279c-.002 4.114-3.349 7.462-7.461 7.462m4.093-5.589c-.225-.113-1.327-.655-1.533-.73-.205-.075-.354-.112-.504.112s-.58.729-.711.879-.262.168-.486.056-.947-.349-1.804-1.113c-.667-.595-1.117-1.329-1.248-1.554s-.014-.346.099-.458c.101-.1.224-.262.336-.393.112-.131.149-.224.224-.374s.038-.281-.019-.393c-.056-.113-.505-1.217-.692-1.666-.181-.435-.366-.377-.504-.383a9.65 9.65 0 0 0-.429-.008.826.826 0 0 0-.599.28c-.206.225-.785.767-.785 1.871s.804 2.171.916 2.321c.112.15 1.582 2.415 3.832 3.387.536.231.954.369 1.279.473.537.171 1.026.146 1.413.089.431-.064 1.327-.542 1.514-1.066.187-.524.187-.973.131-1.067-.056-.094-.207-.151-.43-.263"></path></svg>
-                                
                                </span>                  
                                <span className="text-gray-500 ml-3 text-[19px] cursor-pointer underline"><a target="_blank" href="https://wa.me/258878707590">{t('common.our-whatsapp')}</a></span>
                         </div>

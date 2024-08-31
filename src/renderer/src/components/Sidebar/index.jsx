@@ -194,6 +194,7 @@ function App({float}) {
             {name:t('sidebar.settings.accounts'),path:'/accounts',field:'accounts',paths:['/accounts','/accounts/create','/account/:id'],icon:'PaymentsOutlinedIcon'},
             {name:t('sidebar.settings.paymentMethods'),path:'/payment-methods',field:'payment-methods',paths:['/payment-methods','/payment-methods/create','/payment-methods/:id'],icon:'PaymentsOutlinedIcon'},
             {name:t('sidebar.settings.managers'),path:'/managers',field:'managers',paths:['/managers','/managers/create','/manager/:id'],icon:'PaymentsOutlinedIcon'},
+           
         ]},
 
         {name:t('sidebar.main.companies'),path:'/companies',paths:['/companies','/companies/create','/company/:id'],icon:'CorporateFareIcon',field:'companies'},

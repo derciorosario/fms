@@ -45,6 +45,7 @@ function App() {
  const [showResetInputs,setShowResetInputs]=useState(false)
  const [resetPassword,setResetPassword]=useState('')
 
+ const [planDetails,setPlanDetails]=useState([])
 
  let required_data=['settings','account_categories']
 
@@ -54,23 +55,16 @@ function App() {
 
  
  useEffect(()=>{
-
-    
-
     (async()=>{
-
       if(db.settings && data._app.id && user && (data.initSyncStatus=="completed" || data.initSyncStatus=="cancelled")){
         let set=await db.settings.allDocs({ include_docs: true })
         set=set.rows.map(i=>i.doc)[0]
-
         if(!set){
           set={...data.settings[`v${data._app.v}`],user_id:user.id}
         }
-
         setSettingsDetails(set)
         setFormData({...formData,settings:set.settings})
     }
-    
   })()
      
  },[db,_required_data,data._app,data.initSyncStatus,user])
@@ -86,13 +80,9 @@ function App() {
     delete u.companies_details
     setUserForm(u)
     setUpload({...upload,file:user.logo ? user.logo : {}})
+    setPlanDetails(user.companies_details.filter(i=>i.id==user.selected_company)[0])
 },[user])
 
-
-console.log({formData})
-
-
- 
 
 
  useEffect(()=>{
@@ -235,7 +225,6 @@ async function SubmitUserForm(){
     setTimeout(()=>_scrollToSection('edit-profile'),100)
     setEditMode(true)
   }
-
 
 
  
@@ -610,13 +599,11 @@ async function SubmitUserForm(){
                                     <NotificationToggles initialized={initialized} field={'updates'} email={formData.settings?.updates?.email} whatsapp={formData.settings?.updates?.whatsapp} activeAndDisable={activeAndDisable}/>
                                 </div>
             
-            
-            
                      </div>
                      <div className="py-4">
                       <DefaultButton goTo={SubmitForm} loading={!initialized} text={loading ? t('common.updating')+'...' :t('common.update')} disabled={false}/>
                     </div>
-           </>:<>
+           </>:page=="data" ? <>
            <div className="py-5 mb-4">
               <span className="font-semibold text-[25px] mb-5 flex">{t('common.clear-data')}</span>
                <Alert severity="warning">{t('messages.clear-data-msg')}</Alert>        
@@ -641,6 +628,126 @@ async function SubmitUserForm(){
                 </div>  }  
            </div>
                     
+           </>:<>
+
+           <div className="py-5 mb-4">
+              <span className="font-semibold text-[25px] mb-5 hidden flex">{t('common.clear-data')}</span>
+              <div>
+                     <span className="text-[15px] text-gray-400">{t('common.current-plan')}</span>
+                     <div className="w-full flex mt-2 max-md:flex-col">
+                            <div className="flex-1">
+                              <h2 className="text-[24px] font-semibold mb-2">{planDetails?.plan == "basic" ? t('common.basic') : t('common.advanced')}</h2>
+                              {planDetails?.plan == "basic" ? <div>
+
+                                <span className="flex items-center mb-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
+                                            <label className="ml-2 text-[15px]">{t('common.basic-plan-item-1')}</label>
+                                         </span>
+                                         <span className="flex items-center mb-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
+                                            <label className="ml-2 text-[15px]">{t('common.basic-plan-item-2')}</label>
+                                         </span>
+                                         <span className="flex items-center mb-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
+                                            <label className="ml-2 text-[15px]">{t('common.basic-plan-item-3')}</label>
+                                 </span>
+                              </div> : <div>
+
+                                        <span className="flex items-center mb-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
+                                            <label className="ml-2 text-[15px]">{t('common.advanced-plan-item-1')}</label>
+                                         </span>
+                                         <span className="flex items-center mb-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
+                                            <label className="ml-2 text-[15px]">{t('common.advanced-plan-item-2')}</label>
+                                         </span>
+                                         <span className="flex items-center mb-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
+                                            <label className="ml-2 text-[15px]">{t('common.advanced-plan-item-3')}</label>
+                                         </span>
+
+                                         <span className="flex items-center mb-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
+                                            <label className="ml-2 text-[15px]">{t('common.advanced-plan-item-4')}</label>
+                                         </span>
+
+
+                              </div>}
+
+                              <span className="text-gray-500 flex my-5">{t('common.next-paymant')}: {planDetails.planEnd?.split('T')[0]}</span>
+                              </div>
+
+                             <div className="flex flex-col gap-y-2">
+
+                             {planDetails.plan=="basic" &&  <button className="bg-app_orange-400 ml-4 text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{
+                            
+                             }}>{t('common.upgrade-plan')}</button> }
+
+                             <button className="bg-gray-400 ml-4 text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{
+                              
+                             }}>{t('common.cancel-plan')}</button> 
+                            </div>
+                     </div>
+
+
+                     <div className="w-full h-[1px] bg-gray-100 my-[30px]"></div>
+
+
+                     <div>
+                          <h2 className="text-[24px] font-semibold mb-2">{t('common.billing-history')}</h2>
+                          <div>
+
+                            <div class="relative overflow-x-auto">
+                                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                                    <thead class="text-xs text-gray-900 uppercase dark:text-gray-400">
+                                        <tr>
+                                            <th scope="col" class="py-3">
+                                                {t('common.plan')}
+                                            </th>
+                                            <th scope="col" class="px-6 py-3">
+                                                {t('common.date')}
+                                            </th>
+                                            <th scope="col" class="px-6 py-3">
+                                                {t('common.end')}
+                                            </th>
+                                            <th scope="col" class="px-6 py-3">
+                                                {t('common.period')}
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {planDetails?.planHistory?.map((i,_i)=>(
+                                            <tr class="bg-white dark:bg-gray-800">
+                                            <th scope="row" class="py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                               {i.plan == "basic" ? t('common.basic') : t('common.advanced')}
+                                            </th>
+                                            <td class="px-6 py-4">
+                                              {i.date.split('T')[0]} {i.date.split('T')[1].slice(0,5)}
+                                            </td>
+                                            <td class="px-6 py-4">
+                                              {i.end.split('T')[0]} {i.date.split('T')[1].slice(0,5)}
+                                            </td>
+
+                                            <td class="px-6 py-4">
+                                                {t(`common.${i.period}`)}
+                                            </td>
+                                           </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+
+
+
+                          </div>
+                     </div>
+
+
+
+              </div>
+           </div>
+
            </>}
          </UserPreferencesLayout>
     </>

@@ -37,7 +37,8 @@
       "accountsPlan":"General categories",
       "accounts":"Accounts plan",
       "paymentMethods":"Payment Methods",
-      "managers":"Managers"
+      "managers":"Managers",
+      "plan":"Plan"
     },
     "reports": {
       "accountsAndBalance":"Accounts and balance",
@@ -52,7 +53,8 @@
        "menu":{
          "profile":"Profile",
          "notifications":"Notifications",
-         "data":"Data"
+         "data":"Data",
+         "bill":"Bill"
        },
        "notifications":{
           "notificationsSettings":"Notifications settings",
@@ -64,9 +66,7 @@
           "alerts":"Alerts",
           "alertsText":"Receive alerts of negative balance"
        },
-       "profile":{
-          
-       }
+       "profile":{}
   },
   "dashboard": {
     "welcome": "Welcome, {{name}}!",
@@ -136,6 +136,30 @@
    "msg-3": "From Zero to the Top of Your Financial Management"
   },
   "common": {
+  "date":"Date",
+  "anual":"Anual",
+  "cancel-plan":"Cancel subscription",
+  "upgrade-plan":"Upgrade plan",
+  "downgrade-plan":"Downgrade plan",
+  "billing-history":"Billing history",
+  "current-plan":"Current plan",
+  "plan":"Plan",
+  "next-paymant":"Next payment",
+  "plataform":"Plataform",
+  "_save":"Save",
+  "basic":"Basic",
+  "per-month":"Monthly",
+  "per-year":"Anual",
+  "_per-month":"/month",
+  "_per-year":"/year",
+  "advanced":"Advanced",
+  "basic-plan-item-1": "Access to Web and Desktop Versions",
+  "basic-plan-item-2": "Unlimited User Addition",
+  "basic-plan-item-3": "Ability to Request Upgrade at Any Time with 1st Charge in the Next Cycle",
+  "advanced-plan-item-1": "Access to Web, Desktop, and Mobile Versions",
+  "advanced-plan-item-2": "Unlimited User Addition",
+  "advanced-plan-item-3": "Accounting Services Allocation",
+  "advanced-plan-item-4": "Ability to Request Downgrade at Any Time with 1st Charge in the Next Cycle",
   "quotation-sent": "Quotation Sent",
   "ask-for-quotation": "Request Quotation",
   "daily-balance": "Daily Balances",
@@ -219,6 +243,7 @@
   "add_new_":"Add new",
   "email-mask":"name@company.com",
   "user-added": "User registered successfully",
+  "invite-used-or-ivalid":"Invite used or invalid",
   "invite-used-or-invalid": "Invite used or invalid",
   "password-was-to-have-more-than-8": "Password must be at least 8 characters",
   "clear-errors": "Clear errors!",
@@ -702,6 +727,8 @@
        "fill-fields":"Please, fill the fields below"
     },
     "form": {
+      "name":"Nome",
+      "last-name":"Last name",
       "full-name": "Full Name",
       "representer-name": "Representative Name",
       "workers-amount": "Select Number of Workers",

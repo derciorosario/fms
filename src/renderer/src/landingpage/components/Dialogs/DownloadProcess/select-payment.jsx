@@ -1,4 +1,4 @@
-import { t } from 'i18next'
+import i18next, { t } from 'i18next'
 import React, { useEffect, useState } from 'react'
 import PayPalButton from './paypal'
 import SendProof from './proof'
@@ -6,11 +6,36 @@ import Download from './download'
 import { useHomeData } from '../../../../contexts/HomeDataContext'
 
 function SelectPaymentMethod({activePage,setActvePage}) {
-  const data=useHomeData()
-  const [message,setMessage] =  useState('')
 
-  console.log(data.form)
-  
+  const data=useHomeData()
+
+  const [message,setMessage] =  useState('')
+  const [plans,setPlans]=useState([])
+  const [selectedPlanItem,setSelectedPlanItem] = useState('')
+
+  useEffect(()=>{
+      setSelectedPlanItem(data.form.plan+`${data.form.showAnualPlans ? '_':''}`)
+  },[])
+
+  useEffect(()=>{
+
+      setPlans([
+        {
+            n:'basic',name:`${t('common.basic')} (${t('common.monthly')})`,
+         },
+         {
+            n:'advanced',name:`${t('common.advanced')} (${t('common.monthly')})`
+         },
+         {
+            n:'basic_',name:`${t('common.basic')} (${t('common.per-year')})`,
+         },
+         {
+            n:'advanced_',name:`${t('common.advanced')} (${t('common.per-year')})`
+         }
+      ])
+
+  },[i18next.language])
+
   return (
     <div className="mt-0 mb-20 w-full">
 
@@ -26,27 +51,45 @@ function SelectPaymentMethod({activePage,setActvePage}) {
        
         {!data.form.method && <div className="flex flex-col justify-center items-center">
             
-                <h2 className="text-center max-w-[300px] text-[23px] font-semibold mb-10">{t('common.select-method')}</h2>
-                {data.form.email_is_registered && <div id="alert-2" className={`flex items-center w-[500px] max-md:w-full p-4 mb-4 text-orange-400 bg-orange-50 rounded-lg  dark:text-red-400`} role="alert">
+         <h2 className="text-center max-w-[300px] text-[23px] font-semibold mb-10">{t('common.select-method')}</h2>
+         {data.form.email_is_registered && <div id="alert-2" className={`flex items-center w-[500px] max-md:w-full p-4 mb-4 text-orange-400 bg-orange-50 rounded-lg  dark:text-red-400`} role="alert">
         <svg className="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
           <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
         </svg>
         <div className="ms-3 text-sm font-medium">
            {t('messages.email-in-the-plataform')}
         </div>
-     
       </div>}
 
                 <div className="w-[500px] mt-2 max-md:w-full">
                      <span className="text-[18px] flex mb-4 font-semibold">{t(`common.order-description`)}</span>
                      <div className="p-6 border border-gray-300 bg-[#F7F7F8] rounded-[0.2rem]">
                         <div className="flex justify-between items-center mb-4">
-                             <span className="uppercase text-[16px]">Plataforma</span>
-                             <span>{t('common.price')}</span>
+                             <span className="uppercase text-[16px]">{t('common.plataform')}</span>
+                             <div>
+                                <span>{t('common.price')}</span>
+                                <span className="hidden">{t('common.plan')}</span>
+                             </div>
                         </div>
                         <div className="flex justify-between items-center">
                              <span className="text-[17px] font-semibold">Pro Conta</span>
-                             <span className="font-semibold">75.000 MT</span>
+                             <div>
+                                 {!data.form.showAnualPlans ? <>
+                                    <span className="font-semibold">{data.form.plan=="basic" ? '1.500,00 MZN': '3.000,00 MZN'}</span>
+                                </> : <>
+                                    <span className="font-semibold">{data.form.plan=="basic" ? '16.500,00 MZN': '36.000,00 MZN'}</span>
+                                </>}
+
+                                  <select onChange={e=>{
+                                      data.setForm({...data.form,plan:e.target.value.replace('_',''),showAnualPlans:e.target.value.includes('_')})
+                                      setSelectedPlanItem(e.target.value)
+                                  }} value={selectedPlanItem} className="ml-2 w-[130px]">
+                                     {plans.map((i,_i)=>(
+                                         <option value={i.n}>{i.name}</option>
+                                     ))}
+                                  </select>
+                             </div>
+                             
                         </div>     
                      </div>
 

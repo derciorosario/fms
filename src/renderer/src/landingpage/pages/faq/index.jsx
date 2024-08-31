@@ -17,7 +17,7 @@ function Faq() {
       const [openFaq,setOpenFaq]=useState(null)
 
       useEffect(()=>{
-        data._scrollToSection('home')
+        data._scrollToSection('top')
       },[])
 
       

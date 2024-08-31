@@ -315,7 +315,7 @@ async function get_invite_info(id){
   async function SubmitForm(from){
         setLoading(true)
         setErrors([])
-        toast.loading(from=="invite" ? t('common.loading')+`...`: t('common.validating-invite')+`...`)
+        toast.loading(from!="invite" ? t('common.loading')+`...`: t('common.validating-invite')+`...`)
         
   
 
@@ -325,10 +325,13 @@ async function get_invite_info(id){
 
             let response = await data.makeRequest({method:'get',url:`api/get-key-info/`+formData.key, error: ``},0);
             toast.remove()
+
             if(response.status==404){
+
               toast.error(t('common.invite-used-or-ivalid'))
+
             }else{
-  
+
               if(response.user) setUserExists(true)
   
               let personal
@@ -337,7 +340,7 @@ async function get_invite_info(id){
               if(response.user){
                 personal={...formData.personal,...response.user,password:'',contact:response.user.contacts[0]}
               }else{
-                personal={...formData.personal,email:response.info.send_email,contact:response.info.contact.toString().slice(0,9)}
+                personal={...formData.personal,last_name:response.info.last_name,name:response.info.name,email:response.info.send_email,contact:response.info.contact?.toString()?.slice(0,9) || ''}
                 company={...formData.company,name:response.info.company_name}
 
               }
@@ -352,9 +355,12 @@ async function get_invite_info(id){
           }catch(e){
             setLoading(false)
             handle_request_error(e,from)
+            return
           }
           return
         }
+
+
 
 
 

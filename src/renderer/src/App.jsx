@@ -67,6 +67,8 @@ import NotFound from './pages/404/index';
 
 import Faq from '../src/landingpage/pages/faq/index';
 import Invoice from '../src/landingpage/pages/invoice/index';
+import Terms from './landingpage/pages/terms-and-conditions';
+import Privacy from './landingpage/pages/privacy-policy';
 
 
 
@@ -162,6 +164,8 @@ function App() {
         <Route path="/logout" element={<ProtectedRoute redirectTo="/logout">  </ProtectedRoute>} />
 
         <Route path="/faq" element={ <Faq/>} />
+        <Route path="/terms" element={ <Terms/>} />
+        <Route path="/privacy" element={ <Privacy/>} />
 
         <Route path="/invoice/:invoice_number" element={ <Invoice/>} />
         

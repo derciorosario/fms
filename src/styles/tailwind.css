@@ -779,3 +779,45 @@ body{
 .arrow {
   animation: bounce 1s infinite;
 }
+
+
+
+.divide{
+  display: flex;
+}
+.divide .right{
+  padding: 2rem;
+  max-width: 1200px;
+}
+
+.divide .right .section-item h2{
+  font-size: 1.4rem;
+  margin-top: 2rem;
+  margin-bottom: 0.8rem;
+}
+.divide .right .section-item p{
+  color: #374151;
+  margin-bottom: 1rem;
+}
+.divide .right .section-item a{
+  text-decoration: underline;
+}
+.divide ul,.divide ol{
+  list-style: initial;
+  list-style-type: initial;
+  padding-left: 2rem;
+  margin:1.2rem 0;
+
+}
+.divide ul li{
+  margin-bottom: 0.8rem;
+}
+
+.divide strong{
+  opacity: 0.7;
+}
+
+.full-text{
+  padding:4rem 2rem;
+
+}

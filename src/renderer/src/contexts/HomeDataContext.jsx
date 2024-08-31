@@ -24,7 +24,7 @@ export const HomeDataProvider = ({ children }) => {
     const [resetUpdater,setResetUpdater]= useState()
     const [imagesLoadedItems, setImagesLoadedItems] = useState([])
     const count_ref=useRef(0)
-    const env="pro"
+    const env="dev"
     const plataform_url= env=="dev" ? 'http://localhost:5173' : 'https://proconta.alinvest-group.com'
     const server_url= env=="dev" ? 'http://localhost:4000' : 'https://procontadev.alinvest-group.com'
     const APP_BASE_URL= env=="dev" ? 'http://localhost:4000' : 'https://procontadev.alinvest-group.com' 
@@ -43,6 +43,9 @@ export const HomeDataProvider = ({ children }) => {
         contact:'',
         nuit:'',
         company_name:'',
+        period:'',
+        plan:'',
+        last_name:'',
         nuit:'',
         email1:'',
         code:'',
@@ -57,8 +60,8 @@ export const HomeDataProvider = ({ children }) => {
 
     const [key,setkey]=useState('')
 
-    function register(){
-      setForm({...form,email:form.email1,done:form.email==form.email1 ? form.done : 0,name:'',proof_ok:false,method:null})
+    function register(d){
+      setForm({...form,email:form.email1,done:form.email==form.email1 ? form.done : 0,name:'',proof_ok:false,method:null,plan:d?.plan,showAnualPlans:d?.showAnualPlans})
       setDialogs({...dialogs,register:true,download:false})
     }
 
@@ -176,20 +179,20 @@ export const HomeDataProvider = ({ children }) => {
       useEffect(()=>{
 
         if(imagesLoadedItems.length >= imageUrls.length){
-           setTimeout(()=> setIsPreloaderLoaded(true),3000)
+           setTimeout(()=> setIsPreloaderLoaded(true),1000)
            _scrollToSection('top','instant')
         }
 
       },[imagesLoadedItems])
 
       const _scrollToSection = (to,instant) => {
-      
+
           const Section = document.getElementById(to);
           console.log({to,Section})
           if (Section) {
             Section.scrollIntoView({ behavior: (to=="home" || to=="features" || to=="plans" || to=="support") && !instant ? 'smooth':'instant' });
           }else{
-            setTimeout(()=>_scrollToSection(to),1000)
+            //setTimeout(()=>_scrollToSection(to),1000)
           }
 
       }

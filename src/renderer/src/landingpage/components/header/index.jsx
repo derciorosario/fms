@@ -129,7 +129,7 @@ const handleOutsideClick = (event) => {
 
                         <span onClick={()=>{
                             navigate('/login')
-                        }} className={`${!hw ? 'text-gray-700 bg-white':'bg-[#ff7626] text-white'}  max-sm:hidden text-[16px] min-w-[100px] flex justify-center px-5 py-3 rounded-full  hover:bg-yellow-500 hover:scale-[1.1] transition-all duration-75 ease-linear cursor-pointer`}>
+                        }} className={`${!hw ? 'text-gray-700 bg-white':'bg-[#ff7626] text-white'}  max-sm:hidden text-[16px] min-w-[100px] flex justify-center px-5 py-3 rounded-full  hover:bg-[#111] hover:text-white hover:scale-[1.1] transition-all duration-75 ease-linear cursor-pointer`}>
                             {t('common.login')}
                           </span>
                          

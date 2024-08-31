@@ -46,8 +46,12 @@ function Footer() {
             </div>
             <div>
                 <p className={`${!wf ? 'text-white opacity-65':'text-black'} text-[16px] mb-2`}>{'Legal'}</p>
-                <p className={`${!wf ? 'text-white':'text-black'} text-[18px] mb-2`}>{t('common.privacy')} </p>
-                <p className={`${!wf ? 'text-white':'text-black'} text-[18px] mb-2`}>{t('common.terms')}</p>
+                <p className={`${!wf ? 'text-white':'text-black'} text-[18px] mb-2`} onClick={()=>{
+                     navigate('/privacy')
+                }}>{t('common.privacy')} </p>
+                <p onClick={()=>{
+                     navigate('/terms')
+                }} className={`${!wf ? 'text-white':'text-black'} text-[18px] mb-2`}>{t('common.terms')}</p>
             </div>
         </div>
 

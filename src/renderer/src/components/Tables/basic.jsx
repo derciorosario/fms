@@ -288,7 +288,7 @@ const {  i18n } = useTranslation();
     
     if(page=="companies"){
       _settings.disable_time=true
-      if(!user.lincensed){
+      if(!user.licensed){
         _settings.has_add_btn=false
       }
     }

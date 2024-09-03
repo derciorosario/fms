@@ -1,7 +1,7 @@
 import React, { useState,useEffect } from 'react';
 import FirstUsePerson from './forms/personal';
 import FirstUseCompany from './forms/company';
-import FirstUseLincense from './forms/lincense';
+import FirstUseLicense from './forms/license';
 import {  CircularProgress} from '@mui/material';
 import colors from  '../../assets/colors.json'
 import { useData } from '../../contexts/DataContext';
@@ -531,7 +531,7 @@ async function get_invite_info(id){
 
             <div class={`grid gap-4 gap-y-2 text-sm grid-cols-1 md:grid-cols-5`}>
               
-              {((currentPage == 0 || validated || login) && !invite) && <FirstUseLincense login={login} currentPage={currentPage} clear_errors={clear_errors} errors={errors} setErrors={setErrors} formData={formData} setFormData={setFormData}/>}
+              {((currentPage == 0 || validated || login) && !invite) && <FirstUseLicense login={login} currentPage={currentPage} clear_errors={clear_errors} errors={errors} setErrors={setErrors} formData={formData} setFormData={setFormData}/>}
               {((currentPage == 1) && ((inviteStatus!=null) && !(!invite && IsRegister) && (inviteStatus!="invalid" &&  inviteStatus!="used" && inviteStatus!="started") || (currentPage==1 && !invite))) &&   <FirstUsePerson exists={userExists} IsRegister={IsRegister} useExistingAccount={useExistingAccount} formData={formData} setFormData={setFormData}/>}
               {(currentPage == 2 && !validated && !login) && <FirstUseCompany upload={upload} setUpload={setUpload} formData={formData} setFormData={setFormData}/>}
             

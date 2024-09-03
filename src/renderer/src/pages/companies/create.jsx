@@ -148,9 +148,6 @@ import { t } from 'i18next';
           }
        
 
-          console.log({formData})
-       
-
           async function SubmitForm(){
               if(valid){
                   try{
@@ -163,16 +160,12 @@ import { t } from 'i18next';
                     let res=await user_db.put(new_user_content)
 
                     setUser({...new_user_content,_rev:res.rev})
-                    
 
                     let selected_managers_ids=_all.managers.filter(i=>chipOptions.includes(i.email)).map(i=>i.id)
                     let olds=_all.managers.filter(i=>i.companies.includes(formData.id))
                     let removed_m=_all.managers.filter(i=>i.companies.includes(formData.id) && !selected_managers_ids.includes(i.id))
                     let new_m=_all.managers.filter(i=>selected_managers_ids.includes(i.id) && !olds.some(f=>f.id==i.id))
-                    
-
-                    console.log({olds,new_m,removed_m})
-
+                 
                   
                     for (let i = 0; i < removed_m.length; i++) {
                         let cps=removed_m[i].companies
@@ -181,9 +174,7 @@ import { t } from 'i18next';
                           let manager = await c.find({selector: {email:cps[i].email}})
                           manager=manager.docs[0]
                           let res=await c.put({...manager,deleted:true,companies:[...manager.companies.filter(i=>i!=formData.id)]})
-                          //replicate('from',`managers-`+cps[f],true)
                           data._add_to_update_list(`managers-`+cps[f])
-                          console.log(res)
                        }
                     }
 

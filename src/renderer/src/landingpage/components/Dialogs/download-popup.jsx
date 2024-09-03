@@ -5,8 +5,9 @@ import React from 'react'
 import { useHomeData } from '../../../contexts/HomeDataContext';
     function DownloadPopUp() {
     const data=useHomeData()
-
+    
     return (
+
         <div className={`w-full ${!data.dialogs.download ? 'pointer-events-none opacity-0 translate-y-[1rem]':''} transition-all ease px-2 duration-75 flex items-center justify-center left-0 top-0 bg-[#f7f7f8] z-40 h-[100vh] fixed`}>
                 <div className="bg-white rounded-[0.3rem] w-[500px] relative p-4 download-pop">
                     <div className="flex justify-between items-center mb-9">

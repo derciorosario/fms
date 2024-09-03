@@ -24,14 +24,15 @@ import colors from '../../assets/colors.json'
 import FilterOptions from './components/options-filters';
 import MainUploader from '../setup/compnents/upload-company-logo';
 import bcrypt from 'bcryptjs';
+import InsertKeyOrPay from '../../components/Dialogs/insertKeyOrPay';
+
 
 function App() {
  const { t } = useTranslation();
  const [page,setPage]=React.useState('profile')
  const [editMode,setEditMode]=React.useState(false)
- const {user,db,startover} = useAuth()
+ const {user,db,startover,checkingPlanUpdate, setCheckingPlanUpdate} = useAuth()
  const [showAccounts,setAccounts]=useState(false)
-
  const [showPassword, setShowPassword] = React.useState(false);
  const [loading, setLoading] = React.useState(false);
  const [valid, setValid] = React.useState(false);
@@ -40,12 +41,12 @@ function App() {
  const [formData, setFormData] = React.useState({contacts:[''],settings:{}});
  const [settingsDetails, setSettingsDetails]=React.useState({})
  const [initialized,setInitialized]=useState(false)
-
+ const [showDownloadProcess,setShowDownloadProcess]=useState(null)
  const [userForm,setUserForm]=useState({contacts:['']})
  const [showResetInputs,setShowResetInputs]=useState(false)
  const [resetPassword,setResetPassword]=useState('')
-
  const [planDetails,setPlanDetails]=useState([])
+ const [selectupgradeProcress,setSelectupgradeProcress]=useState(false)
 
  let required_data=['settings','account_categories']
 
@@ -75,6 +76,8 @@ function App() {
 
  useEffect(()=>{
     if(!user) return
+
+    data._get_all('managers') 
     let u=JSON.parse(JSON.stringify(user)) 
     delete u.companies
     delete u.companies_details
@@ -125,6 +128,23 @@ function App() {
   progress:0
 })
 
+
+
+async function _selectupgradeProcress(id){
+  setShowDownloadProcess({
+    ...planDetails,
+    to_name:user.name,name:user.name,
+    to_last_name:user.last_name,last_name:user.last_name,
+    to_contact:user.contacts[0],contact:user.contacts[0],
+    to_company_name:planDetails.name,company_name:planDetails.name,
+    admin_id:user.id,
+    id
+    //type:"upgrade",
+    //showAnualPlans:Boolean(planDetails.period=="anual"),plan:'advanced',formUpdater:Math.random(),
+  })
+
+  setSelectupgradeProcress(false)
+}
 
 
 
@@ -227,17 +247,102 @@ async function SubmitUserForm(){
   }
 
 
+  function upgradeOrDownGradePlan(action){
+    _selectupgradeProcress(2)
+  }
+
+
+  function updatePlan(r){
+    setCheckingPlanUpdate(true)
+    applyLicenseUpdate({company:r.updated_plan})
+  }
+
+
+  async function applyLicenseUpdate(r){
+
+    let companies_details=user.companies_details.map(i=>({
+      ...i,
+      planHistory:r.company.planHistory,
+      period:r.company.period,
+      plan:r.company.plan,
+      planUpdatedAt:r.company.planUpdatedAt,
+      license:r.company.license,
+      planEnd:r.company.planEnd
+      
+   }))
+
+    let user_db=new PouchDB('user-'+user.id)
+    user_db.createIndex({index: { fields: ['id'] }})
+    let _user=await user_db.find({selector: { id:user.id }})
+    _user=_user.docs[0]
+    _user.companies_details=companies_details
+    await user_db.put(_user)
+    toast.success(t('common.license-updated'))
+    setCheckingPlanUpdate('updating')
+    setTimeout(()=>{
+        if(window.electron){
+          window.electron.ipcRenderer.send('relaunch')
+        }else{
+          window.location.reload()
+        }
+    },5000)
+
+
+  }
+
+
+  async function verifyPlanUpdate(){
+      setCheckingPlanUpdate(true)
+
+      try{
+
+        let r=await data.makeRequest({method:'post',url:`api/check-license-update`,data:{
+          user_id:user.id,
+          company:planDetails
+        }, error: ``},2);
+
+        if(r.status==1){
+            setCheckingPlanUpdate(false)
+            toast.error(t('common.no-updated-license'))
+            return
+        }
+
+        applyLicenseUpdate(r)
+       
+      }catch(e){
+
+           setCheckingPlanUpdate(false)
+
+          if(e.response){
+              if(e.response.status==404){
+                  toast.error(t('common.user-not-found'))
+              }
+              if(e.response.status==500){
+                  toast.error(t('common.unexpected-error'))
+              }
+          }else if(e.code=='ERR_NETWORK'){
+            toast.error(t('common.check-network'))
+          }else{
+            toast.error(t('common.unexpected-error'))
+          }
+      }   
+  }
+
+
+
  
   return (
 
     <>
-          
-          <UserPreferencesLayout page={page} setPage={setPage}>
+           
+
+           <InsertKeyOrPay show={selectupgradeProcress} res={_selectupgradeProcress}/>
+         
+           <UserPreferencesLayout res={updatePlan} setShowDownloadProcess={setShowDownloadProcess} showDownloadProcess={showDownloadProcess}  page={page} setPage={setPage}>
 
            {page=="profile"  ? <>
                
                <div className="py-6">
-
                  
  
                <div className=" bg-app_orange-200 w-full rounded h-[150px] shadow-sm flex items-end justify-center mb-[100px]">         
@@ -531,7 +636,8 @@ async function SubmitUserForm(){
                                     <p className="font- text-slate-600">{t('userPreferences.notifications.remindersText')}</p>
 
                                     <div className=" mt-8 w-full flex items-center">
-                                         <span className="mr-3 font-light">{t('common.notifications-period')}</span>
+                                       
+                                        <span className="mr-3 font-light">{t('common.notifications-period')}</span>
 
 
                                         {!initialized ? <>
@@ -564,9 +670,6 @@ async function SubmitUserForm(){
                                                   </select>
                                         </>}
 
-                                        
-
-                                         
                                     </div>
 
 
@@ -598,7 +701,6 @@ async function SubmitUserForm(){
                                     </div> 
                                     <NotificationToggles initialized={initialized} field={'updates'} email={formData.settings?.updates?.email} whatsapp={formData.settings?.updates?.whatsapp} activeAndDisable={activeAndDisable}/>
                                 </div>
-            
                      </div>
                      <div className="py-4">
                       <DefaultButton goTo={SubmitForm} loading={!initialized} text={loading ? t('common.updating')+'...' :t('common.update')} disabled={false}/>
@@ -677,20 +779,26 @@ async function SubmitUserForm(){
                               <span className="text-gray-500 flex my-5">{t('common.next-paymant')}: {planDetails.planEnd?.split('T')[0]}</span>
                               </div>
 
-                             <div className="flex flex-col gap-y-2">
+                              <div className="flex flex-col gap-y-2">
 
-                             {planDetails.plan=="basic" &&  <button className="bg-app_orange-400 ml-4 text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{
-                            
-                             }}>{t('common.upgrade-plan')}</button> }
+                                 {planDetails?.planHistory.filter(i=>new Date(i.date).getMonth()==new Date().getMonth()).length<=2 && <button  className="bg-app_orange-400 ml-4 text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{
+                                  upgradeOrDownGradePlan()
+                                 }}>{t('common.change-plan')}</button>}
 
-                             <button className="bg-gray-400 ml-4 text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{
-                              
-                             }}>{t('common.cancel-plan')}</button> 
+                                <button  className="bg-gray-400 ml-4 text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{
+                                  ///upgradeOrDownGradePlan()
+                                  alert('In devepment...')
+                                }}>{t('common.cancel-plan')}</button> 
+
+                               <div className="w-[200px]">
+                                  <span className="mb-2 text-[14px] flex text-end mt-4 text-gray-500 flex-col">{t('messages.plan-not-updated-after-purchase')}<label onClick={verifyPlanUpdate} className="underline cursor-pointer text-[15px] flex mt-2  justify-end text-blue-500">{t('common.check-plan-update')}</label></span>
+                               </div>
+
                             </div>
                      </div>
 
 
-                     <div className="w-full h-[1px] bg-gray-100 my-[30px]"></div>
+                     <div className="w-full h-[1px] my-[30px]"></div>
 
 
                      <div>
@@ -698,8 +806,8 @@ async function SubmitUserForm(){
                           <div>
 
                             <div class="relative overflow-x-auto">
-                                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                                    <thead class="text-xs text-gray-900 uppercase dark:text-gray-400">
+                                <table class="w-full text-sm text-left rtl:text-right text-gray-500">
+                                    <thead class="text-xs text-gray-900 uppercase">
                                         <tr>
                                             <th scope="col" class="py-3">
                                                 {t('common.plan')}
@@ -717,8 +825,8 @@ async function SubmitUserForm(){
                                     </thead>
                                     <tbody>
                                         {planDetails?.planHistory?.map((i,_i)=>(
-                                            <tr class="bg-white dark:bg-gray-800">
-                                            <th scope="row" class="py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                            <tr class="">
+                                            <th scope="row" class="py-4 font-medium text-gray-900 whitespace-nowrap">
                                                {i.plan == "basic" ? t('common.basic') : t('common.advanced')}
                                             </th>
                                             <td class="px-6 py-4">
@@ -727,7 +835,6 @@ async function SubmitUserForm(){
                                             <td class="px-6 py-4">
                                               {i.end.split('T')[0]} {i.date.split('T')[1].slice(0,5)}
                                             </td>
-
                                             <td class="px-6 py-4">
                                                 {t(`common.${i.period}`)}
                                             </td>
@@ -736,10 +843,6 @@ async function SubmitUserForm(){
                                     </tbody>
                                 </table>
                             </div>
-
-
-
-
                           </div>
                      </div>
 

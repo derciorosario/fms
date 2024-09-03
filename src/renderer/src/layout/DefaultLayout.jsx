@@ -10,19 +10,24 @@ import Close from '@mui/icons-material/Close';
 import PrintTable from '../components/Tables/print';
 import { useAuth } from '../contexts/AuthContext';
 import { t } from 'i18next';
+import PlanWarnning from '../components/Dialogs/planWarnning';
 
 const DefaultLayout = ({ children , details ,isPopUp,loading,_isLoading}) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const {changingCompany} = useAuth()
+  const {changingCompany,showLicensePopUp,checkingPlanUpdate} = useAuth()
 
   const {_openPopUps,_loading,_openCreatePopUp,_setOpenCreatePopUp,initSyncStatus,_menu} = useData()
 
+
+  if(showLicensePopUp){
+      return <PlanWarnning/>
+  }
  
   
-  if(loading || _loading || changingCompany || (initSyncStatus!="completed" && initSyncStatus!="cancelled")){
+  if(checkingPlanUpdate || loading || _loading || changingCompany || (initSyncStatus!="completed" && initSyncStatus!="cancelled")){
      return (
 
-         <PageLoader/>
+         <PageLoader message={checkingPlanUpdate==true ? t('messages.checking-license') : checkingPlanUpdate=="updating" ? t('common.activating-license') : ''}/>
              
      )
   }
@@ -35,6 +40,8 @@ const DefaultLayout = ({ children , details ,isPopUp,loading,_isLoading}) => {
         </>
      )
   }
+
+  
   
   return (
       <>

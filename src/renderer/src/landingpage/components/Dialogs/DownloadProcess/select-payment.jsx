@@ -5,7 +5,7 @@ import SendProof from './proof'
 import Download from './download'
 import { useHomeData } from '../../../../contexts/HomeDataContext'
 
-function SelectPaymentMethod({activePage,setActvePage}) {
+function SelectPaymentMethod({activePage,setActvePage,planInfo,updatePlanRes,setShow}) {
 
   const data=useHomeData()
 
@@ -14,39 +14,47 @@ function SelectPaymentMethod({activePage,setActvePage}) {
   const [selectedPlanItem,setSelectedPlanItem] = useState('')
 
   useEffect(()=>{
-      setSelectedPlanItem(data.form.plan+`${data.form.showAnualPlans ? '_':''}`)
+      
+      if(planInfo?.id){
+        let next_plan=planInfo?.plan=="basic" ? "advanced":"basic"
+        data.setForm({...data.form,...planInfo,plan:next_plan})
+        setSelectedPlanItem((next_plan)+`${(planInfo?.showAnualPlans || data.form.showAnualPlans) ? '_':''}`)
+      }else{
+        setSelectedPlanItem((data.form.plan)+`${(data.form.showAnualPlans) ? '_':''}`)
+      }
   },[])
+
 
   useEffect(()=>{
 
       setPlans([
         {
-            n:'basic',name:`${t('common.basic')} (${t('common.monthly')})`,
+            n:'basic',name:`${t('common.basic')} (${t('common.monthly')})`,hide:Boolean(planInfo?.plan=='basic'),
          },
          {
-            n:'advanced',name:`${t('common.advanced')} (${t('common.monthly')})`
+            n:'advanced',name:`${t('common.advanced')} (${t('common.monthly')})`,hide:Boolean(planInfo?.plan=='advanced')
          },
          {
-            n:'basic_',name:`${t('common.basic')} (${t('common.per-year')})`,
+            n:'basic_',name:`${t('common.basic')} (${t('common.per-year')})`,hide:Boolean(planInfo?.plan=='basic'),
          },
          {
-            n:'advanced_',name:`${t('common.advanced')} (${t('common.per-year')})`
+            n:'advanced_',name:`${t('common.advanced')} (${t('common.per-year')})`,hide:Boolean(planInfo?.plan=='advanced')
          }
       ])
 
-  },[i18next.language])
+  },[i18next.language,planInfo])
 
   return (
     <div className="mt-0 mb-20 w-full">
 
-         {(data.form.method != null && !data.form.proof_ok && !message) &&  <div className={`w-full ${data.loading ? 'opacity-0 pointer-events-none':'flex'} justify-center mb-10`}>
+         {((data.form.method != null && !data.form.proof_ok && !message) || planInfo) &&  <div className={`w-full ${data.loading ? 'opacity-0 pointer-events-none':'flex'} justify-center mb-10`}>
             <span onClick={()=>{
                 data.setForm({...data.form,method:null})
             }} className="text-gray-500 underline cursor-pointer ml-3">{t('messages.choose-another-payment')}</span> 
         </div>}
 
-        {data.form.method=="Paypal" && <PayPalButton activePage={activePage} setActvePage={setActvePage}/>}
-        <SendProof setMessage={setMessage} message={message}/>
+        {data.form.method=="Paypal" && <PayPalButton setShow={setShow} updatePlanRes={updatePlanRes} activePage={activePage} setActvePage={setActvePage}/>}
+        <SendProof updatePlanRes={updatePlanRes} setMessage={setMessage} message={message}/>
 
        
         {!data.form.method && <div className="flex flex-col justify-center items-center">
@@ -85,7 +93,7 @@ function SelectPaymentMethod({activePage,setActvePage}) {
                                       setSelectedPlanItem(e.target.value)
                                   }} value={selectedPlanItem} className="ml-2 w-[130px]">
                                      {plans.map((i,_i)=>(
-                                         <option value={i.n}>{i.name}</option>
+                                        <option disabled={i.hide} value={i.n}>{i.name}</option>
                                      ))}
                                   </select>
                              </div>
@@ -102,7 +110,7 @@ function SelectPaymentMethod({activePage,setActvePage}) {
                                     <input onClick={()=>{
                                         data.setForm({...data.form,method:i})
                                     }} id={`default-checkbox`+i} type="checkbox" checked={data.form.method==i ? true : false} value="" class="w-4 h-4 cursor-pointer text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
-                                    <span for={`default-checkbox`+i} class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300 cursor-pointer">
+                                    <span for={`default-checkbox`+i} class="ms-2 text-sm font-medium text-gray-900  cursor-pointer">
                                         {i=="transfer" ? t('common.transfer') : i}
                                         <label className="ml-2 opacity-80">{i=='Paypal' ? `(${t('common.taxes-may-apply')})`:''}</label>
                                     </span>

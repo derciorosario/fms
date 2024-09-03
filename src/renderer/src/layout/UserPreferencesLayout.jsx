@@ -2,18 +2,11 @@ import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import DefaultLayout from './DefaultLayout';
 import { useTranslation } from 'react-i18next';
+import DownloadProcess from '../landingpage/components/Dialogs/DownloadProcess';
 
-function UserPreferencesLayout({children,page,setPage}) {
+function UserPreferencesLayout({children,page,setPage,showDownloadProcess,setShowDownloadProcess,res}) {
  const { t } = useTranslation();
 
-  
-
-  React.useEffect(()=>{
-   
-     
-
-
-   },[])
 
 
    function _setPage(p){
@@ -28,7 +21,7 @@ function UserPreferencesLayout({children,page,setPage}) {
 
     <>
 
-
+  <DownloadProcess updatePlanRes={res} payOnly={true} show={showDownloadProcess?.id} planInfo={showDownloadProcess} setShow={setShowDownloadProcess}/>
   <DefaultLayout  details={{name:t('userPreferences.title')}}>
 
    <div className="mx-4 min-h-screen max-w-screen-xl sm:mx-8 xl:mx-auto">

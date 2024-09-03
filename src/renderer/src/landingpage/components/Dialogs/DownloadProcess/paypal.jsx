@@ -16,7 +16,7 @@ const loadScript = (url) => {
   });
 };
 
-const PayPalButton = ({method,setMedthod,activePage,setActvePage}) => {
+const PayPalButton = ({method,setMedthod,activePage,setActvePage,updatePlanRes,setShow}) => {
   const [paypalLoaded, setPaypalLoaded] = useState(false);
   const paypalRef = useRef(null);
   const [message,setMessage]=useState('')
@@ -24,7 +24,16 @@ const PayPalButton = ({method,setMedthod,activePage,setActvePage}) => {
   const d=useHomeData()
   const invoice_number=Math.random().toString().slice(2,10)
   const key=Math.random().toString().slice(3,15)
-  function paymentSuccessfully(){
+  function paymentSuccessfully(orderDetails){
+
+
+       if(updatePlanRes){
+          setShow(false)
+          updatePlanRes(orderDetails)
+         
+       }
+
+       
        d.setForm({...d.form,done:2,invoice:{
         id:null,
         approved:false,
@@ -42,12 +51,10 @@ const PayPalButton = ({method,setMedthod,activePage,setActvePage}) => {
        setActvePage(activePage + 1)
        d.setkey(key)
        localStorage.setItem('form',JSON.stringify({...d.form,restart:true}))
-       toast.success(t('messages.payment-done'))
+       if(!updatePlanRes)  toast.success(t('messages.payment-done'))
 
   }
 
-
-  
 
   useEffect(() => {
        _dataRef.current={
@@ -55,6 +62,8 @@ const PayPalButton = ({method,setMedthod,activePage,setActvePage}) => {
          email:d.form.email,
          company_name:d.form.company_name,
          plan:d.form.plan,
+         type:d.form.type,
+         admin_id:d.form.admin_id,
          period:d.form.showAnualPlans ? 'anual' : 'monthly',
          last_name:d.form.last_name,
          contact:d.form.contact,
@@ -108,7 +117,7 @@ const PayPalButton = ({method,setMedthod,activePage,setActvePage}) => {
               const intentObject = "capture";
               console.log({orderDetails})
               window.paypal.Buttons().close();
-              paymentSuccessfully(orderDetails.key)
+              paymentSuccessfully(orderDetails)
             })
             .catch(error => {
               console.error(error);

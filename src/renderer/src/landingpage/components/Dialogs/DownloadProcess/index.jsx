@@ -11,8 +11,9 @@ import InvoiceDownload from '../../../pages/invoice/invoice-download'
 import { useNavigate } from 'react-router-dom'
 import { useHomeData } from '../../../../contexts/HomeDataContext'
 import { useTranslation } from 'react-i18next'
+import InsertLincese from './insertLicense'
 
-function DownloadProcess({}) {
+function DownloadProcess({show,payOnly,setShow,planInfo,updatePlanRes}) {
     
   const [activePage,setActvePage]=useState(0)
   const [pages,setPages]=useState([])
@@ -20,6 +21,7 @@ function DownloadProcess({}) {
   const navigate = useNavigate()
   const [resetUpdater,setResetUpdater]= useState()
   const { t } = useTranslation();
+  const [licenseVerified,setLinceseVerified]=useState(false)
 
   useEffect(()=>{
     setPages([
@@ -28,6 +30,10 @@ function DownloadProcess({}) {
         {name:"Download"}
     ])
   },[i18n.language])
+
+
+
+  
 
  
   useEffect(()=>{
@@ -63,12 +69,13 @@ function DownloadProcess({}) {
     localStorage.setItem('lang',lng)
   };
 
-  
+
+ 
   return (
     
    <>
     <InvoiceDownload/>
-    <div className={`w-full top-0 left-0 fixed z-30 flex flex-col h-[100vh] ${!data.dialogs.register ? 'opacity-0 pointer-events-none translate-y-[50px]':''} transition-all ease-in duration-100`}>
+    <div className={`w-full top-0 left-0 fixed z-30 flex flex-col h-[100vh] ${!data.dialogs.register && !show ? 'opacity-0 pointer-events-none translate-y-[50px]':''} transition-all ease-in duration-100`}>
 
 <div className="bg-[rgba(0,0,0,0.4)] h-[60px] w-full relative flex items-end">
     <div className="bg-[rgba(0,0,0,0.4)]  w-full h-[10px] z-[-1] translate-y-[100%]"></div>
@@ -81,11 +88,17 @@ function DownloadProcess({}) {
                     <span className="mt-6 h-[3px] w-[50px] bg-gray-400 rounded-full"></span>
 
                             {!data.loading && <span onClick={()=>{
-                               data.reset()
-                               data.setDialogs({...data.dialogs,register:false})
+
+                               if(payOnly){
+                                  setShow(false)
+                               }else{
+                                 data.reset()
+                                 data.setDialogs({...data.dialogs,register:false})
+                               }
+                               
                              }} className="bg-app_orange-400 absolute left-2 top-2 text-white px-3 py-1 rounded-[0.3rem] cursor-pointer hover:underline">{t('common.cancel-process')}</span>
 }
-                                {!data.loading && <span onClick={()=>{
+                                {(!data.loading && !payOnly) && <span onClick={()=>{
                                                                 if(data.form.done==2 || data.form.proof_ok){
                                                                     data.reset()
                                                                 }
@@ -96,7 +109,7 @@ function DownloadProcess({}) {
 
         </div>
 
-        <div className="w-full flex justify-center items-center mt-14 mb-10">
+        <div className={`w-full ${payOnly ? 'hidden':''} flex justify-center items-center mt-14 mb-10`}>
                     {pages.map((i,_i)=>(
                             <div className="flex items-center justify-center relative">
                                 <span className={`flex ${activePage==_i ? 'bg-[#ff7626]':'bg-white'} justify-center items-center w-[30px] h-[30px] border-[2px] border-app_primary-400 rounded-full`}>
@@ -122,13 +135,13 @@ function DownloadProcess({}) {
            <span className="ml-1"> {t('common.next')}</span>
            <svg className="rotate-180" xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" fill="#fff"><path d="M400-240 160-480l240-240 56 58-142 142h486v80H314l142 142-56 58Z"/></svg>
        </button> : <span></span>}
-       
     </div>
 
    <div className="w-full flex-1  px-4">
-          {activePage == 0 && <Register activePage={activePage} setActvePage={setActvePage}/>}
-          {activePage == 1 && <SelectPaymentMethod activePage={activePage} setActvePage={setActvePage}/>}   
-          {activePage == 2 && <Download/>}
+          {(activePage == 0 && !payOnly) && <Register activePage={activePage} setActvePage={setActvePage}/>}
+          {((activePage == 1 || (payOnly && show==2))) && <SelectPaymentMethod setShow={setShow} updatePlanRes={updatePlanRes} planInfo={planInfo} activePage={activePage} setActvePage={setActvePage}/>}   
+          {(activePage == 2 && !payOnly) && <Download/>}
+          {(payOnly && show==1) && <InsertLincese/>}
    </div>
 
    

@@ -5,7 +5,7 @@ import { jwtVerify } from 'jose';
 import { importPublicKey } from '../utils/convertKey';
 
 const AuthContext = createContext();
-let env="dev"
+let env="pro"
 export const AuthProvider = ({ children }) => {
   
   let APP_BASE_URL= env=="dev" ? 'http://localhost:4000' :  'https://procontadev.alinvest-group.com' 
@@ -24,6 +24,10 @@ export const AuthProvider = ({ children }) => {
   const [remoteDBs,setRemoteDBs]=useState([])
   const [db_names,setDBNames]=useState({})
   const [goToApp,setGoToApp]=useState(null)
+  const [licenseInfo,setLicenseInfo]=useState(null)
+  const [showLicensePopUp,setShowLicensePopUp]=useState(false)
+  const [checkingPlanUpdate, setCheckingPlanUpdate]=useState(false)
+
 
   const publicKey=
 `-----BEGIN PUBLIC KEY-----
@@ -41,35 +45,65 @@ RQK2GfL6f5eTT9rpmEiqwFz4eYoAN2WrEqgFe9LqsIJ4KQaFc0Co3vrduO/PtvbO
 or6lGHBd11hL2gDr/f8BYQIDAQAB
 -----END PUBLIC KEY-----`
 
-   const verifyLicense=async () => {
+
+  const daysBetween=(date1,date2,d)=>{
+
+    let milliseconds1
+    let milliseconds2
+    try{
+    milliseconds1 = date1.getTime();
+    milliseconds2 = date2.getTime();
+    }catch(e){}
     
+    const diff = milliseconds2 - milliseconds1;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    return days;
+  }
 
-    const licenseKey = `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzA0MTkyMDAsImlhdCI6MTcyNTA2MTc0MH0.Xvo84BCvoLgrfO2Z8Un2sq1YSuwztpQG-b48nYkwY1-AJSteAoZXNeMMH43KBMoIuKtsSoamhAYzeaIV6Ba-vmLYcvzJM3B8Hne9XqVdu3HF_sL7dytrUWFLt8Px45VYUKjCWtcUfsH1a0X-99g8tTtbBMQYBB5maId1Sl55b3dWFTQlyxGzzsWEL8VNL5nw1dgQ9y0dgaGzvnA1APU-oNx2Mmbhc5S8z8E-tFZRIaBQkTTtJlniyNUxpLTfu-xq63-vuNvctV0MI-5S90NYplrNJC1L7XvNxCMS6rvXmH4dptdZ7wgBClW8zBMd9xTjsRBEqovv7XnCiTQ8X1E53Sw4gvW0NDA6kHPHkaDk0hRmql6lBlJ_HvoSRlF1i_YskYkQUg_0OAgKfkfmtifHuj5mrsxTqWhNfkJc5HSwg2P9FPiLEr5jAI8o0kitYDJUUc1ZBC_6LVYJQRJzZpwxdwYjPjzz19AW0IJYV3rjsjt2TjJjC6hWzeabTXiECIvkmeL2er7YmaKjS2h3wAyJSS60zUHLoQXwLTeBX0JGl1gRz96HkCT7JKB1LSPDxkDC5_wWKg9mxZ6DtbPLZsXsfTzS7eUtngvYlQFAfSMQkoJ0ngQ-DVnbM9qPsSEJFyn55P0h3HQJ8XinWmYviuiTWvGC1vARzX7hjSPRiXDs4ys`; 
+  function _today(){
+    return new Date().toISOString().split('T')[0]
+  }
 
+  const verifyLicense=async (licenseKey) => {
+    
     try {
       const cryptoKey = await importPublicKey(publicKey);
       const { payload } = await jwtVerify(licenseKey, cryptoKey);
   
       const currentTime = Math.floor(Date.now() / 1000);
+
       if (payload.exp < currentTime) {
-        return { valid: false, message: 'License has expired.' };
+        return { valid: false, message: 'License has expired.',status:1};
       }
-      return { valid: true, message: 'License is valid.' };
-    } catch (err) {
-      console.log(err)
-      return { valid: false, message: 'Invalid license.' };
+      return { valid: true, message: 'License is valid.',status:0 };
+    } catch (error) {
+      console.log(error)
+      return { valid: false, message: 'Invalid license.',status: 2,error};
     }
   }
 
-  async function name(params) {
-    console.log(await verifyLicense())
-  }
+
+ async function checkPlan(){
+    let c=user.companies_details.filter(i=>i.id==user.selected_company)[0]
+    let {status} =await verifyLicense(c.license)
+    let left_days=daysBetween(new Date(_today()),new Date(c.planEnd))
+
+    setLicenseInfo({left_days,status})
+    if(status!=0){
+        setShowLicensePopUp(true)
+    }
+
+}
+
 
   useEffect(()=>{
-           name()
-  },[])
+          if(!user){
+            return
+          }
+         checkPlan()
+  },[user])
 
- 
+   
 
   function hasToGoToApp(){
        if(window.electron) {
@@ -98,13 +132,11 @@ or6lGHBd11hL2gDr/f8BYQIDAQAB
 
 
       if(user){
-
         setloadingLocalUser(true)
         setLoading(false)
         setUser(user)
         setToken(user.token_value)
         setAuth(true)
-
       }else{
        
         /*setAuth(false)
@@ -450,16 +482,14 @@ async function update_user(userData){
       } else {
         setLoading(false);
       }
-      
-
      }, [isAuthenticated, user, token,loadingLocalUser]);
 
    
    
 
   return (
-    <AuthContext.Provider value={{setReload,reload,goToApp,setGoToApp,startover,update_user_data_from_db,changingCompany,remoteDBs,setRemoteDBs,_change_company,db,APP_BASE_URL,COUCH_DB_CONNECTION,FRONT_URL,user,update_user,setDestroying,destroying,login, logout, isAuthenticated , loading, setUser, setLoading, token,auth}}>
-      {children}
+    <AuthContext.Provider value={{checkingPlanUpdate, setCheckingPlanUpdate,licenseInfo,setLicenseInfo,showLicensePopUp,setShowLicensePopUp,setReload,reload,goToApp,setGoToApp,startover,update_user_data_from_db,changingCompany,remoteDBs,setRemoteDBs,_change_company,db,APP_BASE_URL,COUCH_DB_CONNECTION,FRONT_URL,user,update_user,setDestroying,destroying,login, logout, isAuthenticated , loading, setUser, setLoading, token,auth}}>
+           {children}
     </AuthContext.Provider>
   );
 };

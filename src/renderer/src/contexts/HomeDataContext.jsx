@@ -24,7 +24,7 @@ export const HomeDataProvider = ({ children }) => {
     const [resetUpdater,setResetUpdater]= useState()
     const [imagesLoadedItems, setImagesLoadedItems] = useState([])
     const count_ref=useRef(0)
-    const env="dev"
+    const env="pro"
     const plataform_url= env=="dev" ? 'http://localhost:5173' : 'https://proconta.alinvest-group.com'
     const server_url= env=="dev" ? 'http://localhost:4000' : 'https://procontadev.alinvest-group.com'
     const APP_BASE_URL= env=="dev" ? 'http://localhost:4000' : 'https://procontadev.alinvest-group.com' 
@@ -70,6 +70,7 @@ export const HomeDataProvider = ({ children }) => {
       setForm(initial_form)
       saveLocal(initial_form)
       setResetUpdater(Math.random())
+
     }
 
     const retryDelay = 3000
@@ -152,7 +153,6 @@ export const HomeDataProvider = ({ children }) => {
         const loadImages = async () => {
           try {
             await Promise.all(imageUrls.map((url) => preloadImage(url)));
-           
              /*if (isMounted) {
               let delay=passedSeconds < 3 ? 3000 : 0
               setTimeout(()=>{
@@ -160,9 +160,6 @@ export const HomeDataProvider = ({ children }) => {
                 setIsLoading(false);
               },delay)
             }*/
-
-          
-          
           } catch (error) {
             console.error('Failed to load images:', error);
           }

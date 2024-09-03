@@ -2,11 +2,10 @@ import { t } from 'i18next';
 import * as React from 'react';
 
 export default function SelectCompany({items,show,res}) {
+  const [selected,setSelected]=React.useState(null)
 
-    const [selected,setSelected]=React.useState(null)
   return (
-      <>
-
+    <>
  
 <div id="select-modal" tabindex="-1" aria-hidden="true" className={` bg-[rgba(0,0,0,.6)] overflow-y-auto flex transition  ${show ? 'opacity-1 z-50 ' :'opacity-0'}  -z-10 overflow-x-hidden fixed top-0 right-0 left-0 justify-center items-center w-full md:inset-0 h-full max-h-full`}>
     <div className="_bg w-full h-full absolute left-0 top-0" onClick={()=>res(null)}></div>

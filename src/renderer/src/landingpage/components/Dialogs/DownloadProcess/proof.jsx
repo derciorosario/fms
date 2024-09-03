@@ -68,13 +68,12 @@ function SendProof({message,setMessage}) {
             plan:data.form.plan,
             period:data.form.showAnualPlans ? 'anual' : 'monthly',
             to_last_name:data.form.last_name,
+            admin_id:data.form.admin_id,
+            type:data.form.type,
             invoice_number,
             payment_method:t('common.transfer'),
             date:new Date().toISOString(),
-            key,
-            payment_items: [
-              {name:'Conta Pro',quantity:1,price:75000}
-        ]}))
+            key}))
 
 
        try{

@@ -17,6 +17,7 @@ import TransaparentPageLoader from '../../../components/progress/transparentPage
 import Demostration from '../../components/Dialogs/demostration'
 import Quotation from '../../components/Dialogs/quotation'
 import { Category } from '@mui/icons-material'
+import ClientsSlider from '../../components/slides/clients'
 
 function index() {
   const [showVideo,setShowVideo]=useState(false)
@@ -497,23 +498,54 @@ function index() {
             </div>
 
 
+               <div className="mt-24">
+                  <div className="px-10">
+                    <h3 class="max-w-[900px] max-md:text-[27px] mx-auto text-center text-[30px] font-semibold mb-6">
+                            
+                            {i18n.language=="pt" ? <>
+                                Ainda não tem o seu negócio na mão? Adira agora à <span className="text-[#ff7626]">ProConta</span> e descubra o que <span className="text-[#ff7626]">eles descobriram</span>   
+                            </>:<>
+                                Still don't have your business under control? Join <span className="text-[#ff7626]">ProConta</span> now and discover what <span className="text-[#ff7626]">they've discovered</span>.
+                            </>}
+                    </h3>
+                  </div>
+                  <div className="max-w-[80%] my-[50px] mb-[190px] p-16 rounded-[1.4rem] bg-gray-300 mx-auto testemunial relative">
+                     
+                  <div className="tesmemunial-bg absolute top-0 left-0 w-full h-full"></div>
+               
 
-               <div className="max-w-[80%] my-[190px] p-16 rounded-[1.4rem] bg-[#ff7626] mx-auto testemunial relative">
-                      <div className="tesmemunial-bg absolute top-0 left-0 w-full h-full"></div>
-                      <p className="text-white text-[30px] font-semibold max-md:text-[20px]">
-                        “I have been trading with FinFlow for over a year now, and I couldn't be happier with the results. The platform is easy to use, the support team is responsive and knowledgeable, and the pricing is unbeatable.”
-                      </p>
+                  <div className="flex mt-4 items-center hidden">
+                    <div className="w-[55px] h-[55px] t-avatar rounded-full border-[3px] bg-app_primary-300 border-white t-avatar">
 
-                      <div className="flex mt-4 items-center">
-                          <div className="w-[55px] h-[55px] t-avatar rounded-full border-[3px] bg-app_primary-300 border-white t-avatar">
+                    </div>
+                    <span  className="text-white text-[20px] ml-2">Ana Maia</span>
+                    <span  className="text-white text-[20px] opacity-65 ml-2">CEO Vinhos Maria</span>
+                  </div>
 
-                          </div>
-                          <span  className="text-white text-[20px] ml-2">Ana Maia</span>
-                          <span  className="text-white text-[20px] opacity-65 ml-2">CEO Vinhos Maria</span>
-                      </div>
-                    
+                  <div className="w-full max-lg:hidden">
+                      <ClientsSlider autoplaySpeed={4000}/>
+                      <ClientsSlider autoplaySpeed={4000}/>
+                  </div>
+
+                  <div className="w-full max-lg:block hidden max-md:hidden">
+                      <ClientsSlider slidesToShow={2} autoplaySpeed={4000}/>
+                      <ClientsSlider slidesToShow={2} autoplaySpeed={4000}/>
+                  </div>
+
+                  <div className="w-full max-md:block hidden">
+                      <ClientsSlider slidesToShow={1} autoplaySpeed={4000}/>
+                      <ClientsSlider slidesToShow={1} autoplaySpeed={4000}/>
+                  </div>
+
+                
+
+                
+
+                </div>
+
                </div>
 
+            
 
 
 
@@ -566,8 +598,8 @@ function index() {
                                             <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
                                             <label className="ml-2 text-[15px]">{t('common.basic-plan-item-3')}</label>
                                          </span>
-
-                                         <div className="h-[73px]"></div>
+                                         <div className={i18n.language=="pt" ? 'h-[73px]':'h-[36px]'}></div>
+                                         
                                         
                                      </div>
                                      </div>

@@ -39,7 +39,8 @@ export const DataProvider = ({ children }) => {
       company:'',
       see_bill_transations:'',
       payment_type:[],
-      verification_code:''
+      verification_code:'',
+      page:''
     }
     
     const [_filters, setFilters] = useState(initial_filters);

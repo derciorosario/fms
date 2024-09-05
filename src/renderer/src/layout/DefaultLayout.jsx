@@ -11,10 +11,11 @@ import PrintTable from '../components/Tables/print';
 import { useAuth } from '../contexts/AuthContext';
 import { t } from 'i18next';
 import PlanWarnning from '../components/Dialogs/planWarnning';
+import PlanWarnningTopBar from '../components/Dialogs/planWarnningTopBar';
 
 const DefaultLayout = ({ children , details ,isPopUp,loading,_isLoading}) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const {changingCompany,showLicensePopUp,checkingPlanUpdate} = useAuth()
+  const {changingCompany,showLicensePopUp,checkingPlanUpdate,showLicenseTopPopUp} = useAuth()
 
   const {_openPopUps,_loading,_openCreatePopUp,_setOpenCreatePopUp,initSyncStatus,_menu} = useData()
 
@@ -50,6 +51,7 @@ const DefaultLayout = ({ children , details ,isPopUp,loading,_isLoading}) => {
       
      <div className={`${_menu ? '__open':''}`}>
       {/* <!-- ===== Page Wrapper Start ===== --> */}
+       
       <div className="flex h-screen overflow-hidden">
         {/* <!-- ===== Sidebar Start ===== --> */}
 
@@ -73,6 +75,7 @@ const DefaultLayout = ({ children , details ,isPopUp,loading,_isLoading}) => {
                     </div>
                     
               </div>
+          {showLicenseTopPopUp && <PlanWarnningTopBar/>}
           <Search show={_openPopUps.search}/>
           {/* <!-- ===== Header Start ===== --> */}
           <Header details={details} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} _isLoading={_isLoading} />
@@ -90,7 +93,7 @@ const DefaultLayout = ({ children , details ,isPopUp,loading,_isLoading}) => {
           {/* <!-- ===== Main Content Start ===== --> */}
           <main>
             <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
-             
+              
               <div/>
                 {children}
               </div>

@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import UserPreferencesLayout from '../../layout/UserPreferencesLayout';
 import NotificationToggles from './components/notificationToggles';
-import {CameraAltRounded, Edit, Info} from '@mui/icons-material';
+import {CameraAltRounded, Edit, Info} from '@mui/icons-material'; 
 import { useAuth } from '../../contexts/AuthContext';
 import { Alert, Button, CircularProgress, Switch } from '@mui/material';
 import { useData } from '../../contexts/DataContext';
@@ -25,6 +25,7 @@ import FilterOptions from './components/options-filters';
 import MainUploader from '../setup/compnents/upload-company-logo';
 import bcrypt from 'bcryptjs';
 import InsertKeyOrPay from '../../components/Dialogs/insertKeyOrPay';
+import { useSearchParams } from 'react-router-dom';
 
 
 function App() {
@@ -45,7 +46,7 @@ function App() {
  const [userForm,setUserForm]=useState({contacts:['']})
  const [showResetInputs,setShowResetInputs]=useState(false)
  const [resetPassword,setResetPassword]=useState('')
- const [planDetails,setPlanDetails]=useState([])
+ const [planDetails,setPlanDetails]=useState({})
  const [selectupgradeProcress,setSelectupgradeProcress]=useState(false)
 
  let required_data=['settings','account_categories']
@@ -130,6 +131,7 @@ function App() {
 
 
 
+
 async function _selectupgradeProcress(id){
   setShowDownloadProcess({
     ...planDetails,
@@ -139,8 +141,6 @@ async function _selectupgradeProcress(id){
     to_company_name:planDetails.name,company_name:planDetails.name,
     admin_id:user.id,
     id
-    //type:"upgrade",
-    //showAnualPlans:Boolean(planDetails.period=="anual"),plan:'advanced',formUpdater:Math.random(),
   })
 
   setSelectupgradeProcress(false)

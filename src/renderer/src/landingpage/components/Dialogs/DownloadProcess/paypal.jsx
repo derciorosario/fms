@@ -27,6 +27,7 @@ const PayPalButton = ({method,setMedthod,activePage,setActvePage,updatePlanRes,s
   function paymentSuccessfully(orderDetails){
 
 
+
        if(updatePlanRes){
           setShow(false)
           updatePlanRes(orderDetails)

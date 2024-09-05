@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }) => {
   const [goToApp,setGoToApp]=useState(null)
   const [licenseInfo,setLicenseInfo]=useState(null)
   const [showLicensePopUp,setShowLicensePopUp]=useState(false)
+  const [showLicenseTopPopUp,setShowLicenseTopPopUp]=useState(false)
   const [checkingPlanUpdate, setCheckingPlanUpdate]=useState(false)
 
 
@@ -92,6 +93,19 @@ or6lGHBd11hL2gDr/f8BYQIDAQAB
     if(status!=0){
         setShowLicensePopUp(true)
     }
+    
+
+    if((left_days == 3 || left_days == 1)){
+      if(localStorage.getItem('_license_top_w')){
+          if(new Date().toISOString().split('T')[0] != localStorage.getItem('_license_top_w')){
+            setShowLicenseTopPopUp(true)
+          }
+      }else{
+           setShowLicenseTopPopUp(true)
+      } 
+    }
+
+    
 
 }
 
@@ -488,7 +502,7 @@ async function update_user(userData){
    
 
   return (
-    <AuthContext.Provider value={{checkingPlanUpdate, setCheckingPlanUpdate,licenseInfo,setLicenseInfo,showLicensePopUp,setShowLicensePopUp,setReload,reload,goToApp,setGoToApp,startover,update_user_data_from_db,changingCompany,remoteDBs,setRemoteDBs,_change_company,db,APP_BASE_URL,COUCH_DB_CONNECTION,FRONT_URL,user,update_user,setDestroying,destroying,login, logout, isAuthenticated , loading, setUser, setLoading, token,auth}}>
+    <AuthContext.Provider value={{showLicenseTopPopUp,setShowLicenseTopPopUp,checkingPlanUpdate, setCheckingPlanUpdate,licenseInfo,setLicenseInfo,showLicensePopUp,setShowLicensePopUp,setReload,reload,goToApp,setGoToApp,startover,update_user_data_from_db,changingCompany,remoteDBs,setRemoteDBs,_change_company,db,APP_BASE_URL,COUCH_DB_CONNECTION,FRONT_URL,user,update_user,setDestroying,destroying,login, logout, isAuthenticated , loading, setUser, setLoading, token,auth}}>
            {children}
     </AuthContext.Provider>
   );

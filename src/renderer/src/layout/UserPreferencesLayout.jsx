@@ -1,21 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import DefaultLayout from './DefaultLayout';
 import { useTranslation } from 'react-i18next';
 import DownloadProcess from '../landingpage/components/Dialogs/DownloadProcess';
+import { useSearchParams } from 'react-router-dom';
+import { useData } from '../contexts/DataContext';
 
 function UserPreferencesLayout({children,page,setPage,showDownloadProcess,setShowDownloadProcess,res}) {
  const { t } = useTranslation();
-
-
+ const [searchParams, setSearchParams] = useSearchParams();
+ const data=useData()
 
    function _setPage(p){
 
      setPage(p)
 
-     document.querySelector('.peer').checked=false
+     if(document.querySelector('.peer')){
+      document.querySelector('.peer').checked=false
+     }
      
    }
+   useEffect(()=>{
+    let res=data._sendFilter(searchParams)
+    if(res.page){
+        _setPage(res.page)
+    }
+  
+  },[])
+  
+
+
  
   return (
 

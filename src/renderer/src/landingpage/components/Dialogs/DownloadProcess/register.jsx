@@ -45,7 +45,6 @@ function Register({activePage,setActvePage}) {
        try{
         let res=await data.makeRequest({method:'post',url:`api/${resend || !codeSent ? 'send-email-code':'verify-code'}`,data:{
             name:data.form.name,
-            name:data.form.last_name,
             email:data.form.email,
             company_name:data.form.company_name,
             period:data.form.showAnualPlans ? 'anual' : 'monthly',

@@ -13,10 +13,10 @@ function SelectPaymentMethod({activePage,setActvePage,planInfo,updatePlanRes,set
   const [plans,setPlans]=useState([])
   const [selectedPlanItem,setSelectedPlanItem] = useState('')
 
+
   useEffect(()=>{
-      
       if(planInfo?.id){
-        let next_plan=planInfo?.plan=="basic" ? "advanced":"basic"
+        let next_plan=planInfo.renew ? planInfo?.plan :  (planInfo?.plan=="basic" ? "advanced":"basic")
         data.setForm({...data.form,...planInfo,plan:next_plan})
         setSelectedPlanItem((next_plan)+`${(planInfo?.showAnualPlans || data.form.showAnualPlans) ? '_':''}`)
       }else{
@@ -29,16 +29,16 @@ function SelectPaymentMethod({activePage,setActvePage,planInfo,updatePlanRes,set
 
       setPlans([
         {
-            n:'basic',name:`${t('common.basic')} (${t('common.monthly')})`,hide:Boolean(planInfo?.plan=='basic'),
+            n:'basic',name:`${t('common.basic')} (${t('common.monthly')})`,hide:Boolean(planInfo?.plan=='basic' && !planInfo.renew),
          },
          {
-            n:'advanced',name:`${t('common.advanced')} (${t('common.monthly')})`,hide:Boolean(planInfo?.plan=='advanced')
+            n:'advanced',name:`${t('common.advanced')} (${t('common.monthly')})`,hide:Boolean(planInfo?.plan=='advanced' && !planInfo.renew)
          },
          {
-            n:'basic_',name:`${t('common.basic')} (${t('common.per-year')})`,hide:Boolean(planInfo?.plan=='basic'),
+            n:'basic_',name:`${t('common.basic')} (${t('common.per-year')})`,hide:Boolean(planInfo?.plan=='basic' && !planInfo.renew),
          },
          {
-            n:'advanced_',name:`${t('common.advanced')} (${t('common.per-year')})`,hide:Boolean(planInfo?.plan=='advanced')
+            n:'advanced_',name:`${t('common.advanced')} (${t('common.per-year')})`,hide:Boolean(planInfo?.plan=='advanced' && !planInfo.renew)
          }
       ])
 
@@ -47,7 +47,7 @@ function SelectPaymentMethod({activePage,setActvePage,planInfo,updatePlanRes,set
   return (
     <div className="mt-0 mb-20 w-full">
 
-         {((data.form.method != null && !data.form.proof_ok && !message) || planInfo) &&  <div className={`w-full ${data.loading ? 'opacity-0 pointer-events-none':'flex'} justify-center mb-10`}>
+         {((data.form.method != null && !data.form.proof_ok && !message) || (planInfo && data.form.method != null)) &&  <div className={`w-full ${data.loading ? 'opacity-0 pointer-events-none':'flex'} justify-center mb-10`}>
             <span onClick={()=>{
                 data.setForm({...data.form,method:null})
             }} className="text-gray-500 underline cursor-pointer ml-3">{t('messages.choose-another-payment')}</span> 

@@ -1,18 +1,27 @@
 import React, { useEffect, useState } from 'react'
 import DefaultLayout from '../../layout/DefaultLayout'
 import { useHomeData } from '../../../contexts/HomeDataContext'
+import i18n from '../../../i18n'
+import { t } from 'i18next'
 
 function Faq() {
 
 
-    const data=useHomeData()
+      const data=useHomeData()
 
-    const [faq,setFaq]=useState([
-        {title:'What is Forex trading, and how does it work?',content:'Forex trading is the practice of buying and selling currencies in order to make a profit. It works by taking advantage of fluctuations in exchange rates between different currencies. For example, if you believe that the value of the US dollar will rise against the euro, you can buy dollars and sell euros. If your prediction is correct, you will make a profit.'},
-        {title:'What is Forex trading, and how does it work?',content:'Forex trading is the practice of buying and selling currencies in order to make a profit. It works by taking advantage of fluctuations in exchange rates between different currencies. For example, if you believe that the value of the US dollar will rise against the euro, you can buy dollars and sell euros. If your prediction is correct, you will make a profit.'},
-        {title:'What is Forex trading, and how does it work?',content:'Forex trading is the practice of buying and selling currencies in order to make a profit. It works by taking advantage of fluctuations in exchange rates between different currencies. For example, if you believe that the value of the US dollar will rise against the euro, you can buy dollars and sell euros. If your prediction is correct, you will make a profit.'},
-        {title:'What is Forex trading, and how does it work?',content:'Forex trading is the practice of buying and selling currencies in order to make a profit. It works by taking advantage of fluctuations in exchange rates between different currencies. For example, if you believe that the value of the US dollar will rise against the euro, you can buy dollars and sell euros. If your prediction is correct, you will make a profit.'}
-      ])
+      const [faq,setFaq]=useState([])
+
+      useEffect(()=>{
+
+        setFaq([
+            {title:t('common.faq-8'),content:t('common.faq-8-description')},
+            {title:t('common.faq-2'),content:t('common.faq-2-description')},
+            {title:t('common.faq-11'),content:t('common.faq-11-description')},
+            {title:t('common.faq-3'),content:t('common.faq-3-description')},
+          ])
+        
+      },[i18n.language])
+
     
       const [openFaq,setOpenFaq]=useState(null)
 

@@ -100,6 +100,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                 if(!id || id==formData.id || !db['bills_to_'+type] || !user) return 
 
                 (async()=>{
+                  
                   let res=data._sendFilter(searchParams)
 
                   if(res.company && res.company!=user.selected_company && user.companies.includes(res.company)){

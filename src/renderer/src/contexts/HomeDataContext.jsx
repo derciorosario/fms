@@ -46,7 +46,6 @@ export const HomeDataProvider = ({ children }) => {
         period:'',
         plan:'',
         last_name:'',
-        nuit:'',
         email1:'',
         code:'',
         key:'',

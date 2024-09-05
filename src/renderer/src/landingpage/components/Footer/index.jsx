@@ -32,13 +32,16 @@ function Footer() {
 
             <div>
             <p className={`${!wf ? 'text-white opacity-65':'text-black'} text-[16px] mb-2`}>{t('common.company')}</p>
-                <p className={`${!wf ? 'text-white':'text-black'} text-[18px] mb-2`}>{t('common.about-us')}</p>
-                <p className={`${!wf ? 'text-white':'text-black'} text-[18px] mb-2`}>{t('common.opens')}</p>
-                <p className={`${!wf ? 'text-white':'text-black'} text-[18px] mb-2`}>{t('common.contact')}</p>
+                <p className={`${!wf ? 'text-white':'text-black'} text-[18px] mb-2 hidden`}>{t('common.about-us')}</p>
+                <p className={`${!wf ? 'text-white':'text-black'} text-[18px] mb-2`} onClick={(e)=>{
+                     e.preventDefault()
+                     navigate('/opens')
+                }}>{t('common.opens')}</p>
+                <p className={`${!wf ? 'text-white':'text-black'} text-[18px] mb-2 hidden`}>{t('common.contact')}</p>
             </div>
             <div>
                 <p className={`${!wf ? 'text-white opacity-65':'text-black'} text-[16px] mb-2`}>{t('common.resources')}</p>
-                <p className={`${!wf ? 'text-white':'text-black'} text-[18px] mb-2`}>{t('common.tutorials')}</p>
+                <p className={`${!wf ? 'text-white':'text-black'} text-[18px] mb-2 hidden`}>{t('common.tutorials')}</p>
                 <p  className={`${!wf ? 'text-white':'text-black'} text-[18px] mb-2`}><a onClick={(e)=>{
                      e.preventDefault()
                      navigate('faq')

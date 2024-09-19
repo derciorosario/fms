@@ -1192,7 +1192,7 @@ function get_stat_data(filterOptions,period){
      
     }
 
-    let p_length=period=="m" ? 12 : 32
+    let p_length=period=="m" ?  12 : period=="w" ? 7 : 32
     let projected=Array.from({ length: p_length }, () => [])
     let projected_budget=Array.from({ length: p_length }, () => [])
     let done=Array.from({ length: p_length }, () => [])
@@ -1211,40 +1211,63 @@ function get_stat_data(filterOptions,period){
        let year=new Date(_today()).getFullYear()
        let first_month=new Date(t.buyday).getMonth()
        let first_year=new Date(t.buyday).getFullYear()
-
-       if((first_year==year && i >= first_month && new Date(_today()) <= end)){
-           amortizations[i].push({...t,amount,end})
+       let selected_year=filterOptions.filter(i=>i.field=="_year")
+       
+       if(selected_year?.length){
+        selected_year=selected_year[0].groups[0].selected_ids[0]
        }
+       
+
+       if((first_year==year && i >= first_month && new Date(_today()) <= end) || (first_year!=selected_year && new Date(_today()) <= end)){
+           amortizations[i].push({...t,amount,end})
+          
+       }
+
+       //console.log({selected_year})
         
     }
 
 })
 
+let week_end=new Date(startAndEndDateOfTheWeek().endDate.toISOString().split('T')[0])
+let week_start=new Date(startAndEndDateOfTheWeek().startDate.toISOString().split('T')[0])
+
+
+  function canIncludeItem(year,weekDay){
+
+
+    return year>=_year && ((period!="w") || (weekDay >= week_start.getDay() && weekDay <= week_end.getDay()))
+
+  }
+
   _bills_to_pay.forEach(t=>{
       let month=new Date(t.payday).getMonth()
       let year=new Date(t.createdAt).getFullYear()
       let day=new Date(t.payday).getDate()
-      if(year>=_year) projected[period=="m" ? month : day].push({...t,_type:'out',amount:-(t.amount),month,year,day})
-      if(year>=_year) projected_out[period=="m" ? month : day].push({...t,_type:'out',amount:-(t.amount),month,year,day})
+      let weekDay=new Date(t.payday).getDay()
+      if(canIncludeItem(year,weekDay)) projected[period=="m" ? month : period=="w" ? weekDay : day].push({...t,_type:'out',amount:-(t.amount),month,year,day})
+      if(canIncludeItem(year,weekDay)) projected_out[period=="m" ? month : period=="w" ? weekDay : day].push({...t,_type:'out',amount:-(t.amount),month,year,day})
   })
 
   _bills_to_receive.forEach(t=>{
       let month=new Date(t.payday).getMonth()
       let year=new Date(t.createdAt).getFullYear()
       let day=new Date(t.payday).getDate()
-      if(year>=_year) projected[period=="m" ? month : day].push({...t,_type:'in',month,year,day})
-      if(year>=_year) projected_in[period=="m" ? month : day].push({...t,_type:'in',month,year,day})
+      let weekDay=new Date(t.payday).getDay()
+      if(canIncludeItem(year,weekDay)) projected[period=="m" ? month : period=="w" ? weekDay : day].push({...t,_type:'in',month,year,day})
+      if(canIncludeItem(year,weekDay)) projected_in[period=="m" ? month : period=="w" ? weekDay : day].push({...t,_type:'in',month,year,day})
   })
 
   _transations.forEach(t=>{
       let month=new Date(t.createdAt).getMonth()
       let year=new Date(t.createdAt).getFullYear()
       let day=new Date(t.createdAt).getDate()
-      if(year>=_year) done[period=="m" ? month : day].push({...t,amount:t.type=="out" ? -(t.amount) : t.amount,month,year,day})
+      let weekDay=new Date(t.createdAt).getDay()
+      if(year>=_year) done[period=="m" ? month : period=="w" ? weekDay : day].push({...t,amount:t.type=="out" ? -(t.amount) : t.amount,month,year,day})
       if(t.type=='in'){
-        if(year>=_year)  done_in[period=="m" ? month : day].push({...t,amount:t.type=="out" ? -(t.amount) : t.amount,month,year,day})
+        if(canIncludeItem(year,weekDay))  done_in[period=="m" ? month : period=="w" ? weekDay : day].push({...t,amount:t.type=="out" ? -(t.amount) : t.amount,month,year,day})
       }else{
-        if(year>=_year) done_out[period=="m" ? month : day].push({...t,amount:t.type=="out" ? -(t.amount) : t.amount,month,year,day})
+        if(canIncludeItem(year,weekDay))   done_out[period=="m" ? month : period=="w" ? weekDay : day].push({...t,amount:t.type=="out" ? -(t.amount) : t.amount,month,year,day})
       }
   })
 
@@ -1275,7 +1298,6 @@ let _done=[]
          isAccountsFilterOn=filterOptions.filter(i=>i.field=="_account_categories")[0].groups[0].selected_ids.length
          accounts_in_filters=filterOptions.filter(i=>i.field=="_account_categories")[0].groups[0].selected_ids
          account_origin_in_filters=_account_categories.filter(i=>accounts_in_filters.includes(i.id)).map(i=>i.account_origin)
-
       }
      
   }
@@ -1293,8 +1315,8 @@ let _done=[]
           let row={projected:0,done:0}
           _projected[id]=projected
           _done[id]=done
-          row['projected']=_projected[id][_i].filter(i=>i.account_origin==c.account_origin).map(item => parseFloat(item.amount)).reduce((acc, curr) =>  acc + curr, 0)
-          row['done']=_done[id][_i].filter(i=>i.account_origin==c.account_origin).map(item => parseFloat(item.amount)).reduce((acc, curr) =>  acc + curr, 0)
+          row['projected']=_projected[id][_i].filter(i=>i.account_origin==c.account_origin &&  i.account_id==c.id).map(item => parseFloat(item.amount)).reduce((acc, curr) =>  acc + curr, 0)
+          row['done']=_done[id][_i].filter(i=>i.account_origin==c.account_origin && i.transation_account.id==c.id).map(item => parseFloat(item.amount)).reduce((acc, curr) =>  acc + curr, 0)
 
           row['percentage']=!row['done'] && !row['projected']  ? 0 : !row['done'] && row['projected'] ? 0 : row['done'] && !row['projected'] ? 100 : !row['projected'] ? 100 : (parseFloat(row['done']) / parseInt(row['projected'])) * 100
           return row
@@ -1307,11 +1329,14 @@ let transations_types={inflows:[],outflows:[]}
 
 _categories.filter(i=>account_origin_in_filters.includes(i.field) || !isAccountsFilterOn).forEach((c,index)=>{
       let from=c.type == "in" ? 'inflows' :'outflows'
+     
      transations_types[from][index]={...c,name:c.dre_name ? c.dre_name : c.name,color:'#16a34a',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
         let id=uuidv4()
         let row={projected:0,done:0}
         _projected[id]=projected
         _done[id]=done
+
+       
         row['projected']=_projected[id][_i].filter(i=>i._type==c.type && i.account_origin==c.field).map(item => parseFloat(item.amount)).reduce((acc, curr) =>  acc + curr, 0)
         row['done']=_done[id][_i].filter(i=>i.type==c.type && i.account_origin==c.field).map(item => parseFloat(item.amount)).reduce((acc, curr) =>  acc + curr, 0)
         row['percentage']=!row['done'] && !row['projected'] ? 0 : !row['done'] && row['projected'] ? 0 : row['done'] && !row['projected'] ? 100 : (parseFloat(row['done']) / parseInt(row['projected'])) * 100
@@ -1321,6 +1346,8 @@ _categories.filter(i=>account_origin_in_filters.includes(i.field) || !isAccounts
       if(category_types_ob[c.field].length) transations_types[from][index].sub=category_types_ob[c.field]
       
 })
+
+console.log({transations_types})
 
 let transations_types_budget={inflows:[],outflows:[]}
 
@@ -1425,6 +1452,27 @@ function convert_stat_data_to_daily(data,filterOptions){
 
 
 
+function convert_stat_data_to_weekly(data){
+
+    if(!data.filter(i=>i.field=='inflow')[0]){
+      alert('Ainda em desevolvimento')   
+    }
+
+    let d=[]
+    let inflow=data.filter(i=>i.field=='inflow')[0].items
+    let outflow=data.filter(i=>i.field=='outflow')[0].items
+    let balance=data.filter(i=>i.field=='balance')[0].items
+    Array.from({ length: 7 }, (_,i) => i+1).forEach((i,_i)=>{
+      d[_i]={
+        day:_i + 1,
+        items:[inflow[_i],outflow[_i],
+        balance[_i]]
+      }
+    })
+
+}
+
+
 
 
   function _get_cash_managment_stats(filterOptions,period){
@@ -1442,18 +1490,20 @@ function convert_stat_data_to_daily(data,filterOptions){
         t('common.months.october'),
         t('common.months.november'),
         t('common.months.december')
+      ] : period=="w" ? [
+        t('common.weeks.sunday'),t('common.weeks.monday'),t('common.weeks.tuesday'),t('common.weeks.wednesday'),t('common.weeks.thursday'),t('common.weeks.friday'),t('common.weeks.saturday')
       ] : Array.from({ length: 31 }, (_,i) => i+1)
     
       let {done,projected,transations_types} = get_stat_data(filterOptions,period)
 
-      let p_length=period=="m" ? 12 : 31
+      let p_length=period=="m" ? 12 : period=="w" ? 7 :  31
      
    
       let _projected=[]
       let _done=[]
 
    
-     let data=[
+      let data=[
         {name:t('common.total-balance'),field:'balance',color:'rgba(0,0,0,0.64)',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
           let id=['balance']
           let row={projected:0,done:0}
@@ -1466,7 +1516,6 @@ function convert_stat_data_to_daily(data,filterOptions){
         })},
 
 
-       
 
         {name:t('common.total-of-receivings'),field:'inflow',color:'#16a34a',items:Array.from({ length: p_length }, () => []).map((_,_i)=>{
           let id=['inflow']
@@ -1571,6 +1620,9 @@ function convert_stat_data_to_daily(data,filterOptions){
     
     if(period=='d'){
         data=convert_stat_data_to_daily(data,filterOptions)
+    }
+    if(period=='w'){
+        data=convert_stat_data_to_weekly(data,filterOptions)
     }
     return {data,datasets,labels}    
 }
@@ -1852,8 +1904,10 @@ function _get_dre_stats(filterOptions,period){
   if(!_projected[id]) _projected[id]=Array.from({ length: p_length }, () => 1)
   if(!_done[id]) _done[id]=Array.from({ length: p_length }, () => 1)
 
-  _projected[id][_i]=_projected['EBITDA'][_i]  - (- _projected['amortizations'][_i]) 
-  _done[id][_i]=_done['EBITDA'][_i] - (- _done['amortizations'][_i]) 
+  _projected[id][_i]=_projected['EBITDA'][_i] - ( _projected['amortizations'][_i]) 
+  _done[id][_i]=_done['EBITDA'][_i] - ( _done['amortizations'][_i]) 
+
+  console.log({a:_done['EBITDA'][_i],b:_done['amortizations'][_i]})
 
   row['projected']=_projected[id][_i]
   row['done']=_done[id][_i]
@@ -2262,7 +2316,8 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
             let categories=JSON.parse(JSON.stringify(_categories))
             categories.push({name:t('common.others'),field:'others',color:'gray',total:0})
 
-     
+            let _month=new Date().getMonth()
+            let _day=new Date().getDate()
 
             _transations.forEach(t=>{
               let month=new Date(t.createdAt).getMonth()
@@ -2271,7 +2326,7 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
              
               let ref=t.account_origin
               if(!datasets[ref]) {
-               datasets[ref]=Array.from({ length: (period=="m" ? 12 : 31) }, () => 0)
+                  datasets[ref]=Array.from({ length: (period=="m" ? 12 : 31) }, () => 0)
               }
             
               let amount=parseFloat((t.type=='out' ? t.amount : (t.amount)))
@@ -2296,11 +2351,101 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
                 let t=i.data.reduce((acc, curr) => acc + curr, 0)
                 return {field:i.field,total:t,percentage:(t/total * 100).toFixed(1)}
               })  
+              
+            return {barChart:{datasets:[
+              {
+                data:_datasets.map(i=>i.data[period=="m" ? _month : _day]),
+                label:t('common.transactions'),
+                type:'bar',
+                backgroundColor:'rgb(251 146 60)',yAxisID: 'y'
 
-            return {cats_total,bar:{labels,datasets:_datasets},doughnut:{labels:categories.map(i=>`${i.name}`),datasets:categories.map(i=>i.total),backgroundColor:categories.map(i=>i.color),borderColor:categories.map(()=>'#ddd')}}
+              }
+            ],labels:_datasets.map(i=>i.label)},cats_total,bar:{labels,datasets:_datasets},doughnut:{labels:categories.map(i=>`${i.name}`),datasets:categories.map(i=>i.total),backgroundColor:categories.map(i=>i.color),borderColor:categories.map(()=>'#ddd')}}
            
        }
 
+
+
+
+
+
+       
+       if(name=="cat_performace"){
+         
+        let datasets={}
+        let total=0
+     
+        let categories=JSON.parse(JSON.stringify(_categories))
+        categories.push({name:t('common.others'),field:'others',color:'gray',total:0})
+        categories.push({name:t('common.direct-costs'),field:'others',color:'gray',total:0,type:'out'})
+
+        _transations.forEach(t=>{
+          let month=new Date(t.createdAt).getMonth()
+          let day=new Date(t.createdAt).getDate()
+
+         
+          let ref=t.account_origin
+          if(!datasets[ref]) {
+              datasets[ref]=Array.from({ length: (period=="m" ? 12 : 31) }, () => 0)
+          }
+        
+          let amount=parseFloat((t.type=='out' ? t.amount : (t.amount)))
+          if(t.account_origin){
+             datasets[ref][period=="m" ? month : day]+=amount
+          }
+          total+=amount
+         })
+
+         let _datasets=[]
+
+         Object.keys(datasets).forEach((d,_i)=>{
+            let cat=categories.filter(i=>i.field==d)[0]
+            let _t=datasets[d].map(item => parseFloat(item)).reduce((acc, curr) => acc + curr, 0)
+            categories[categories.findIndex(i=>i.field==d)].total=_t
+            _datasets.push({data:datasets[d],label:cat.name,type:'bar',backgroundColor:cat.color,yAxisID: 'y',field:cat.field,_type:cat.type}) 
+        })
+
+         categories=categories.filter(i=>i.total || i.field=='others')
+
+          let cats_total=_datasets.map(i=>{
+            let t=i.data.reduce((acc, curr) => acc + curr, 0)
+            return {field:i.field,total:t,percentage:(t/total * 100).toFixed(1)}
+          }) 
+       
+
+          
+        return {
+
+          barChart:{
+            datasets:[
+              {
+                data:_datasets.map(i=>i.data).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0),
+                label:t('common.transactions'),
+                type:'bar',
+                backgroundColor:'rgb(251 146 60)',yAxisID: 'y'
+
+              }
+            ],labels:_datasets.map(i=>i.label)
+         },
+         barChart_out:{
+          
+          datasets:[
+            {
+              data:_datasets.filter(i=>i._type=="out").map(i=>i.data.map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0)),
+              label:'',
+              type:'bar',
+              backgroundColor:'rgb(251 146 60)',yAxisID: 'y'
+
+            }
+          ],labels:_datasets.filter(i=>i._type=="out").map(i=>i.label)
+        }
+        ,cats_total,bar:{labels,datasets:_datasets},
+
+        doughnut_in:{labels:categories.filter(i=>i.type=="in").map(i=>`${i.name}`),datasets:categories.filter(i=>i.type=="in").map(i=>i.total),backgroundColor:categories.filter(i=>i.type=="in").map(i=>i.color),borderColor:categories.filter(i=>i.type=="in").map(()=>'#ddd')},
+
+        doughnut:{labels:categories.map(i=>`${i.name}`),datasets:categories.map(i=>i.total),backgroundColor:categories.map(i=>i.color),borderColor:categories.map(()=>'#ddd')}}
+       
+   }
 
 
      
@@ -2308,31 +2453,29 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
 
        if(name=="accounts_balance"){
 
-              
-
              let accounts=_payment_methods.map(i=>({...i,total:0}))
-
-             
 
              accounts.forEach((a,_i)=>{
                         let initial_amount=a.has_initial_amount ? parseFloat(a.initial_amount) : 0
+                        console.log({initial_amount,a:a.name})
                         let _in=_transations.filter(f=>f.type == "in").map(f=>f.payments.filter(j=>j.account_id==a.id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0)
                         let _out=_transations.filter(f=>f.type == "out").map(f=>f.payments.filter(j=>j.account_id==a.id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0)
                         let _available=initial_amount + _in - _out
                         accounts[_i]={...accounts[_i],total:_available}
              })
 
+            // (${_cn(i.total)})
 
-            
-             return {labels:accounts.map(i=>`${i.name} (${_cn(i.total)})`),datasets:[{
+             return {labels:accounts.map(i=>`${i.name}`),datasets:[{
                 data:accounts.map(i=>i.total),
-                label:'Saldo',
+                label:t('common.balance'),
                 type:'bar',
                 backgroundColor:'rgb(59 130 246)',yAxisID: 'y'
              }]}
 
 
        }
+
 
 
       if(name=="accounts_cat_balance"){
@@ -2349,20 +2492,26 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
            
             accounts=accounts.filter(i=>i.total || i.id == "others-out" || i.id=="others-in")
 
-
            return {
-            in:{labels:accounts.filter(i=>i.type=="in").map(i=>`${i.name} (${_cn(i.total)})`),datasets:accounts.filter(i=>i.type=="in").map(i=>i.total),backgroundColor:accounts.filter(i=>i.type=="in").map(i=>i.color)},
-            out:{labels:accounts.filter(i=>i.type=="out").map(i=>`${i.name} (${_cn(i.total)})`),datasets:accounts.filter(i=>i.type=="out").map(i=>i.total),backgroundColor:accounts.filter(i=>i.type=="out").map(i=>i.color)}
+            in:{labels:accounts.filter(i=>i.type=="in").map(i=>`${i.name}`),datasets:[{
+
+              data:accounts.filter(i=>i.type=="in").map(i=>i.total),
+              label:t('common.inflows'),
+              type:'bar',
+              backgroundColor:'rgb(34 197 94)',yAxisID: 'y'
+
+            }],backgroundColor:accounts.filter(i=>i.type=="in").map(i=>i.color)},
+            out:{labels:accounts.filter(i=>i.type=="out").map(i=>`${i.name}`),datasets:[
+              {
+                data:accounts.filter(i=>i.type=="out").map(i=>i.total),
+                label:t('common.outflows'),
+                type:'bar',
+                backgroundColor:'rgb(220 38 38)',yAxisID: 'y'
+              }
+            ],backgroundColor:accounts.filter(i=>i.type=="out").map(i=>i.color)}
           }
         }
           
-
-
-
-
-       
-
-
 
 
        if(name=="this_week_transations"){
@@ -2370,6 +2519,8 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
             let inflows_datasets=Array.from({ length: 7 }, () => 0)
             let outflows_datasets=Array.from({ length: 7 }, () => 0)
             let compare_datasets=Array.from({ length: 7 }, () => 0)
+
+            let initial_amount=_payment_methods.map(a=>a.has_initial_amount ? parseFloat(a.initial_amount) : 0).map(item => item).reduce((acc, curr) => acc + curr, 0)
 
             const transactionsThisWeek = _transations.filter(t => {
               let transactionDate=new Date(t.createdAt.split('T')[0])
@@ -2386,19 +2537,24 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
             transactionsThisWeek.forEach(t=>{
               let day=new Date(t.createdAt) 
               day=day.getDay()
-              if(t.type=="in") inflows_datasets[day]=t.amount
-              if(t.type=="out") outflows_datasets[day]=t.amount
+              if(t.type=="in") inflows_datasets[day]+=t.amount
+              if(t.type=="out") outflows_datasets[day]+=t.amount
               compare_datasets[day]=t.type=="in" ? t.amount : -(t.amount)
            })
 
 
+          
+        
            let inflows=transactionsThisWeek.filter(i=>i.type=="in").map(item => parseFloat(item.amount)).reduce((acc, curr) => acc + curr, 0)
            let outflows=transactionsThisWeek.filter(i=>i.type=="out").map(item => parseFloat(item.amount)).reduce((acc, curr) => acc + curr, 0)
-
-           return {inflows,outflows,balance:inflows - outflows,compare_datasets,inflows_datasets,outflows_datasets,inflows_total,outflows_total}
-
-         
-       }
+           let doughnut={
+                datasets:[inflows,outflows,initial_amount],
+                backgroundColor:['rgb(34 197 94)','rgb(220 38 38)','rgb(251 146 60)'],
+                labels:[t('common.inflows'),t('common.outflows'),t('common.initial-value')]
+           }
+           return {initial_amount,doughnut,inflows,outflows,balance:inflows - outflows,compare_datasets,inflows_datasets,outflows_datasets,inflows_total,outflows_total}
+      
+        }
 
         }catch(e){
           if(window.electron){
@@ -2413,7 +2569,7 @@ function _print_exportExcel(data,type,currentMenu,period,project_only,month,titl
 
   function _cn(number){
 
-   return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(typeof "string" ? parseFloat(number) : number)
+   return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(typeof "string" ? parseFloat(number) : number).replaceAll('.',' ')
      
   }
 
@@ -2756,6 +2912,7 @@ if(filterOptions){
    search:false,
    not_bill_accounts:false,
    menu_companies:false,
+   balance_details:false
  }
 
   const [_openPopUps, _setOpenPopUps] = useState(initial_popups);

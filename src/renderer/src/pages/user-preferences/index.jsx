@@ -25,14 +25,14 @@ import FilterOptions from './components/options-filters';
 import MainUploader from '../setup/compnents/upload-company-logo';
 import bcrypt from 'bcryptjs';
 import InsertKeyOrPay from '../../components/Dialogs/insertKeyOrPay';
-import { useSearchParams } from 'react-router-dom';
-
+import ConfirmPlanChange from '../../components/Dialogs/deleteItem'
+import Filter from '../../components/Filters/basic';
 
 function App() {
  const { t } = useTranslation();
  const [page,setPage]=React.useState('profile')
  const [editMode,setEditMode]=React.useState(false)
- const {user,db,startover,checkingPlanUpdate, setCheckingPlanUpdate} = useAuth()
+ const {user,db,startover, setLoaderUpdate,licenseInfo} = useAuth()
  const [showAccounts,setAccounts]=useState(false)
  const [showPassword, setShowPassword] = React.useState(false);
  const [loading, setLoading] = React.useState(false);
@@ -48,6 +48,46 @@ function App() {
  const [resetPassword,setResetPassword]=useState('')
  const [planDetails,setPlanDetails]=useState({})
  const [selectupgradeProcress,setSelectupgradeProcress]=useState(false)
+ const [showConfirmPlanChange, setShowConfirmPlanChange] = useState(false)
+ const [nextPaidPlan,setNextPaidPlan]=useState(null)
+ const [currentPlan,setCurrentPlan]=useState(null)
+
+
+ const [filterOptions,setFilterOPtions]=useState([
+
+  {
+    field:'_plan',
+    name:t('common.plan'),
+    not_fetchable:true,
+    igual:true,
+    search:'',
+    groups:[
+      {field:'_plan',name:t('common.plan'),items:[{name:t('common.basic'),id:'basic'},{name:t('common.advanced'),id:'advanced'}],selected_ids:[]}
+    ]
+  },
+  {
+    field:'_period',
+    name:t('common.period'),
+    not_fetchable:true,
+    igual:true,
+    search:'',
+    groups:[
+      {field:'_period',name:t('common.period'),items:[{name:t('common.monthly'),id:'monthly'},{name:t('common.anual'),id:'anual'}],selected_ids:[]}
+    ]
+  },
+  {
+    field:'_action',
+    name:t('common.action'),
+    not_fetchable:true,
+    igual:true,
+    search:'',
+    groups:[
+      {field:'_action',name:t('common.action'),items:[{name:t('common.renovation'),id:'renew'},{name:t('common._change'),id:'change'}],selected_ids:[]}
+    ]
+  },
+
+])
+
 
  let required_data=['settings','account_categories']
 
@@ -85,9 +125,19 @@ function App() {
     setUserForm(u)
     setUpload({...upload,file:user.logo ? user.logo : {}})
     setPlanDetails(user.companies_details.filter(i=>i.id==user.selected_company)[0])
+
 },[user])
 
 
+useEffect(()=>{
+
+    if(!planDetails?.planHistory){
+      return
+    }    
+    let _currentPlan=planDetails.planHistory.filter(i=>new Date(i.end).getFullYear()==new Date().getFullYear() && new Date(i.end).getTime() >= new Date().getTime()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    console.log(_currentPlan[0])
+
+},[planDetails])
 
  useEffect(()=>{
  if(!(required_data.some(i=>!_loaded.includes(i)))){
@@ -132,7 +182,7 @@ function App() {
 
 
 
-async function _selectupgradeProcress(id){
+async function _selectupgradeProcress(id,renew,changingPlan){
   setShowDownloadProcess({
     ...planDetails,
     to_name:user.name,name:user.name,
@@ -140,7 +190,9 @@ async function _selectupgradeProcress(id){
     to_contact:user.contacts[0],contact:user.contacts[0],
     to_company_name:planDetails.name,company_name:planDetails.name,
     admin_id:user.id,
-    id
+    id,
+    changingPlan:changingPlan ? true : false,
+    renew
   })
 
   setSelectupgradeProcress(false)
@@ -236,7 +288,7 @@ async function SubmitUserForm(){
       return
     }
 
-    
+
     startover()
   }
      
@@ -247,20 +299,38 @@ async function SubmitUserForm(){
   }
 
 
-  function upgradeOrDownGradePlan(action){
-    _selectupgradeProcress(2)
+  function upgradeOrDownGradePlan(){
+    let _nextPaid=planDetails.planHistory.filter(i=>new Date(i.startDate) > new Date())[0]
+    if(_nextPaid){
+        setShowConfirmPlanChange(true)
+        setNextPaidPlan(_nextPaid)
+    }else{
+        _selectupgradeProcress(2,null,'changingPlan')
+    }
   }
 
 
   function updatePlan(r){
-    setCheckingPlanUpdate(true)
+    setLoaderUpdate(true)
     applyLicenseUpdate({company:r.updated_plan})
+  }
+
+  function ConfirmPlanChange_f(res){
+     if(res){
+      setShowConfirmPlanChange(false)
+      _selectupgradeProcress(2,null,'changingPlan')
+     }else{
+       setShowConfirmPlanChange(false)
+     }
   }
 
 
   async function applyLicenseUpdate(r){
 
-    let companies_details=user.companies_details.map(i=>({
+
+    setLoaderUpdate('updating')
+
+    updateUser({...user,companies_details:user.companies_details.map(i=>({
       ...i,
       planHistory:r.company.planHistory,
       period:r.company.period,
@@ -269,16 +339,65 @@ async function SubmitUserForm(){
       license:r.company.license,
       planEnd:r.company.planEnd
       
-   }))
+      }))})
+
+   
+  }
+  function handleErrors(e){
+
+    if(e.response){
+        if(e.response.status==404){
+            toast.error(t('common.user-not-found'))
+        }
+        if(e.response.status==500){
+            toast.error(t('common.unexpected-error'))
+        }
+    }else if(e.code=='ERR_NETWORK'){
+      toast.error(t('common.check-network'))
+    }else{
+      toast.error(t('common.unexpected-error'))
+    }
+
+  }
+
+
+  async function verifyPlanUpdate(){
+      setLoaderUpdate(true)
+      try{
+
+        let r=await data.makeRequest({method:'post',url:`api/check-license-update`,data:{
+          user_id:user.id,
+          company:planDetails
+        }, error: ``},2);
+
+        if(r.status==1){
+            setLoaderUpdate(false)
+            toast.error(t('common.no-updated-license'))
+            return
+        }
+
+        
+          toast.success(t('common.license-updated'))
+          setLoaderUpdate('updating')
+
+         applyLicenseUpdate(r)
+       
+      }catch(e){
+           setLoaderUpdate(false)
+           handleErrors(e)
+      }   
+  }
+
+
+
+  async function updateUser(user){
 
     let user_db=new PouchDB('user-'+user.id)
     user_db.createIndex({index: { fields: ['id'] }})
     let _user=await user_db.find({selector: { id:user.id }})
     _user=_user.docs[0]
-    _user.companies_details=companies_details
+    _user.companies_details=user.companies_details
     await user_db.put(_user)
-    toast.success(t('common.license-updated'))
-    setCheckingPlanUpdate('updating')
     setTimeout(()=>{
         if(window.electron){
           window.electron.ipcRenderer.send('relaunch')
@@ -291,51 +410,65 @@ async function SubmitUserForm(){
   }
 
 
-  async function verifyPlanUpdate(){
-      setCheckingPlanUpdate(true)
+  async function cancelOrActivateSubscription(){
 
-      try{
+      if(!planDetails.cancelAt){
+        setLoaderUpdate('cancelling-subs')
+      }else{
+        setLoaderUpdate(true)
+      }
 
-        let r=await data.makeRequest({method:'post',url:`api/check-license-update`,data:{
-          user_id:user.id,
-          company:planDetails
-        }, error: ``},2);
+    try{
 
-        if(r.status==1){
-            setCheckingPlanUpdate(false)
-            toast.error(t('common.no-updated-license'))
-            return
-        }
-
-        applyLicenseUpdate(r)
-       
-      }catch(e){
-
-           setCheckingPlanUpdate(false)
-
-          if(e.response){
-              if(e.response.status==404){
-                  toast.error(t('common.user-not-found'))
-              }
-              if(e.response.status==500){
-                  toast.error(t('common.unexpected-error'))
-              }
-          }else if(e.code=='ERR_NETWORK'){
-            toast.error(t('common.check-network'))
-          }else{
-            toast.error(t('common.unexpected-error'))
-          }
-      }   
-  }
+      let r=await data.makeRequest({method:'post',url:`api/${planDetails.cancelAt?'activate':'cancel'}-subscription`,data:{
+        user_id:user.id,
+        company:planDetails
+      }, error: ``},2);
 
 
 
- 
+      if(planDetails.cancelAt) {
+        setLoaderUpdate('updating')
+      }
+      
+
+      updateUser({...user,companies_details:user.companies_details.map(i=>({
+        ...i,
+        cancelAt:r.cancelAt
+      }))})
+
+     
+    }catch(e){
+         setLoaderUpdate(null)
+         handleErrors(e)
+    }   
+}
+
+
+const [filters,setFilters]=useState({plan:[],period:[],action:[]})
+
+useEffect(()=>(
+
+  setFilters({
+      plan:filterOptions.filter(i=>i.groups.filter(f=>f.field=="_plan")[0])?.[0]?.groups?.[0]?.selected_ids,
+      period:filterOptions.filter(i=>i.groups.filter(f=>f.field=="_period")[0])?.[0]?.groups?.[0]?.selected_ids,
+      action:filterOptions.filter(i=>i.groups.filter(f=>f.field=="_action")[0])?.[0]?.groups?.[0]?.selected_ids
+  })
+
+),[filterOptions])
+
+
   return (
 
     <>
            
-
+           <ConfirmPlanChange show={showConfirmPlanChange} messageContent={(
+                <div>
+                    <p className="mb-2">{t(`messages.confirm-registration-plan-change`,{plan:t('common.'+nextPaidPlan?.plan)})} {nextPaidPlan?.startDate?.split('T')?.[0]}</p>
+                    
+                    <span>{t('common.sure-to-continue')}</span>
+                </div>
+           )} res={ConfirmPlanChange_f}/>
            <InsertKeyOrPay show={selectupgradeProcress} res={_selectupgradeProcress}/>
          
            <UserPreferencesLayout res={updatePlan} setShowDownloadProcess={setShowDownloadProcess} showDownloadProcess={showDownloadProcess}  page={page} setPage={setPage}>
@@ -602,16 +735,11 @@ async function SubmitUserForm(){
                 </div>
        
        
-              <FormLayout.SendButton SubmitForm={SubmitUserForm} loading={loading} valid={valid} id={true}/>
+                   <FormLayout.SendButton SubmitForm={SubmitUserForm} loading={loading} valid={valid} id={true}/>
         
                        
 
                     </div>
-
-
-
-
-
                     
                </div>
                   
@@ -776,23 +904,31 @@ async function SubmitUserForm(){
 
                               </div>}
 
-                              <span className="text-gray-500 flex my-5">{t('common.next-paymant')}: {planDetails.planEnd?.split('T')[0]}</span>
+                              <span className="text-gray-500 flex my-5">{t('common.license-end')}: {planDetails?.planEnd.split('T')[0]}</span>
+                            
                               </div>
 
-                              <div className="flex flex-col gap-y-2">
+                              <div className="flex flex-col gap-y-2 items-end">
 
-                                 {planDetails?.planHistory.filter(i=>new Date(i.date).getMonth()==new Date().getMonth()).length<=2 && <button  className="bg-app_orange-400 ml-4 text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{
+                              
+                               {(!planDetails.cancelAt && (parseInt(licenseInfo?.left_days) <= 5)) && <button  className=" ml-4 text-green-500 px-3 py-2 rounded-[0.3rem] border border-green-500 cursor-pointer hover:opacity-75" onClick={()=>{
+                                  _selectupgradeProcress(2,'renew')
+                                }}>{t('common.renew-plan')}</button>}
+
+
+                                 {(planDetails?.planHistory.filter(i=>new Date(i.date).getMonth()==new Date().getMonth() && i.type=="change").length<=1 && !planDetails.cancelAt) && <button  className="bg-app_orange-400 ml-4 text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{
                                   upgradeOrDownGradePlan()
                                  }}>{t('common.change-plan')}</button>}
 
-                                <button  className="bg-gray-400 ml-4 text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{
-                                  ///upgradeOrDownGradePlan()
-                                  alert('In devepment...')
-                                }}>{t('common.cancel-plan')}</button> 
+                                {(!planDetails.cancelAt) ? <button  className="bg-gray-400 ml-4 text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{
+                                  cancelOrActivateSubscription()
+                                }}>{t('common.cancel-plan')}</button> : <div className="w-[200px] flex flex-col items-end">
+                                     <span className={`text-orange-500`}>{t('messages.the-subscriptions-will-end-at')} {planDetails?.cancelAt?.split('T')?.[0]}. <label onClick={cancelOrActivateSubscription} className="cursor-pointer  underline text-green-600">{t('common.reactivate')}</label></span>
+                                </div>} 
 
-                               <div className="w-[200px]">
+                               {!planDetails.cancelAt && <div className="w-[200px]">
                                   <span className="mb-2 text-[14px] flex text-end mt-4 text-gray-500 flex-col">{t('messages.plan-not-updated-after-purchase')}<label onClick={verifyPlanUpdate} className="underline cursor-pointer text-[15px] flex mt-2  justify-end text-blue-500">{t('common.check-plan-update')}</label></span>
-                               </div>
+                               </div>}
 
                             </div>
                      </div>
@@ -802,10 +938,19 @@ async function SubmitUserForm(){
 
 
                      <div>
+                       
                           <h2 className="text-[24px] font-semibold mb-2">{t('common.billing-history')}</h2>
+
+                          <div className="flex flex-wrap bg-white shadow mb-2 rounded-[0.2rem]">
+               
+                                  {filterOptions.map((i,_i)=>(
+                                          <Filter key={_i} filterOptions={filterOptions} shownFilters={filterOptions}  setFilterOPtions={setFilterOPtions} open={i.open} options={i}/>
+                                  ))}
+                          </div>
+
                           <div>
 
-                            <div class="relative overflow-x-auto">
+                            <div class="relative overflow-x-auto max-h-[300px]">
                                 <table class="w-full text-sm text-left rtl:text-right text-gray-500">
                                     <thead class="text-xs text-gray-900 uppercase">
                                         <tr>
@@ -816,15 +961,21 @@ async function SubmitUserForm(){
                                                 {t('common.date')}
                                             </th>
                                             <th scope="col" class="px-6 py-3">
+                                                {t('common.start')}
+                                            </th>
+                                            <th scope="col" class="px-6 py-3">
                                                 {t('common.end')}
                                             </th>
                                             <th scope="col" class="px-6 py-3">
                                                 {t('common.period')}
                                             </th>
+                                            <th scope="col" class="px-6 py-3">
+                                               
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {planDetails?.planHistory?.map((i,_i)=>(
+                                        {planDetails?.planHistory?.filter(i=>(filters.plan.includes(i.plan) || !filters.plan.length) && (filters.action.includes(i.type) || !filters.action.length) && (filters.period.includes(i.period) || !filters.period.length))?.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())?.map((i,_i)=>(
                                             <tr class="">
                                             <th scope="row" class="py-4 font-medium text-gray-900 whitespace-nowrap">
                                                {i.plan == "basic" ? t('common.basic') : t('common.advanced')}
@@ -833,10 +984,16 @@ async function SubmitUserForm(){
                                               {i.date.split('T')[0]} {i.date.split('T')[1].slice(0,5)}
                                             </td>
                                             <td class="px-6 py-4">
-                                              {i.end.split('T')[0]} {i.date.split('T')[1].slice(0,5)}
+                                              {i.startDate.split('T')[0]} {i.startDate.split('T')[1].slice(0,5)}
+                                            </td>
+                                            <td class="px-6 py-4">
+                                              {i.end.split('T')[0]} {i.end.split('T')[1].slice(0,5)}
                                             </td>
                                             <td class="px-6 py-4">
                                                 {t(`common.${i.period}`)}
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                {i.type!="new" && <span className={`p-1 rounded-[0.3rem]  ${i.type=="change" ? 'bg-app_orange-100':'bg-green-200'}`}>{i.type=="renew" ?  t('common.renovation') : t('common._change')}</span>}
                                             </td>
                                            </tr>
                                         ))}

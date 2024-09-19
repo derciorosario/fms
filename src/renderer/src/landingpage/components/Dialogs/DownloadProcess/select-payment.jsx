@@ -12,12 +12,14 @@ function SelectPaymentMethod({activePage,setActvePage,planInfo,updatePlanRes,set
   const [message,setMessage] =  useState('')
   const [plans,setPlans]=useState([])
   const [selectedPlanItem,setSelectedPlanItem] = useState('')
+  const [proofSent,setProofSent]=useState(false)
 
+  
 
   useEffect(()=>{
       if(planInfo?.id){
-        let next_plan=planInfo.renew ? planInfo?.plan :  (planInfo?.plan=="basic" ? "advanced":"basic")
-        data.setForm({...data.form,...planInfo,plan:next_plan})
+        let next_plan=planInfo?.renew ? planInfo?.plan :  (planInfo?.plan=="basic" ? "advanced":"basic")
+        data.setForm({...data.form,...planInfo,plan:next_plan,changingPlan:planInfo?.changingPlan})
         setSelectedPlanItem((next_plan)+`${(planInfo?.showAnualPlans || data.form.showAnualPlans) ? '_':''}`)
       }else{
         setSelectedPlanItem((data.form.plan)+`${(data.form.showAnualPlans) ? '_':''}`)
@@ -29,16 +31,16 @@ function SelectPaymentMethod({activePage,setActvePage,planInfo,updatePlanRes,set
 
       setPlans([
         {
-            n:'basic',name:`${t('common.basic')} (${t('common.monthly')})`,hide:Boolean(planInfo?.plan=='basic' && !planInfo.renew),
+            n:'basic',name:`${t('common.basic')} (${t('common.monthly')})`,hide:Boolean(planInfo?.plan=='basic' && !planInfo?.renew),
          },
          {
-            n:'advanced',name:`${t('common.advanced')} (${t('common.monthly')})`,hide:Boolean(planInfo?.plan=='advanced' && !planInfo.renew)
+            n:'advanced',name:`${t('common.advanced')} (${t('common.monthly')})`,hide:Boolean(planInfo?.plan=='advanced' && !planInfo?.renew)
          },
          {
-            n:'basic_',name:`${t('common.basic')} (${t('common.per-year')})`,hide:Boolean(planInfo?.plan=='basic' && !planInfo.renew),
+            n:'basic_',name:`${t('common.basic')} (${t('common.per-year')})`,hide:Boolean(planInfo?.plan=='basic' && !planInfo?.renew),
          },
          {
-            n:'advanced_',name:`${t('common.advanced')} (${t('common.per-year')})`,hide:Boolean(planInfo?.plan=='advanced' && !planInfo.renew)
+            n:'advanced_',name:`${t('common.advanced')} (${t('common.per-year')})`,hide:Boolean(planInfo?.plan=='advanced' && !planInfo?.renew)
          }
       ])
 
@@ -54,23 +56,30 @@ function SelectPaymentMethod({activePage,setActvePage,planInfo,updatePlanRes,set
         </div>}
 
         {data.form.method=="Paypal" && <PayPalButton setShow={setShow} updatePlanRes={updatePlanRes} activePage={activePage} setActvePage={setActvePage}/>}
-        <SendProof updatePlanRes={updatePlanRes} setMessage={setMessage} message={message}/>
+        <SendProof setProofSent={setProofSent} updatePlanRes={updatePlanRes} setMessage={setMessage} message={message}/>
 
-       
-        {!data.form.method && <div className="flex flex-col justify-center items-center">
-            
-         <h2 className="text-center max-w-[300px] text-[23px] font-semibold mb-10">{t('common.select-method')}</h2>
+        {(!data.form.method) && <div className="flex flex-col justify-center items-center"> 
+         <h2 className="text-center max-w-[500px] text-[23px] font-semibold mb-10">{planInfo?.renew ? t('messages.renew-your-package-quickly-and-easily') : planInfo?.id ? t('messages.are-you-looking-to-change-your-plan') : t('common.select-method')}</h2>
          {data.form.email_is_registered && <div id="alert-2" className={`flex items-center w-[500px] max-md:w-full p-4 mb-4 text-orange-400 bg-orange-50 rounded-lg  dark:text-red-400`} role="alert">
         <svg className="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
           <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
         </svg>
         <div className="ms-3 text-sm font-medium">
-           {t('messages.email-in-the-plataform')}
+             {t('messages.email-in-the-plataform')}
         </div>
       </div>}
 
-                <div className="w-[500px] mt-2 max-md:w-full">
-                     <span className="text-[18px] flex mb-4 font-semibold">{t(`common.order-description`)}</span>
+                <div className="w-[580px] mt-2 max-md:w-full">
+                     <div className="w-full flex justify-between mb-2">
+                         <span className="text-[18px] flex mb-4 font-semibold">{t(`common.order-description`)}</span>
+                         <div className={`bg-gray-200 flex rounded-[0.3rem] p-1 px-[0.1rem] items-center cursor-pointer`}>
+                                            <span onClick={()=>data.setForm({...data.form,showAnualPlans:false})} className={`text-[14px]  transition-all ease-in duration-75 ${!data.form.showAnualPlans ? 'bg-[#ff7626] text-white':'text-gray-500'} rounded-[0.3rem] py-2 px-2  flex w-[50%] mx-1`}>{t('common.per-month')}</span>
+                                            <span onClick={()=>data.setForm({...data.form,showAnualPlans:true})} className={`text-[14px] transition-all ease-in duration-75 ${data.form.showAnualPlans ? 'bg-[#ff7626] text-white':'text-gray-500'} rounded-[0.3rem] py-2 px-2  flex w-[50%] mx-1`}>{t('common.per-year')}</span>
+                                            
+                         </div>
+                      </div>
+                     
+
                      <div className="p-6 border border-gray-300 bg-[#F7F7F8] rounded-[0.2rem]">
                         <div className="flex justify-between items-center mb-4">
                              <span className="uppercase text-[16px]">{t('common.plataform')}</span>
@@ -82,16 +91,45 @@ function SelectPaymentMethod({activePage,setActvePage,planInfo,updatePlanRes,set
                         <div className="flex justify-between items-center">
                              <span className="text-[17px] font-semibold">Pro Conta</span>
                              <div>
-                                 {!data.form.showAnualPlans ? <>
-                                    <span className="font-semibold">{data.form.plan=="basic" ? '1.500,00 MZN': '3.000,00 MZN'}</span>
-                                </> : <>
-                                    <span className="font-semibold">{data.form.plan=="basic" ? '16.500,00 MZN': '36.000,00 MZN'}</span>
-                                </>}
+                              
+                                <div className="hidden">
+                                      {!data.form.showAnualPlans ? <>
+                                        
+                                        <span className="font-semibold">{data.form.plan=="basic" ? '1.500,00 MZN': '3.000,00 MZN'}</span>
+                                    </> : <>
+                                        <span className="font-semibold">{data.form.plan=="advanced" ? '16.500,00 MZN': '32.500,00 MZN'}</span>
+                                    </>}
+                                </div>
 
-                                  <select onChange={e=>{
+                                <div className="flex gap-x-8">
+
+                                  <label className={`flex cursor-pointer items-center ${planInfo?.plan=='basic' && !planInfo?.renew || planInfo?.renew && planInfo?.plan!='basic'  ? 'hidden':''}`}>
+
+                                     <input type="radio" onClick={()=>data.setForm({...data.form,plan:'basic'})} checked={data.form.plan=='basic'} name="selected_plan"/>
+                                     <div className="flex flex-col ml-1">
+                                       <span className="font-semibold">{!data.form.showAnualPlans ? '1.500,00 MZN': '16.500,00 MZN'}</span>
+                                       <span>{t('common.basic')}</span>
+                                     </div>  
+
+                                  </label>
+
+
+                                  <label className={`flex cursor-pointer items-center ${planInfo?.plan=='advanced' && !planInfo?.renew || planInfo?.renew && planInfo?.plan!='advanced' ? 'hidden':''}`}>
+
+                                     <input onClick={()=>data.setForm({...data.form,plan:'advanced'})}  checked={data.form.plan=='advanced'} type="radio" name="selected_plan"/>
+                                     <div className="flex flex-col ml-1">
+                                       <span className="font-semibold">{!data.form.showAnualPlans ? '3.500,00 MZN': '32.500,00 MZN'}</span>
+                                       <span>{t('common.advanced')}</span>
+                                     </div>    
+
+                                  </label>
+                                     
+                                </div>
+
+                                  <select  onChange={e=>{
                                       data.setForm({...data.form,plan:e.target.value.replace('_',''),showAnualPlans:e.target.value.includes('_')})
                                       setSelectedPlanItem(e.target.value)
-                                  }} value={selectedPlanItem} className="ml-2 w-[130px]">
+                                  }} value={selectedPlanItem} className="ml-2 w-[130px] hidden">
                                      {plans.map((i,_i)=>(
                                         <option disabled={i.hide} value={i.n}>{i.name}</option>
                                      ))}

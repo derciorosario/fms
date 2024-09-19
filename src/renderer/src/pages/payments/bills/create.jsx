@@ -14,21 +14,20 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
-import { Autocomplete, Button, Checkbox} from '@mui/material';
+import { Autocomplete} from '@mui/material';
 import Switch from '@mui/material/Switch';
 import InstallentsTable from '../../../components/Tables/Installments'
-import PouchDB from 'pouchdb';
 import moment from 'moment';
 import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined';
 import FormLayout from '../../../layout/DefaultFormLayout';
 import ConfirmDialog from '../../../components/Dialogs/confirm';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '../../../contexts/AuthContext';
 import DefaultUpload from '../../../components/Files/default-upload';
 
-       function App() {
+      function App() {
+          
           const {t} = useTranslation()
         
           const navigate = useNavigate()
@@ -37,7 +36,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
           const {user,db,_change_company,reload} = useAuth()
           
           const [initialized,setInitialized]=React.useState()
-          const required_data=['account_categories','bills_to_pay','bills_to_receive']
+          const required_data=['account_categories','bills_to_pay','bills_to_receive','clients','investors','suppliers']
 
           const { id } = useParams()
           let {pathname} = useLocation()
@@ -259,9 +258,6 @@ import DefaultUpload from '../../../components/Files/default-upload';
            }else if(formData.pay_in_installments==false){
               setFormData({...formData,total_installments:''})
            }
-
-
-
            
           },[formData.pay_in_installments])
 
@@ -532,7 +528,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                  <>
                         <div className="flex justify-center items-center">
                             
-                              {id && <span className="mr-3 opacity-80">{t('common.payments')}:</span>}
+                              {id && <span className="mr-3 opacity-80">{type=="pay" ?  t('common.payments') : t('common.receivings')}:</span>}
                             
                            {(formData.paid) ? <>
 
@@ -702,7 +698,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                 onBlur={()=>validate_feild('reference')}
                                 helperText={!formData.reference.id && formData.reference.name ? `(${t('common.add-new_')} ${type=="receive" ? (formData.account_origin=="loans_in" ?  t('common.investor')+" " :  t('common.client'))  : (formData.account_origin == "loans_out" ?  t('common.investor') : t('common.supplier'))} ${t('common.will-be-added')}) `: ''}
                                 sx={{'& .MuiFormHelperText-root': {color: !formData.reference.id && formData.reference.name ? 'green' : 'crimson'}}}
-                                value={formData.reference.name}  label={t('common.beneficie')}
+                                value={formData.reference.name}  label={type=="pay" ? t('common.beneficie') : t('common.debtor')}
                                 
                                 />}
                                 />   
@@ -714,7 +710,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                     <div>
                                             <TextField
                                             id="outlined-textarea"
-                                            label={t('common.amount-to-pay')}
+                                            label={type=="pay" ?  t('common.amount-to-pay') : t('common.amount-to-receive')}
                                             placeholder={t('common.type-the-amount-to-pay')}
                                             multiline
                                             value={formData.amount}
@@ -732,7 +728,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                             <div className="flex items-center justify-center">
                             <div className="w-full">
                             <LocalizationProvider adapterLocale={'en-gb'} dateAdapter={AdapterDayjs} style={{paddingTop:0}} size="small">
-                                <DatePicker value={dayjs(formData.payday).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.payday)) : null}  inputFormat="DD-MM-YYYY" onChange={(e)=>setFormData({...formData,payday:e.$d})} error={true} size="small" label={t('common.due-date')}  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, 
+                                <DatePicker value={dayjs(formData.payday).$d.toString() != "Invalid Date" ? dayjs(new Date(formData.payday)) : null}  inputFormat="DD-MM-YYYY" onChange={(e)=>setFormData({...formData,payday:e.$d})} error={true} size="small" label={type=="pay" ? t('common.due-date') : t('common.receivingday')}  style={{padding:0}}  sx={{width:'100%','& .MuiInputBase-root':{height:40,paddingTop:0}, 
                                     '& .Mui-focused.MuiInputLabel-root': { top:0 },
                                     '& .MuiStack-root': { paddingTop:0},'& .MuiInputLabel-root':{ top:-8}}}
                                     />
@@ -926,7 +922,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
 
 
 
-                     {formData.pay_in_installments && <InstallentsTable disabled={formData.paid ? true : false}  items={formData.installments} formData={formData} setFormData={setFormData} page={'pay'}/> }
+                     {formData.pay_in_installments && <InstallentsTable disabled={formData.paid ? true : false} type={type}  items={formData.installments} formData={formData} setFormData={setFormData} page={'pay'}/> }
 
                      <span className="flex border-b"></span>
 

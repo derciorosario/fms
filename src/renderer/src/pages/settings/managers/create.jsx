@@ -372,18 +372,18 @@ import { t } from 'i18next';
            setValid(v)
           },[formData,chipOptions])
        
-
         
           const handleCopyClick = (text) => {
-            navigator.clipboard.writeText(data.FRONT_URL+'/#/confirm-invite?invite='+(savedInvite ? savedInvite : formData.invite)).then(() => {
-              toast.success(t('messages.text-copied'));
-            }).catch(err => {
-              alert('Failed to copy text: ', err);
-            });
-          }
-          
+
+             navigator.clipboard.writeText(data.FRONT_URL+'/#/confirm-invite?invite='+(savedInvite ? savedInvite : formData.invite)).then(() => {
+                toast.success(t('messages.text-copied'));
+             }).catch(err => {
+                alert('Failed to copy text: ', err);
+             })
+
+         }
         
-        
+
          return (
            <>
                 <div className={`bg-[rgba(0,0,0,0.4)]  ${!showInviteD ? 'translate-y-[10%] opacity-0 pointer-events-none' :'' } transition duration-75 ease-in-out h-[100vh] w-full fixed z-20 flex items-center justify-center`}>

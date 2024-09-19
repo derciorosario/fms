@@ -17,9 +17,6 @@ function VericationDialog({formData,setFormData,setVerified,verified}) {
   const data=useData()
 
 
-
-
-
   async function verify(verification_code){
    
         try{

@@ -41,7 +41,7 @@ function FirstUseLicense({formData,setFormData,errors,setErrors,login,currentPag
                 </span>
 
                 <button onClick={()=>{
-                    window.location.href="/"
+                    window.location.href="/#/dashboard"
                 }} className={`hover:bg-app_orange-300 mt-5 bg-app_orange-400 text-white font-bold py-3 px-8 rounded text-[17px]`}>{t('common.to_start')}</button>
                  
             </div>

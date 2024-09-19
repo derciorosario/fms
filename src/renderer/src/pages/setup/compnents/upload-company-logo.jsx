@@ -18,6 +18,18 @@ function MainUploader({upload,setUpload,CustomUploader,disabled}) {
 
 
 const handleFileChange = async (event) => {
+
+
+  const reader=new FileReader()
+
+  reader.addEventListener('load',()=>{
+     console.log(reader.result)
+  })
+
+  reader.readAsDataURL(event.target.files[0])
+
+
+  return
       let {name,size} = event.target.files[0]
       let orginal_name=name
       let generated_name=new Date().toISOString().split('T')[0] +`-${uuidv4().slice(1,8)}-`+ name
@@ -52,17 +64,7 @@ const handleFileChange = async (event) => {
 
         setUpload(prev=>({...prev,uploading:false,file:{...upload.file,...file,generated_name:res.data}}))
        
-       /* const reader=new FileReader()
-
-        reader.addEventListener('load',()=>{
-             let image_db=new PouchDB('image_saver')
-             image_db.put({
-              _id:uuidv4(),
-              id:uuidv4(),
-              src:reader.result
-             })
-        })
-        reader.readAsDataURL(f)*/
+      
        
         clearFileInputs()
 

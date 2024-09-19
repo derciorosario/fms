@@ -10,7 +10,7 @@ import toast from 'react-hot-toast'
 import PageLoader from '../progress/pageLoader'
 
 function PlanWarnning() {
-  const {licenseInfo,setShowLicensePopUp,user,setCheckingPlanUpdate,checkingPlanUpdate} = useAuth()
+  const {licenseInfo,setShowLicensePopUp,user,setLoaderUpdate,checkingPlanUpdate} = useAuth()
   const [showDownloadProcess,setShowDownloadProcess]=useState(null)
   const [planDetails,setPlanDetails]=useState({})
   const data=useData()
@@ -25,7 +25,7 @@ function PlanWarnning() {
 },[user])
 
  
-async function _selectupgradeProcress(renew){
+async function _selectupgradeProcress(renew,changingPlan){
 
   setShowDownloadProcess({
     ...planDetails,
@@ -35,6 +35,7 @@ async function _selectupgradeProcress(renew){
     to_company_name:planDetails.name,company_name:planDetails.name,
     admin_id:user.id,
     renew,
+    changingPlan:changingPlan ? true : false,
     id:2
   })
 
@@ -42,8 +43,7 @@ async function _selectupgradeProcress(renew){
 
 
 async function verifyPlanUpdate(){
-  setCheckingPlanUpdate(true)
-
+  setLoaderUpdate(true)
   try{
 
     let r=await data.makeRequest({method:'post',url:`api/check-license-update`,data:{
@@ -52,7 +52,7 @@ async function verifyPlanUpdate(){
     }, error: ``},2);
 
     if(r.status==1){
-        setCheckingPlanUpdate(false)
+        setLoaderUpdate(false)
         toast.error(t('common.no-updated-license'))
         return
     }
@@ -78,7 +78,7 @@ async function verifyPlanUpdate(){
 
 
 function updatePlan(r){
-  setCheckingPlanUpdate(true)
+  setLoaderUpdate(true)
   applyLicenseUpdate({company:r.updated_plan})
 }
 
@@ -93,7 +93,7 @@ async function applyLicenseUpdate(r){
     planUpdatedAt:r.company.planUpdatedAt,
     license:r.company.license,
     planEnd:r.company.planEnd
-    
+
  }))
 
   let user_db=new PouchDB('user-'+user.id)
@@ -103,7 +103,8 @@ async function applyLicenseUpdate(r){
   _user.companies_details=companies_details
   await user_db.put(_user)
   toast.success(t('common.license-updated'))
-  setCheckingPlanUpdate('updating')
+  setLoaderUpdate('updating')
+
   setTimeout(()=>{
       if(window.electron){
         window.electron.ipcRenderer.send('relaunch')
@@ -111,11 +112,7 @@ async function applyLicenseUpdate(r){
         window.location.reload()
       }
   },5000)
-
-
 }
-
-
 
   return (
     <>
@@ -126,13 +123,15 @@ async function applyLicenseUpdate(r){
                   {licenseInfo?.status==0 && <div onClick={()=>{
                       setShowLicensePopUp(false)
                   }} className="bg-[#ff4800] cursor-pointer absolute right-3 top-3 hover:opacity-90 w-[40px] h-[40px] rounded-full flex items-center justify-center">
+                            
                             <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
+                  
                   </div>}
 
                  <span className="mb-5 text-[20px]">{t('common.subscription-plan')}</span>
 
                  <div className=" bg-white p-[30px] rounded-[0.8rem] w-[500px] max-md:w-[90%]">
-                               {licenseInfo?.status==0 ? <div>
+                               {licenseInfo?.status!=0 ? <div>
                                  <div className="flex items-center">
                                     <span className="shadow-inner  block px-5 py-2 rounded-full mr-5 bg-app_orange-50 text-app_orange-400">
                                       {t('common.expires-in')}  <label className=" font-bold">{licenseInfo?.left_days} {t('common.days')}</label>
@@ -151,7 +150,7 @@ async function applyLicenseUpdate(r){
                                <div className="flex">
 
                                   <button  className="bg-app_orange-400 text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{
-                                       _selectupgradeProcress()
+                                       _selectupgradeProcress(null,'changing')
                                   }}>{t('common.change-plan')}</button>
 
                                   <button  className="bg-gray-400 ml-4 text-white px-3 py-2 rounded-[0.3rem] cursor-pointer hover:opacity-75" onClick={()=>{

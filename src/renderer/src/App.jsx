@@ -70,6 +70,7 @@ import Opens from '../src/landingpage/pages/opens';
 import Invoice from '../src/landingpage/pages/invoice/index';
 import Terms from './landingpage/pages/terms-and-conditions';
 import Privacy from './landingpage/pages/privacy-policy';
+import Home from './landingpage/pages/home/index'
 
 
 
@@ -85,8 +86,8 @@ function App() {
     <HashRouter>
       <Routes>
         
-
-        <Route path="/" element={<ProtectedRoute redirectTo="/login"> <Dashboard/></ProtectedRoute>} /> 
+        <Route path="/" element={<Home/>} /> 
+        <Route path="/dashboard" element={<ProtectedRoute redirectTo="/login"> <Dashboard/></ProtectedRoute>} /> 
         <Route path="/bills-to-pay" element={<ProtectedRoute redirectTo="/login"> <BillsToPay/></ProtectedRoute>} />
         <Route path="/bills-to-receive" element={<ProtectedRoute redirectTo="/login"> <BillsToReceive/> </ProtectedRoute>} />
         <Route path="/bills-to-pay/create" element={<ProtectedRoute redirectTo="/login"> <CreateBills/> </ProtectedRoute>} />

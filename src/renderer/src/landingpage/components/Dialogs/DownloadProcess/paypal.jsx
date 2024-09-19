@@ -64,6 +64,7 @@ const PayPalButton = ({method,setMedthod,activePage,setActvePage,updatePlanRes,s
          company_name:d.form.company_name,
          plan:d.form.plan,
          type:d.form.type,
+         changingPlan:d.form.changingPlan,
          admin_id:d.form.admin_id,
          period:d.form.showAnualPlans ? 'anual' : 'monthly',
          last_name:d.form.last_name,

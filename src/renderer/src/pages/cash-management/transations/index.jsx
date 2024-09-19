@@ -28,7 +28,7 @@ function App() {
                 let total=from.map(item => (item.type=="out" ? - (parseFloat(item.amount)) : parseFloat(item.amount))).reduce((acc, curr) => acc + curr, 0);
                 res[o]={
                 ...res[o],
-                total:data._cn(total)
+                total:data._cn(total).replaceAll('-','')
               }
       })
 

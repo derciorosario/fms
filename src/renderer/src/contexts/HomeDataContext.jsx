@@ -61,6 +61,7 @@ export const HomeDataProvider = ({ children }) => {
 
     function register(d){
       setForm({...form,email:form.email1,done:form.email==form.email1 ? form.done : 0,name:'',proof_ok:false,method:null,plan:d?.plan,showAnualPlans:d?.showAnualPlans})
+      console.log({d})
       setDialogs({...dialogs,register:true,download:false})
     }
 

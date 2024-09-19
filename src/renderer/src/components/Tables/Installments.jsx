@@ -8,7 +8,7 @@ import colors from '../../assets/colors.json'
 import { t } from 'i18next';
 
 
-export default function CircularIndeterminate({items,setFormData,formData,page,disabled}) {
+export default function CircularIndeterminate({items,setFormData,formData,page,disabled,type}) {
  
   const [res,setRes]=React.useState([]) 
 
@@ -49,13 +49,13 @@ export default function CircularIndeterminate({items,setFormData,formData,page,d
         <thead class="text-xs text-gray-900 uppercase rounded-[1rem]  bg-gray-50">
             <tr className="[&>_th]:px-3 [&>_th]:py-2">
                 <th scope="col">
-                    {page == 'pay' ? t('common.amount-to-pay') : t('common.amount-to-receive')}
+                    {type == 'pay' ? t('common.amount-to-pay') : t('common.amount-to-receive')}
                 </th>
                 <th scope="col">
-                    {page == 'pay' ? t('common.paid') : t('common.received')}
+                    {type == 'pay' ? t('common.paid') : t('common.received')}
                 </th>
                 <th scope="col">
-                    {page == 'pay' ? t('common.receivingday') : t('common.payday')}
+                    {type != 'pay' ? t('common.receivingday') : t('common.payday')}
                 </th>
                 <th scope="col">
                     {t('common.state')}

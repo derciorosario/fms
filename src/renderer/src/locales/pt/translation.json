@@ -77,6 +77,7 @@
         "billsToReceiveInDelay": "Contas a receber em atraso"
 
     },
+
     "billsToPayTable":{
       "accountsToPay":"Contas a pagar",
       "accountsToReceive":"Contas a receber",
@@ -91,7 +92,8 @@
     "balanceByAccounts":"Saldo por contas",
     "inflowsByAccounsPlan":"Entradas por plano de contas",
     "outflowsByAccounsPlan":"Saídas por plano de contas",
-    "weekBalance":"Saldo da semana"
+    "weekBalance":"Saldo da semana",
+    "dailyCashier":"Caixa diário"
   },
   "section":{
    "ask-for-accounting-1":"Solicite já a sua cotação e nos deixe fazer parte da sua jornada de transformação.",
@@ -135,7 +137,21 @@
   },
 
  "common":{
-
+  "action":"Acção",
+  "license-end":"Termino da licença",
+  "renovation":"Renovação",
+  "_change":"Mudança",
+  "total-initial-balance":"Total inicial",
+  "total-moviments":"Total de movimentos",
+  "moviments":"Movimentos",
+  "final-balance":"Saldo final",
+  "initial-balance":"Saldo inicial",
+  "loan-source":"Fonte de empréstimo",
+  "activate":"Activar",
+  "reactivate":"Reactivar",
+  "cancelling-subs":"A cancelar subscrição...",
+  "balance-details":"Detalhes do saldo",
+  "debtor":"Devedor",
   "faq-1": "O que é CRM?",
   "faq-1-description": "O CRM (Customer Relationship Management) é uma ferramenta que ajuda as empresas a gerenciar e analisar interações com clientes e dados ao longo do ciclo de vida do cliente, visando melhorar o relacionamento e impulsionar as vendas.",
   "faq-2": "Como posso redefinir minha senha?",
@@ -169,7 +185,7 @@
   "faq-16": "O que é ERP?",
   "faq-16-description": "O ERP (Enterprise Resource Planning) é um sistema integrado que ajuda as empresas a gerenciar e automatizar seus processos de negócios, como finanças, recursos humanos, e operações, tudo em uma única plataforma.",
 
-  "license-updated":"Licença actualiada",
+  "license-updated":"Licença actualizada",
   "activating-license":"A activar licença...",
   "no-updated-license":"Não foi encontrada nenhuma nova actualização",
   "check-plan-update":"Verificar actualização",
@@ -368,6 +384,7 @@
   "see-details": "Ver detalhes",
   "cash-management": "Fluxo de caixa",
   "monthy-cash-managment": "Fluxo de caixa mensal",
+  "weekly-cash-managment": "Fluxo de caixa semanal",
   "edit-profile": "Editar perfil",
   "clear": "Limpar",
   "clear-data": "Limpar dados",
@@ -462,6 +479,7 @@
   "change": "Alterar",
   "change-password": "Alterar senha",
   "amount-to-pay": "Valor a pagar",
+  "amount-to-receive":"Valor a receber",
   "beneficie": "Beneficiário",
   "fill-all-requied-fields": "Preencha todos os campos obrigatórios",
   "required-field": "Campo obrigatório",
@@ -537,6 +555,7 @@
     "investor": "Investidor",
     "supplier": "Fornecedor",
     "transaction": "Transação",
+    "transactions": "Transações",
     "bills-to-pay": "Contas a pagar",
     "bills-to-receive": "Contas a receber",
     "bill-to-pay": "Conta a pagar",
@@ -715,6 +734,15 @@
       "companies": "Empresas"
     },
     "weeks": {
+    "monday": "Segunda",
+    "tuesday": "Terça",
+    "wednesday": "Quarta",
+    "thursday": "Quinta",
+    "friday": "Sexta",
+    "saturday": "Sábado",
+    "sunday": "Domingo"
+  },
+  "_weeks": {
     "monday": "Segunda-feira",
     "tuesday": "Terça-feira",
     "wednesday": "Quarta-feira",
@@ -831,6 +859,10 @@
     "wholesale": "Atacado"
   },
   "messages":{
+      "confirm-registration-plan-change":"Você tem uma plan {{plan}} pago que inicia em:",
+      "the-subscriptions-will-end-at":"Subscrição agendada para ser cancelada em:",
+      "are-you-looking-to-change-your-plan":"Está para mudar o seu plano? Temos as opções ideias para si.",
+      "renew-your-package-quickly-and-easily":"Faça a renovação do seu pacote de forma simples e rápida.",
       "no-opens-in-the-momment":"Sem vagas no momento",
       "tesmemunial-msg":"Ainda não tem o seu negócio na mão? Adira agora à ProConta e descubra o que eles descobriram",
       "license-ends-in":"Sua licença expira em:",

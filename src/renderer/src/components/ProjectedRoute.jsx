@@ -31,10 +31,13 @@ import Home from '../../src/landingpage/pages/home/index'
   if (loading || destroying) {
       return <PageLoader/>;
   }else if(!user && !loading && !destroying){
+     // alert(JSON.stringify({user,loading,destroying}))
       return <Navigate to={'/login'} replace />
   }else {
     return isAuthenticated ? children : <Navigate to={redirectTo} replace />;
   }
+
+
 
 };
 

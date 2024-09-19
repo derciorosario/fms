@@ -7,7 +7,7 @@ import CircularIndeterminate from '../../loaders/progress'
 import colors from '../../../assets/colors.json'
 import { useHomeData } from '../../../../contexts/HomeDataContext'
 
-function SendProof({message,setMessage}) {
+function SendProof({message,setMessage,setProofSent}) {
 
   const [status,setStatus] =  useState()
   const [progress,setProgress]=useState(0)
@@ -52,6 +52,8 @@ function SendProof({message,setMessage}) {
         }
         const invoice_number=Math.random().toString().slice(2,10)
         data.setLoading(true)
+        
+
         const _formData = new FormData();
         let key=Math.random().toString().slice(3,15)
         _formData.append('from','landingpage');
@@ -71,6 +73,7 @@ function SendProof({message,setMessage}) {
             admin_id:data.form.admin_id,
             type:data.form.type,
             invoice_number,
+            changingPlan:data.form.changingPlan,
             payment_method:t('common.transfer'),
             date:new Date().toISOString(),
             key}))
@@ -95,6 +98,7 @@ function SendProof({message,setMessage}) {
           setMessage(t('common.wait-for-approval'))
           localStorage.setItem('form',JSON.stringify({...data.form,restart:true,proof_ok:true}))
           let form={...data.form,proof_ok:true}
+          setProofSent(true)
           data.update(form)
 
        }catch(e){

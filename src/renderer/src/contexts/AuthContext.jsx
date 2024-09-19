@@ -18,16 +18,15 @@ export const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState(false);
   const [db, setDB] = useState({});
   const [loadingLocalUser,setloadingLocalUser]=useState(null)
-  const [destroying,setDestroying]=useState(localStorage.getItem('destroying') ? true : false)
+  const [destroying,setDestroying]=useState(localStorage.getItem('destroying') ? true : false) //localStorage.getItem('destroying') ? true : false
   const [changingCompany,setChangingCompany]=useState(false)
   if(!localStorage.getItem('dbs')) localStorage.setItem('dbs',JSON.stringify([]))
   const [remoteDBs,setRemoteDBs]=useState([])
-  const [db_names,setDBNames]=useState({})
   const [goToApp,setGoToApp]=useState(null)
   const [licenseInfo,setLicenseInfo]=useState(null)
   const [showLicensePopUp,setShowLicensePopUp]=useState(false)
   const [showLicenseTopPopUp,setShowLicenseTopPopUp]=useState(false)
-  const [checkingPlanUpdate, setCheckingPlanUpdate]=useState(false)
+  const [loaderUpdate, setLoaderUpdate]=useState(false)
 
 
   const publicKey=
@@ -105,8 +104,6 @@ or6lGHBd11hL2gDr/f8BYQIDAQAB
       } 
     }
 
-    
-
 }
 
 
@@ -161,7 +158,7 @@ or6lGHBd11hL2gDr/f8BYQIDAQAB
 
       }
      
-     
+
     } catch (error) {
       console.log(error)
       setloadingLocalUser(false)
@@ -257,11 +254,16 @@ or6lGHBd11hL2gDr/f8BYQIDAQAB
           setTimeout(()=>window.location.reload(),500)
         }
     }else{
-
         if(!window.electron){
-          setTimeout(()=>window.location.href="/",500)
+          setTimeout(()=>{
+            window.location.href="/#/dashboard"
+            window.location.reload()
+          },500)
         }else{
-          setTimeout(()=>setReload('/'),500)
+          setTimeout(()=>{
+            setReload('/#/dashboard')
+            setReload('/#/dashboard')
+          },500)
         }
     }
 
@@ -289,11 +291,17 @@ or6lGHBd11hL2gDr/f8BYQIDAQAB
       if(_r){
         return
       }else{
-        if(window.electron){
+       /* if(window.electron){
           window.electron.ipcRenderer.send('relaunch')
         }else{
           window.location.reload()
-        }
+        }*/
+
+          if(!window.electron){
+            window.location.href="/"
+          }else{
+            setReload('/')
+          }
       }
 
   }
@@ -455,7 +463,7 @@ async function update_user(userData){
     useEffect(() => {
 
     //logout()
-     
+
       const fetchUserData = async () => {
 
         try {
@@ -476,14 +484,19 @@ async function update_user(userData){
                   toast.error('Sessão expirou!')
             }
 
-            if(loadingLocalUser==false)  logout()
+            if(loadingLocalUser==false) {
+            // logout()
+            }
 
           }
         } catch (error) {
              console.error('Error fetching user data:', error);
-             if(loadingLocalUser==false) logout()
+             if(loadingLocalUser==false){
+            // logout()
+            }
+
         } finally {
-          setLoading(false);
+          //setLoading(false);
         }
       };
 
@@ -492,9 +505,10 @@ async function update_user(userData){
       }
 
       if (isAuthenticated && !user && loading && token) {
+      
         fetchUserData();
       } else {
-        setLoading(false);
+        //setLoading(false);
       }
      }, [isAuthenticated, user, token,loadingLocalUser]);
 
@@ -502,9 +516,11 @@ async function update_user(userData){
    
 
   return (
-    <AuthContext.Provider value={{showLicenseTopPopUp,setShowLicenseTopPopUp,checkingPlanUpdate, setCheckingPlanUpdate,licenseInfo,setLicenseInfo,showLicensePopUp,setShowLicensePopUp,setReload,reload,goToApp,setGoToApp,startover,update_user_data_from_db,changingCompany,remoteDBs,setRemoteDBs,_change_company,db,APP_BASE_URL,COUCH_DB_CONNECTION,FRONT_URL,user,update_user,setDestroying,destroying,login, logout, isAuthenticated , loading, setUser, setLoading, token,auth}}>
+    
+    <AuthContext.Provider value={{showLicenseTopPopUp,setShowLicenseTopPopUp,loaderUpdate, setLoaderUpdate,licenseInfo,setLicenseInfo,showLicensePopUp,setShowLicensePopUp,setReload,reload,goToApp,setGoToApp,startover,update_user_data_from_db,changingCompany,remoteDBs,setRemoteDBs,_change_company,db,APP_BASE_URL,COUCH_DB_CONNECTION,FRONT_URL,user,update_user,setDestroying,destroying,login, logout, isAuthenticated , loading, setUser, setLoading, token,auth}}>
            {children}
     </AuthContext.Provider>
+
   );
 };
 

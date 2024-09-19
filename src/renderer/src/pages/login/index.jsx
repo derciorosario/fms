@@ -24,7 +24,7 @@ function App() {
    const [loading, setLoading]=React.useState(false)
    const [loginRespose, setLoginResponse]=React.useState(null)
    const {pathname} = useLocation()
-   const [recoverPassword, setRecoverPassword]=React.useState(pathname.replaceAll('/','').startsWith('recover-password'))
+   const [recoverPassword, setRecoverPassword]=React.useState(pathname.replaceAll('/dasboard','').startsWith('recover-password'))
    const [initialized,setinitialized]=React.useState(false)
    const [registrationSuccess,setRegistrationSuccess]=React.useState('')
    const [searchParams, setSearchParams] = useSearchParams();
@@ -133,6 +133,9 @@ function App() {
         setCompanies([])
         if(!company) return
 
+
+     
+
         setLoading(true)
 
 
@@ -145,10 +148,17 @@ function App() {
              return
         }
 
-        navigate('/')
+
+
+          if(!window.electron){
+            window.location.href="/#/dashboard"
+          }else{
+            setReload('/#/dashboard')
+          }
    }
 
-   
+   console.log({user})
+
    
    async function handleLogin(){
 

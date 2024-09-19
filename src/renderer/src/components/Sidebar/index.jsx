@@ -153,7 +153,7 @@ function App({float}) {
   
    
     let menuItems=[
-        {name:t('sidebar.main.dashboard'),path:'/',paths:[''],field:'dashboard',icon:'GridViewIcon'},
+        {name:t('sidebar.main.dashboard'),path:'/dashboard',paths:['/dashboard'],field:'dashboard',icon:'GridViewIcon'},
 
         {name:t('sidebar.main.accounts'),field:'payments',icon:'PaymentsOutlinedIcon',sub_menus:[
             {name:t('sidebar.accounts.toPay'),path:'/bills-to-pay',paths:['bills-to-pay','bills-to-pay/create','bills-to-pay/:id'],icon:'PaymentsOutlinedIcon'},
@@ -244,7 +244,7 @@ function App({float}) {
       }}
      onMouseLeave={()=>{
        if(float)  _setMenu({..._menu,float:false,openDropDown:[]})
-     }} className={` bg-app_black-900 h-lvh pl-2 py-4 ${_menu.open ? ' min-w-[150px]':'min-w-[48px]'} ${float && !_menu.float ? '-translate-x-[100%]':''} transition duration-75 ease-in-out  overflow-y-auto ${float && _menu.open? 'hidden':''} ${float ? 'absolute z-10':'relative'} overflow-x-hidden`}>
+     }} className={` bg-app_black-900 h-lvh pl-2 _sidebar py-4 ${_menu.open ? ' min-w-[150px]':'min-w-[48px]'} ${float && !_menu.float ? '-translate-x-[100%]':''} transition duration-75 ease-in-out  overflow-y-auto ${float && _menu.open? 'hidden':''} ${float ? 'absolute z-10':'relative'} overflow-x-hidden`}>
            <div className="mb-8 flex items-center">
               <div  className="cursor-pointer translate-x-1" onClick={openCloseMenu}><BurgerIcon sx={{color:'#ddd'}} style={{width:30,height:30}}/></div>
               

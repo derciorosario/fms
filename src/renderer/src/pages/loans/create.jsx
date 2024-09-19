@@ -689,9 +689,9 @@ import { useAuth } from '../../contexts/AuthContext';
                               sx={{ width: 300 }}
                               renderInput={(params) => <TextField {...params}
                               onBlur={()=>validate_feild('reference')}
-                              helperText={formData.reference.name && !formData.reference.id ? `(${t('common.new')} ${t('common.investor')} ${t('common.will-be-added')})` :''}
+                              helperText={formData.reference.name && !formData.reference.id ? `(${t('common.new')} ${t('common.loan-source')} ${t('common.will-be-added')})` :''}
                               sx={{'& .MuiFormHelperText-root': {color:formData.reference.name && !formData.reference.id ? 'green' : 'crimson'}}}
-                              value={formData.reference.name}  label={t('common.investor')}
+                              value={formData.reference.name}  label={t('common.loan-source')}
                               
                               />}
                               />   

@@ -12,10 +12,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { t } from 'i18next';
 import PlanWarnning from '../components/Dialogs/planWarnning';
 import PlanWarnningTopBar from '../components/Dialogs/planWarnningTopBar';
+import ShowBalanceDetails from '../components/PopUps/showBalanceDetails';
 
 const DefaultLayout = ({ children , details ,isPopUp,loading,_isLoading}) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const {changingCompany,showLicensePopUp,checkingPlanUpdate,showLicenseTopPopUp} = useAuth()
+  const {changingCompany,showLicensePopUp,loaderUpdate,showLicenseTopPopUp} = useAuth()
 
   const {_openPopUps,_loading,_openCreatePopUp,_setOpenCreatePopUp,initSyncStatus,_menu} = useData()
 
@@ -25,10 +26,10 @@ const DefaultLayout = ({ children , details ,isPopUp,loading,_isLoading}) => {
   }
  
   
-  if(checkingPlanUpdate || loading || _loading || changingCompany || (initSyncStatus!="completed" && initSyncStatus!="cancelled")){
+  if(loaderUpdate || loading || _loading || changingCompany || (initSyncStatus!="completed" && initSyncStatus!="cancelled")){
      return (
 
-         <PageLoader message={checkingPlanUpdate==true ? t('messages.checking-license') : checkingPlanUpdate=="updating" ? t('common.activating-license') : ''}/>
+         <PageLoader message={loaderUpdate==true ? t('messages.checking-license') : loaderUpdate=="updating" ? t('common.activating-license') : loaderUpdate=="cancelling-subs" ? t('common.cancelling-subs') : ''}/>
              
      )
   }
@@ -42,7 +43,6 @@ const DefaultLayout = ({ children , details ,isPopUp,loading,_isLoading}) => {
      )
   }
 
-  
   
   return (
       <>
@@ -76,7 +76,9 @@ const DefaultLayout = ({ children , details ,isPopUp,loading,_isLoading}) => {
                     
               </div>
           {showLicenseTopPopUp && <PlanWarnningTopBar/>}
-          <Search show={_openPopUps.search}/>
+          <Search show={_openPopUps.search}/> 
+          <ShowBalanceDetails show={_openPopUps.balance_details}/> 
+          
           {/* <!-- ===== Header Start ===== --> */}
           <Header details={details} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} _isLoading={_isLoading} />
           

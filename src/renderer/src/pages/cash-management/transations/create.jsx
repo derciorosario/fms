@@ -306,7 +306,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                  if(formData.account.id && formData.link_payment){
                      let account=accountOptions.filter(i=>i.id==formData.account.id)[0]
                      setAccountDetails(account)
-                     setTransationAccountOptions([{name:t('common.add_new')},..._account_categories.filter(i=>i.account_origin==account.account_origin)])
+                     setTransationAccountOptions([{name:t('common.add_new')},..._account_categories.filter(i=>i.account_origin==account?.account_origin)])
                      setFormData({...formData,
                      loan_id:account.loan_id,
                      payments:formData.payments.length==1 && !formData.payments[0].amount ? [{...formData.payments[0],amount:parseFloat(account.amount) - parseFloat(account.paid ? account.paid : 0)}] : formData.payments,
@@ -917,7 +917,7 @@ import DefaultUpload from '../../../components/Files/default-upload';
                                 disabled={(!formData.account_origin ? true : false) }
                                 renderInput={(params) => <TextField {...params}
                                 helperText={!formData.reference.id && formData.reference.name ? `(${t('common.new')} ${type=="in" ? (formData.account_origin=="loans_in" ? t('common.investor') : t('common.client'))  : (formData.account_origin == "loans_out" ? t('common.investor') :t('common.supplier'))} ${t('common.will-be-added')}) `: ''}
-                                value={formData.reference.name}  label={t('common.beneficie')}   />}
+                                value={formData.reference.name}  label={type=="out" ?  t('common.beneficie') :  t('common.debtor')}   />}
                                 />   
                             </div>
 

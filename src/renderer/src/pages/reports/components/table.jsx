@@ -6,7 +6,7 @@ import { t } from 'i18next';
 
 function StatsTable({content}) {
 
-    const {_account_categories} = useData()
+    const {_account_categories,_cn} = useData()
 
     
     let {period,data,filterOptions,showIcons,currentMenu} = content
@@ -22,10 +22,10 @@ function StatsTable({content}) {
 
     },[filterOptions])
 
-    
+  
     return (
     <>
-      <div class={`relative overflow-x-auto shadow mb-[100px] _project_${project}`}>
+      <div class={`relative ${currentMenu==1 ? 'max-w-[800px]':''}  overflow-x-auto shadow mb-[100px] _project_${project}`}>
 
 {/***   monthly   *** */}
 {period=="m" && <table class={` ${period=="d" ? 'hidden' :''} _show${currentMenu} ${project==2 ? '_done' :''} ${project==3 ? '_projected':''} _montly _table_stats w-full text-sm text-left rtl:text-right `}>
@@ -67,6 +67,8 @@ function StatsTable({content}) {
         </tr>
 
 
+
+
         {data.map((i,_i)=>(
                        <>
                        <tr key={'i1'+_i}  class="[&>_td]:px-6 [&>_td]:py-4 [&>_td]:min-h-[50px] bg-white border-b">
@@ -81,9 +83,9 @@ function StatsTable({content}) {
                        {i.items.map((i2,_i2)=>(
                            
                             <>
-                                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i2 ? 'bg-blue-50':''} ${project==2 ? 'hidden':''}`} style={{color:i2.projected < 0 ? 'crimson' : i.color }}>{i2.projected.toFixed(2)}</td>
-                                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i2 ? 'bg-blue-50':''} ${project==3 ? 'hidden':''}`} style={{color:i2.done < 0 ? 'crimson' : i.color }}>{i2.done.toFixed(2)}</td>
-                                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i2 ? 'bg-blue-50':''} ${project!=1 ? 'hidden':''}`} style={{color:i2.percentage < 0 ? 'crimson' : i.color }}>{i2.percentage.toFixed(0)}%</td>
+                                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i2 ? 'bg-blue-50':''} ${project==2 ? 'hidden':''}`} style={{color:i2.projected < 0 ? 'crimson' : i.color }}>{i2.projected < 0 ? `(${_cn(i2.projected).replaceAll('-','')})`: _cn(i2.projected).replaceAll('-','')}</td>
+                                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i2 ? 'bg-blue-50':''} ${project==3 ? 'hidden':''}`} style={{color:i2.done < 0 ? 'crimson' : i.color }}>{ i2.done < 0 ? `(${_cn(i2.done).replaceAll('-','')})`: _cn(i2.done).replaceAll('-','')}</td>
+                                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i2 ? 'bg-blue-50':''} ${project!=1 ? 'hidden':''}`} style={{color:i2.percentage < 0 ? 'crimson' : i.color }}>{i2.percentage < 0 ? `(${_cn(i2.percentage).replaceAll('-','')})`: _cn(i2.percentage).replaceAll('-','')}%</td>
                            </>
 
                         )).filter((_,_i)=>currentMenu!=1 || _i==month)}
@@ -104,11 +106,11 @@ function StatsTable({content}) {
                                     {i2.items.map((i3,_i3)=>(
                                         
                                          <>
-                                             <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i3 ? 'bg-blue-50':''} ${project==2 ? 'hidden':''}`} style={{color:i3.projected < 0 ? 'crimson' : 'initial' }}>{i3.projected.toFixed(2)}</td>
-                                             <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i3 ? 'bg-blue-50':''} ${project==3 ? 'hidden':''}`} style={{color:i3.done < 0 ? 'crimson' : 'initial' }}>{i3.done.toFixed(2)}</td>
-                                             <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i3 ? 'bg-blue-50':''} ${project!=1 ? 'hidden':''}`} style={{color:i3.percentage < 0 ? 'crimson' : 'initial' }}>{i3.percentage.toFixed(0)}%</td>
-                                        </>
-             
+                                             <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i3 ? 'bg-blue-50':''} ${project==2 ? 'hidden':''}`} style={{color:i3.projected < 0 ? 'crimson' : 'initial' }}>{i3.projected  < 0 ? _cn(i3.projected).replaceAll('-','') : i3.projected  < 0}</td>
+                                             <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i3 ? 'bg-blue-50':''} ${project==3 ? 'hidden':''}`} style={{color:i3.done < 0 ? 'crimson' : 'initial' }}>{_cn(i3.done).replaceAll('-','')}</td>
+                                             <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i3 ? 'bg-blue-50':''} ${project!=1 ? 'hidden':''}`} style={{color:i3.percentage < 0 ? 'crimson' : 'initial' }}>{_cn(i3.percentage).replaceAll('-','')}%</td>
+                                         </>
+
                                      )).filter((_,_i)=>currentMenu!=1 || _i==month)}
                                     </tr>
 
@@ -124,9 +126,9 @@ function StatsTable({content}) {
                                                         {i3.items.map((i4,_i4)=>(
                                         
                                                               <>
-                                                                    <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i4 ? 'bg-blue-50':''} ${project==2 ? 'hidden':''}`} style={{color:i4.projected < 0 ? 'crimson' : 'initial' }}>{i4.projected.toFixed(2)}</td>
-                                                                    <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i4 ? 'bg-blue-50':''} ${project==3 ? 'hidden':''}`} style={{color:i4.done < 0 ? 'crimson' : 'initial' }}>{i4.done.toFixed(2)}</td>
-                                                                    <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i4 ? 'bg-blue-50':''} ${project!=1 ? 'hidden':''}`} style={{color:i4.percentage < 0 ? 'crimson' : 'initial' }}>{i4.percentage.toFixed(0)}%</td>
+                                                                    <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i4 ? 'bg-blue-50':''} ${project==2 ? 'hidden':''}`} style={{color:i4.projected < 0 ? 'crimson' : 'initial' }}>{_cn(i4.projected).replaceAll('-','')}</td>
+                                                                    <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i4 ? 'bg-blue-50':''} ${project==3 ? 'hidden':''}`} style={{color:i4.done < 0 ? 'crimson' : 'initial' }}>{_cn(i4.done).replaceAll('-','')}</td>
+                                                                    <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i4 ? 'bg-blue-50':''} ${project!=1 ? 'hidden':''}`} style={{color:i4.percentage < 0 ? 'crimson' : 'initial' }}>{_cn(i4.percentage).replaceAll('-','')}%</td>
                                                               </>
                                               
                                                         )).filter((_,_i)=>currentMenu!=1 || _i==month)}
@@ -170,8 +172,8 @@ function StatsTable({content}) {
            <td></td>
             {Array.from({ length: 3 }, () => 0).map((i,_i)=>(
                 <>
-                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i ? 'bg-blue-50':''} ${project==2 ? 'hidden':''}`}>{t('common.projected')}</td>
-                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i ? 'bg-blue-50':''} ${project==3 ? 'hidden':''}`}>{t('common.done')}</td>
+                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i ? 'bg-blue-50':''} ${project==2 ? 'hidden':''}`}>{t('common.projected').replaceAll('-','')}</td>
+                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==_i ? 'bg-blue-50':''} ${project==3 ? 'hidden':''}`}>{t('common.done').replaceAll('-','')}</td>
                 </>
             ))}
         </tr>
@@ -186,8 +188,8 @@ function StatsTable({content}) {
                        {i.items.map((i2,_i2)=>(
                            
                             <>
-                                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==88 ? 'bg-blue-50':''} ${project==2 ? 'hidden':''}`} style={{color:i2.projected < 0 || _i2==1 ? 'crimson' : _i2==0 ? 'rgb(22, 163, 74)' :  '#111' }}>{i2.projected.toFixed(2)}</td>
-                                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==99 ? 'bg-blue-50':''} ${project==3 ? 'hidden':''}`} style={{color:i2.done < 0 || _i2==1 ? 'crimson' : _i2==0 ? 'rgb(22, 163, 74)' : '#111'}}>{i2.done.toFixed(2)}</td>
+                                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==88 ? 'bg-blue-50':''} ${project==2 ? 'hidden':''}`} style={{color:i2.projected < 0 || _i2==1 ? 'crimson' : _i2==0 ? 'rgb(22, 163, 74)' :  '#111' }}>{i2.projected < 0 ?  `(${_cn(i2.projected).replaceAll('-','')})` :  _cn(i2.projected).replaceAll('-','')}</td>
+                                <td className={`${new Date().getFullYear() == year && new Date().getMonth()==99 ? 'bg-blue-50':''} ${project==3 ? 'hidden':''}`} style={{color:i2.done < 0 || _i2==1 ? 'crimson' : _i2==0 ? 'rgb(22, 163, 74)' : '#111'}}>{i2.projected < 0 ? `(${_cn(i2.done).replaceAll('-','')})`  :_cn(i2.done).replaceAll('-','') }</td>
                            </>
 
                         ))}

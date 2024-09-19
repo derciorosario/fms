@@ -7,7 +7,7 @@ function PlanWarnningTopBar() {
   const {licenseInfo,setShowLicenseTopPopUp} = useAuth()
   const navigate=useNavigate()
   return (
-    <div className="w-full flex items-center justify-between shadow-inner px-5 py-2  mr-5 bg-app_orange-50 text-app_orange-400 border-b-2 border-b-app_orange-100">
+    <div className={`w-full flex items-center justify-between shadow-inner px-5 py-2  mr-5 ${parseFloat(licenseInfo?.left_days)  >= 15 ? 'bg-green-200 text-green-600 border-b-green-100':'bg-app_orange-50 text-app_orange-400 border-b-app_orange-100'} border-b-2`}>
            <span className="">{t('messages.license-ends-in')} <label className=" font-bold">{licenseInfo?.left_days} {t('common.days')}</label></span>
            <div className="flex  items-center">
                 <div className="m-2">

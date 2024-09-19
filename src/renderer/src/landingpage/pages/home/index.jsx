@@ -16,7 +16,6 @@ import { useNavigate } from 'react-router-dom'
 import TransaparentPageLoader from '../../../components/progress/transparentPageloader'
 import Demostration from '../../components/Dialogs/demostration'
 import Quotation from '../../components/Dialogs/quotation'
-import { Category } from '@mui/icons-material'
 import ClientsSlider from '../../components/slides/clients'
 
 function index() {
@@ -503,13 +502,13 @@ function index() {
                     <h3 class="max-w-[900px] max-md:text-[27px] mx-auto text-center text-[30px] font-semibold mb-6">
                             
                             {i18n.language=="pt" ? <>
-                                Ainda não tem o seu negócio na mão? Adira agora à <span className="text-[#ff7626]">ProConta</span> e descubra o que <span className="text-[#ff7626]">eles descobriram</span>   
+                                Ainda não tem o <span className="text-[#ff7626]">seu negócio na mão</span>? Adira agora à <span className="text-[#ff7626]">ProConta</span> e descubra o que <span className="text-[#ff7626]">eles descobriram</span>   
                             </>:<>
-                                Still don't have your business under control? Join <span className="text-[#ff7626]">ProConta</span> now and discover what <span className="text-[#ff7626]">they've discovered</span>.
+                                Still don't have your <span className="text-[#ff7626]"> business under control</span>? Join <span className="text-[#ff7626]">ProConta</span> now and discover what <span className="text-[#ff7626]">they've discovered</span>.
                             </>}
                     </h3>
                   </div>
-                  <div className="max-w-[80%] my-[50px] mb-[190px] p-16 rounded-[1.4rem] bg-gray-300 mx-auto testemunial relative">
+                  <div className="max-w-[80%] my-[50px] mb-[190px] p-16 rounded-[1.4rem] bg-gray-200 mx-auto testemunial relative">
                      
                   <div className="tesmemunial-bg absolute top-0 left-0 w-full h-full"></div>
                
@@ -524,16 +523,13 @@ function index() {
 
                   <div className="w-full max-lg:hidden">
                       <ClientsSlider autoplaySpeed={4000}/>
-                      <ClientsSlider autoplaySpeed={4000}/>
                   </div>
 
                   <div className="w-full max-lg:block hidden max-md:hidden">
                       <ClientsSlider slidesToShow={2} autoplaySpeed={4000}/>
-                      <ClientsSlider slidesToShow={2} autoplaySpeed={4000}/>
                   </div>
 
                   <div className="w-full max-md:block hidden">
-                      <ClientsSlider slidesToShow={1} autoplaySpeed={4000}/>
                       <ClientsSlider slidesToShow={1} autoplaySpeed={4000}/>
                   </div>
 
@@ -547,27 +543,20 @@ function index() {
 
             
 
-
-
-
-
-
-
-
-
                <div id="plans" className="px-7">
               
+              
                     {i18n.language=="pt" ?   <h3 className="max-w-[900px] mx-auto text-center text-[45px] font-semibold mb-6 max-md:text-[27px]"> <span className="text-[#ff7626]">Escolha o plano</span> que combina consigo e traga o seu negócio  para <span className="text-[#ff7626]">mais perto de si</span>.</h3>
-                      :   <h3 className="max-w-[700px] mx-auto text-center text-[45px] font-semibold mb-6 max-md:text-[27px]">Choose the best plan for you, without the fuss and guesswork.</h3>
+                      : <h3 className="max-w-[700px] mx-auto text-center text-[45px] font-semibold mb-6 max-md:text-[27px]">Choose the best plan for you, without the fuss and guesswork.</h3>
                     }
 
                
                            <div className="flex justify-center mt-20">
-                           <div className={`bg-gray-200 flex rounded-[0.3rem] p-1 px-[0.1rem] items-center cursor-pointer`}>
-                                         <span onClick={()=>setShowAnualPlan(false)} className={`text-[17px]  transition-all ease-in duration-75 ${!showAnualPlans ? 'bg-[#ff7626] text-white':'text-gray-500'} rounded-[0.3rem] py-2 px-2  flex w-[50%] mx-1`}>{t('common.per-month')}</span>
-                                         <span onClick={()=>setShowAnualPlan(true)} className={`text-[17px] transition-all ease-in duration-75 ${showAnualPlans ? 'bg-[#ff7626] text-white':'text-gray-500'} rounded-[0.3rem] py-2 px-2  flex w-[50%] mx-1`}>{t('common.per-year')}</span>
-                                         
-                             </div>
+                            <div className={`bg-gray-200 flex rounded-[0.3rem] p-1 px-[0.1rem] items-center cursor-pointer`}>
+                                            <span onClick={()=>setShowAnualPlan(false)} className={`text-[17px]  transition-all ease-in duration-75 ${!showAnualPlans ? 'bg-[#ff7626] text-white':'text-gray-500'} rounded-[0.3rem] py-2 px-2  flex w-[50%] mx-1`}>{t('common.per-month')}</span>
+                                            <span onClick={()=>setShowAnualPlan(true)} className={`text-[17px] transition-all ease-in duration-75 ${showAnualPlans ? 'bg-[#ff7626] text-white':'text-gray-500'} rounded-[0.3rem] py-2 px-2  flex w-[50%] mx-1`}>{t('common.per-year')}</span>
+                                            
+                                </div>
                            </div>
                      
                       <div  className="flex w-full max-md:flex-col items-start justify-center my-[80px]">
@@ -579,12 +568,13 @@ function index() {
                                      </span>
                                      <div className=" w-full px-10 h-full">
                                      {showAnualPlans && <p className="text-center text-gray-400  mb-3 text-[17px]">{t('common._save')} 1.500,00 MZN </p>
-                                    }
+                                     }
                                      <span className="text-[20px] font-semibold justify-center flex  items-end">{!showAnualPlans ? '1.500,00 MZN':'16.500,00 MZN'} <label className=" ml-1 text-[15px]">{!showAnualPlans ? t('common._per-month') : t('common._per-year')}</label></span>
                                     
                                      <button onClick={()=>{
                                             data.register({showAnualPlans,plan:'basic'})
                                      }} className="bg-black text-white px-8 w-full cursor-pointer hover:bg-app_primary-300 hover:scale-[1.1]  transition-all duration-75 py-3 my-5 rounded-full">{t('common.buy')}</button>
+                                    
                                      <div className="flex flex-col">
                                          <span className="flex items-center mb-4">
                                             <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
@@ -598,11 +588,9 @@ function index() {
                                             <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" fill="green"><path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
                                             <label className="ml-2 text-[15px]">{t('common.basic-plan-item-3')}</label>
                                          </span>
-                                         <div className={i18n.language=="pt" ? 'h-[73px]':'h-[36px]'}></div>
-                                         
-                                        
+                                         <div className={i18n.language=="pt" ? 'h-[76px]':'h-[36px]'}></div>
                                      </div>
-                                     </div>
+                                </div>
                          </div>
 
 
@@ -619,7 +607,9 @@ function index() {
                                      <span className="text-[20px] font-semibold justify-center flex  items-end">{!showAnualPlans ? '3.000,00 MZN':'32.500,00 MZN'} <label className=" ml-1 text-[15px]">{!showAnualPlans ? t('common._per-month') : t('common._per-year')}</label></span>
                                    
                                      <button onClick={()=>{
+
                                              data.register({showAnualPlans,plan:'advanced'})
+
                                      }} className="bg-black text-white px-8 w-full cursor-pointer hover:bg-app_primary-300 hover:scale-[1.1]  transition-all duration-75 py-3 my-5 rounded-full">{t('common.buy')}</button>
                                      <div className="flex flex-col">
                                          <span className="flex items-center mb-4">

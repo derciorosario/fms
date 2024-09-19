@@ -118,14 +118,14 @@ import { t } from 'i18next';
                    try{
                      if(id){
                         _update('investments',[{...formData}])
-                        toast.success(t('commmon.updated-successfully'))
+                        toast.success(t('common.updated-successfully'))
                      }else{
                        _add('investments',[{
                             ...formData,
                             id:uuidv4(),
                         }])
                         setFormData(initial_form)
-                        toast.success(t('commmon.added-successfully'))
+                        toast.success(t('common.added-successfully'))
                         setVerifiedInputs([])
                      }
                  }catch(e){

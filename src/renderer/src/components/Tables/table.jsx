@@ -370,7 +370,7 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
                    headerName: t('common.registed-amount'),
                    width: 150,
                    renderCell: (params) => (
-                     <span className={`${params.row.type=='out' ? 'text-red-600' : 'text-green-500'}`}>{params.row.type=='out' ? '-':''}{new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(params.row.payment.amount)}</span>
+                     <span className={`${params.row.type=='out' ? 'text-red-600' : 'text-green-500'}`}>{params.row.type=='out' ? `(${_cn(params.row.payment.amount)})` : _cn(params.row.payment.amount)}</span>
                    ),
                  },
 
@@ -906,12 +906,13 @@ export default function Table({page_settings,setSearch,setItemsToDelete,search,f
           <span>{parseFloat(params.row.has_initial_amount ? params.row.initial_amount : 0)  (data._transations.filter(f=>f.type == "in").map(f=>f.payments.filter(j=>j.account_id==params.row.id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0) - data._transations.filter(f=>f.type == "out").map(f=>f.payments.filter(j=>j.account_id==params.row.id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0))}</span>
         ),
       },*/
+
       ,{
         field: 'balance',
         headerName: t('common.balance'),
         width: 200,
         renderCell: (params) => (
-          <span>{parseFloat((data._transations.filter(f=>f.type == "in").map(f=>f.payments.filter(j=>j.account_id==params.row.id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0))) + parseFloat((params.row.initial_amount ? params.row.initial_amount : 0)) - parseFloat((data._transations.filter(f=>f.type == "out").map(f=>f.payments.filter(j=>j.account_id==params.row.id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0)))} </span>
+          <span>{parseFloat((data._transations.filter(f=>f.type == "in").map(f=>f.payments.filter(j=>j.account_id==params.row.id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0))) + parseFloat((params.row.has_initial_amount ? params.row.initial_amount : 0)) - parseFloat((data._transations.filter(f=>f.type == "out").map(f=>f.payments.filter(j=>j.account_id==params.row.id)).filter(f=>f[0]).map(f=>parseFloat(f[0].amount)).map(amount => parseFloat(amount)).reduce((acc, curr) => acc + curr, 0)))} </span>
         ),
       },
      

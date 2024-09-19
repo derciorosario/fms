@@ -31,8 +31,6 @@ export default function Search({show}) {
         array=array.concat(i.get.map(f=>({...f,n:i.n,_from:i.edit_name})))
       })
 
-    
-
       let c=data._search(searchContent,array).filter(i=>i.name || i.description || i.notes)
       c=c.map(i=>{
           let link=`/${i._from}/${i.id}`
@@ -45,9 +43,7 @@ export default function Search({show}) {
           return {...i,link}
       })
 
-      console.log(c)
       setContent(c)
-
 
   },[data._loaded,searchContent])
 

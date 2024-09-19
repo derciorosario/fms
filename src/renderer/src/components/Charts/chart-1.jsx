@@ -30,7 +30,6 @@ useEffect(() => {
   const handleResize = () => {
     if (chartRef?.current) {
 
-     console.log(chartRef.current.hartInstance)
     chartRef.current.chartInstance.resize();
     }
   };
@@ -54,13 +53,19 @@ useEffect(() => {
     maintainAspectRatio: false,
     plugins: {
       datalabels: {
-        display: false,
+        display: true,
+        color: 'white', 
+        formatter: (value) => {
+          return value ? value.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+        },
       },
+      
       title: {
         display: title || false, 
       },
       legend: {
-        display: lengend || true, 
+        display: lengend || false, 
+      
       },
     },
     scales: {
